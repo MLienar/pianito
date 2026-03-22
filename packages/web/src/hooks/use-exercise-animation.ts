@@ -7,9 +7,7 @@ export function useExerciseAnimation(tempo: number, isPlaying: boolean) {
   const lastTimeRef = useRef<number>(0);
   const tempoRef = useRef(tempo);
 
-  useEffect(() => {
-    tempoRef.current = tempo;
-  }, [tempo]);
+  tempoRef.current = tempo;
 
   const animate = useCallback((time: number) => {
     if (lastTimeRef.current === 0) {
@@ -33,10 +31,10 @@ export function useExerciseAnimation(tempo: number, isPlaying: boolean) {
     }
   }, [isPlaying, animate]);
 
-  function reset() {
+  const reset = useCallback(() => {
     setScrollOffset(0);
     cancelAnimationFrame(animationRef.current);
-  }
+  }, []);
 
   return { scrollOffset, reset };
 }

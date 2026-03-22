@@ -13,6 +13,8 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ReadRouteImport } from './routes/read'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReadIndexRouteImport } from './routes/read.index'
+import { Route as ReadLevelRouteImport } from './routes/read.$level'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -34,38 +36,60 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReadIndexRoute = ReadIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReadRoute,
+} as any)
+const ReadLevelRoute = ReadLevelRouteImport.update({
+  id: '/$level',
+  path: '/$level',
+  getParentRoute: () => ReadRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/read': typeof ReadRoute
+  '/read': typeof ReadRouteWithChildren
   '/signup': typeof SignupRoute
+  '/read/$level': typeof ReadLevelRoute
+  '/read/': typeof ReadIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/read': typeof ReadRoute
   '/signup': typeof SignupRoute
+  '/read/$level': typeof ReadLevelRoute
+  '/read': typeof ReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/read': typeof ReadRoute
+  '/read': typeof ReadRouteWithChildren
   '/signup': typeof SignupRoute
+  '/read/$level': typeof ReadLevelRoute
+  '/read/': typeof ReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/read' | '/signup'
+  fullPaths: '/' | '/login' | '/read' | '/signup' | '/read/$level' | '/read/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/read' | '/signup'
-  id: '__root__' | '/' | '/login' | '/read' | '/signup'
+  to: '/' | '/login' | '/signup' | '/read/$level' | '/read'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/read'
+    | '/signup'
+    | '/read/$level'
+    | '/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  ReadRoute: typeof ReadRoute
+  ReadRoute: typeof ReadRouteWithChildren
   SignupRoute: typeof SignupRoute
 }
 
@@ -99,13 +123,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read/': {
+      id: '/read/'
+      path: '/'
+      fullPath: '/read/'
+      preLoaderRoute: typeof ReadIndexRouteImport
+      parentRoute: typeof ReadRoute
+    }
+    '/read/$level': {
+      id: '/read/$level'
+      path: '/$level'
+      fullPath: '/read/$level'
+      preLoaderRoute: typeof ReadLevelRouteImport
+      parentRoute: typeof ReadRoute
+    }
   }
 }
+
+interface ReadRouteChildren {
+  ReadLevelRoute: typeof ReadLevelRoute
+  ReadIndexRoute: typeof ReadIndexRoute
+}
+
+const ReadRouteChildren: ReadRouteChildren = {
+  ReadLevelRoute: ReadLevelRoute,
+  ReadIndexRoute: ReadIndexRoute,
+}
+
+const ReadRouteWithChildren = ReadRoute._addFileChildren(ReadRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  ReadRoute: ReadRoute,
+  ReadRoute: ReadRouteWithChildren,
   SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport

@@ -7,36 +7,28 @@ interface UseNoteAnswerOptions {
   exercise: NotationExercise | null;
   currentIndex: number;
   isPlaying: boolean;
+  allowedNotes?: string[];
 }
 
 export function useNoteAnswer({
   exercise,
   currentIndex,
   isPlaying,
+  allowedNotes,
 }: UseNoteAnswerOptions) {
   const [score, setScore] = useState(0);
   const [answers, setAnswers] = useState<(string | null)[]>([]);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refs for stable handleAnswer callback
   const exerciseRef = useRef(exercise);
   const answersRef = useRef(answers);
   const currentIndexRef = useRef(currentIndex);
   const isPlayingRef = useRef(isPlaying);
-
-  useEffect(() => {
-    exerciseRef.current = exercise;
-  }, [exercise]);
-  useEffect(() => {
-    answersRef.current = answers;
-  }, [answers]);
-  useEffect(() => {
-    currentIndexRef.current = currentIndex;
-  }, [currentIndex]);
-  useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
+  exerciseRef.current = exercise;
+  answersRef.current = answers;
+  currentIndexRef.current = currentIndex;
+  isPlayingRef.current = isPlaying;
 
   const handleAnswer = useCallback((letter: string) => {
     const ex = exerciseRef.current;
@@ -66,13 +58,15 @@ export function useNoteAnswer({
     feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 400);
   }, []);
 
-  // Keyboard support
+  const allowedNotesRef = useRef(allowedNotes);
+  allowedNotesRef.current = allowedNotes;
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       const key = e.key.toUpperCase();
-      if ((ANSWER_NOTES as readonly string[]).includes(key)) {
-        handleAnswer(key);
-      }
+      if (!(ANSWER_NOTES as readonly string[]).includes(key)) return;
+      if (allowedNotesRef.current && !allowedNotesRef.current.includes(key)) return;
+      handleAnswer(key);
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -85,11 +79,11 @@ export function useNoteAnswer({
     };
   }, []);
 
-  function resetAnswers() {
+  const resetAnswers = useCallback(() => {
     setScore(0);
     setAnswers([]);
     setFeedback(null);
-  }
+  }, []);
 
   return { score, answers, feedback, handleAnswer, resetAnswers };
 }

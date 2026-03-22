@@ -1,6 +1,7 @@
 import type { NotationExercise } from "@pianito/shared";
+import { EXERCISE_LEVELS, getExerciseLevel } from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NOTE_SPACING } from "@/lib/constants";
 import { useExerciseAnimation } from "./use-exercise-animation";
 import { useNoteAnswer } from "./use-note-answer";
@@ -8,8 +9,12 @@ import { useNotePlayer } from "./use-note-player";
 
 export type ExerciseState = "idle" | "playing" | "finished";
 
-export function useNotationExercise() {
+export function useNotationExercise(level: number) {
   const [exerciseState, setExerciseState] = useState<ExerciseState>("idle");
+  const lastPlayedIndexRef = useRef(-1);
+
+  const currentLevel = getExerciseLevel(level) ?? EXERCISE_LEVELS[0]!;
+  const isLastLevel = level >= EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1]!.level;
 
   const {
     data: exercise,
@@ -17,9 +22,9 @@ export function useNotationExercise() {
     error: fetchError,
     refetch,
   } = useQuery<NotationExercise>({
-    queryKey: ["notation-exercise"],
+    queryKey: ["notation-exercise", level],
     queryFn: async () => {
-      const res = await fetch("/api/exercises/notation?count=10&tempo=60");
+      const res = await fetch(`/api/exercises/notation?level=${level}`);
       if (!res.ok) {
         throw new Error(`Failed to load exercise (${res.status})`);
       }
@@ -47,10 +52,17 @@ export function useNotationExercise() {
       exercise: exercise ?? null,
       currentIndex,
       isPlaying,
+      allowedNotes: exercise?.allowedNotes,
     });
 
-  // Play note when it enters the active zone
-  const lastPlayedIndexRef = useRef(-1);
+  // Reset when navigating to a different level
+  useEffect(() => {
+    setExerciseState("idle");
+    resetScroll();
+    resetAnswers();
+    lastPlayedIndexRef.current = -1;
+  }, [level, resetScroll, resetAnswers]);
+
   useEffect(() => {
     if (!isPlaying || !exercise) return;
     if (currentIndex === lastPlayedIndexRef.current) return;
@@ -61,31 +73,30 @@ export function useNotationExercise() {
     }
   }, [isPlaying, exercise, currentIndex, playNote]);
 
-  // Reset played index when exercise resets
-  useEffect(() => {
-    if (exerciseState === "idle") {
-      lastPlayedIndexRef.current = -1;
-    }
-  }, [exerciseState]);
-
-  // Detect exercise completion
   useEffect(() => {
     if (
       isPlaying &&
       exercise &&
-      Math.floor(scrollOffset / NOTE_SPACING) >= exercise.notes.length
+      currentIndex >= totalNotes - 1 &&
+      scrollOffset >= totalNotes * NOTE_SPACING
     ) {
       setExerciseState("finished");
     }
-  }, [isPlaying, exercise, scrollOffset]);
+  }, [isPlaying, exercise, currentIndex, totalNotes, scrollOffset]);
 
-  function resetExercise(fetchNew: boolean) {
-    setExerciseState(fetchNew ? "idle" : "playing");
+  const start = useCallback(() => {
+    setExerciseState("playing");
     resetScroll();
     resetAnswers();
-    if (fetchNew) refetch();
-    if (!fetchNew) ensureReady().catch(console.error);
-  }
+    ensureReady().catch(console.error);
+  }, [resetScroll, resetAnswers, ensureReady]);
+
+  const retry = useCallback(() => {
+    setExerciseState("idle");
+    resetScroll();
+    resetAnswers();
+    refetch();
+  }, [resetScroll, resetAnswers, refetch]);
 
   return {
     exercise,
@@ -98,8 +109,10 @@ export function useNotationExercise() {
     score,
     answers,
     feedback,
+    currentLevel,
+    isLastLevel,
     handleAnswer,
-    resetExercise,
-    refetch,
+    start,
+    retry,
   };
 }

@@ -1,19 +1,27 @@
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { Note, Scale } from "tonal";
+import { getExerciseLevel } from "@pianito/shared";
 import { NATURAL_NOTES } from "../config.js";
 
-// Range of MIDI values per clef
 const CLEF_RANGES = {
   treble: { low: "C4", high: "G5" },
   bass: { low: "G2", high: "D4" },
 } as const;
 
-// Cache candidate lists by clef+scale to avoid recomputing per request
-const candidateCache = new Map<string, string[]>();
+interface CandidatePool {
+  candidates: string[];
+  allowedNotes: string[];
+}
 
-function getCandidates(clef: "treble" | "bass", scale: string): string[] {
-  const key = `${clef}:${scale}`;
+const candidateCache = new Map<string, CandidatePool>();
+
+function getCandidatePool(
+  clef: "treble" | "bass",
+  scale: string,
+  degrees?: number,
+): CandidatePool {
+  const key = `${clef}:${scale}:${degrees ?? "all"}`;
   const cached = candidateCache.get(key);
   if (cached) return cached;
 
@@ -21,7 +29,11 @@ function getCandidates(clef: "treble" | "bass", scale: string): string[] {
   const lowMidi = Note.midi(range.low) as number;
   const highMidi = Note.midi(range.high) as number;
 
-  const scaleNotes = Scale.get(scale).notes;
+  let scaleNotes = Scale.get(scale).notes;
+  if (degrees != null && degrees < scaleNotes.length) {
+    scaleNotes = scaleNotes.slice(0, degrees);
+  }
+
   const candidates: string[] = [];
 
   for (let octave = 2; octave <= 6; octave++) {
@@ -46,8 +58,10 @@ function getCandidates(clef: "treble" | "bass", scale: string): string[] {
     }
   }
 
-  candidateCache.set(key, candidates);
-  return candidates;
+  const allowedNotes = [...new Set(candidates.map((c) => Note.get(c).letter))];
+  const pool = { candidates, allowedNotes };
+  candidateCache.set(key, pool);
+  return pool;
 }
 
 export async function notationRoutes(app: FastifyInstance) {
@@ -57,30 +71,44 @@ export async function notationRoutes(app: FastifyInstance) {
       count?: string;
       tempo?: string;
       scale?: string;
+      level?: string;
     };
   }>("/api/exercises/notation", async (request) => {
     const clef = request.query.clef === "bass" ? "bass" : "treble";
-    const count = Math.min(
-      Math.max(parseInt(request.query.count ?? "10", 10) || 10, 4),
-      30,
-    );
-    const tempo = Math.min(
-      Math.max(parseInt(request.query.tempo ?? "60", 10) || 60, 30),
-      240,
-    );
-    const scale = request.query.scale ?? "C major";
 
-    const candidates = getCandidates(clef, scale);
+    const levelNum = parseInt(request.query.level ?? "0", 10);
+    const exerciseLevel = getExerciseLevel(levelNum);
+
+    const params = exerciseLevel ?? {
+      count: Math.min(
+        Math.max(parseInt(request.query.count ?? "10", 10) || 10, 4),
+        30,
+      ),
+      tempo: Math.min(
+        Math.max(parseInt(request.query.tempo ?? "60", 10) || 60, 30),
+        240,
+      ),
+      scale: request.query.scale ?? "C major",
+      degrees: undefined as number | undefined,
+    };
+
+    const { candidates, allowedNotes } = getCandidatePool(
+      clef,
+      params.scale,
+      params.degrees,
+    );
+
     const notes = Array.from(
-      { length: count },
+      { length: params.count },
       () => candidates[Math.floor(Math.random() * candidates.length)] as string,
     );
 
     return {
       id: randomUUID(),
       clef,
-      tempo,
+      tempo: params.tempo,
       notes,
+      allowedNotes,
     };
   });
 }

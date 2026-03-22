@@ -5,6 +5,7 @@ const MOCK_EXERCISE = {
   clef: "treble" as const,
   tempo: 60,
   notes: ["C4", "E4", "G4", "A4", "F4", "D4", "B4", "C5", "E4", "G4"],
+  allowedNotes: ["C", "D", "E", "F", "G", "A", "B"],
 };
 
 /** Expected letters matching MOCK_EXERCISE.notes */
@@ -26,14 +27,55 @@ async function mockExerciseApiError(page: Page) {
   );
 }
 
-test.describe("Read Music Page", () => {
-  test("displays idle state with staff, start button, and instructions", async ({
+test.describe("Level List Page", () => {
+  test("renders heading, description, and scale groups", async ({ page }) => {
+    await page.goto("/read");
+
+    await expect(page.locator("h1")).toContainText("Read Music");
+    await expect(
+      page.getByText("Progress through scales"),
+    ).toBeVisible();
+
+    // There should be 10 scale group cards
+    const groups = page.locator("h2");
+    await expect(groups).toHaveCount(10);
+
+    // First group is "First Notes"
+    await expect(groups.first()).toContainText("First Notes");
+  });
+
+  test("each group has 4 step cards", async ({ page }) => {
+    await page.goto("/read");
+
+    // First group should show 4 step labels
+    await expect(page.getByText("Introduction").first()).toBeVisible();
+    await expect(page.getByText("Practice").first()).toBeVisible();
+    await expect(page.getByText("Consolidation").first()).toBeVisible();
+    await expect(page.getByText("Mastery").first()).toBeVisible();
+  });
+
+  test("clicking a level card navigates to the exercise page", async ({
     page,
   }) => {
     await mockExerciseApi(page);
     await page.goto("/read");
 
-    await expect(page.locator("h1")).toContainText("Read Music");
+    // Click the first level card (level 1)
+    await page.getByText("Introduction").first().click();
+
+    await expect(page).toHaveURL(/\/read\/1$/);
+    await expect(page.locator("h1")).toContainText("Level 1/");
+  });
+});
+
+test.describe("Read Exercise Page", () => {
+  test("displays idle state with staff, start button, and instructions", async ({
+    page,
+  }) => {
+    await mockExerciseApi(page);
+    await page.goto("/read/1");
+
+    await expect(page.locator("h1")).toContainText("Level 1/");
     await expect(page.getByText("Score: 0/10")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
     await expect(
@@ -42,11 +84,19 @@ test.describe("Read Music Page", () => {
     await expect(page.getByText("Press Start to begin")).toBeVisible();
   });
 
+  test("shows back link to levels", async ({ page }) => {
+    await mockExerciseApi(page);
+    await page.goto("/read/1");
+
+    const backLink = page.getByRole("link", { name: /Levels/ });
+    await expect(backLink).toBeVisible();
+  });
+
   test("displays all 7 answer buttons (C through B) disabled before start", async ({
     page,
   }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
 
     for (const note of ["C", "D", "E", "F", "G", "A", "B"]) {
       const btn = page.getByRole("button", { name: note, exact: true });
@@ -59,7 +109,7 @@ test.describe("Read Music Page", () => {
     page,
   }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
 
     await page.getByRole("button", { name: "Start" }).click();
 
@@ -76,7 +126,7 @@ test.describe("Read Music Page", () => {
     page,
   }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
     await page.getByRole("button", { name: "Start" }).click();
 
     // First note is C4 → answer C
@@ -90,7 +140,7 @@ test.describe("Read Music Page", () => {
     page,
   }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
     await page.getByRole("button", { name: "Start" }).click();
 
     // First note is C4 → answer D (wrong)
@@ -102,7 +152,7 @@ test.describe("Read Music Page", () => {
 
   test("keyboard input works for answering notes", async ({ page }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
     await page.getByRole("button", { name: "Start" }).click();
 
     // First note is C4 → press "c" key
@@ -112,11 +162,11 @@ test.describe("Read Music Page", () => {
     await expect(page.getByText("Score: 1/10")).toBeVisible();
   });
 
-  test("completing all notes shows results with New Exercise button", async ({
+  test("completing all notes shows results with Retry and Next Level buttons", async ({
     page,
   }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
     await page.getByRole("button", { name: "Start" }).click();
 
     // At tempo 60 and NOTE_SPACING 100, each note takes 1s.
@@ -135,15 +185,18 @@ test.describe("Read Music Page", () => {
     await expect(page.getByText("Score: 10/10")).toBeVisible();
     await expect(page.getByText("Perfect score!")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "New Exercise" }),
+      page.getByRole("button", { name: "Retry" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Next Level" }),
     ).toBeVisible();
   });
 
-  test("New Exercise button resets and fetches a new exercise", async ({
+  test("Retry button resets and fetches a new exercise", async ({
     page,
   }) => {
     await mockExerciseApi(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
     await page.getByRole("button", { name: "Start" }).click();
 
     // Answer all notes to finish the exercise
@@ -158,9 +211,9 @@ test.describe("Read Music Page", () => {
       timeout: 15000,
     });
 
-    // Click New Exercise
+    // Click Retry
     const apiRequest = page.waitForRequest("**/api/exercises/notation*");
-    await page.getByRole("button", { name: "New Exercise" }).click();
+    await page.getByRole("button", { name: "Retry" }).click();
     await apiRequest;
 
     // Should be back in idle state
@@ -168,19 +221,52 @@ test.describe("Read Music Page", () => {
     await expect(page.getByText("Score: 0/10")).toBeVisible();
   });
 
+  test("Next Level button navigates to next level", async ({ page }) => {
+    await mockExerciseApi(page);
+    await page.goto("/read/1");
+    await page.getByRole("button", { name: "Start" }).click();
+
+    // Answer all notes to finish the exercise
+    for (let i = 0; i < EXPECTED_LETTERS.length; i++) {
+      if (i > 0) {
+        await page.waitForTimeout(1050);
+      }
+      await page.keyboard.press(EXPECTED_LETTERS[i].toLowerCase());
+    }
+
+    await expect(page.getByText("Exercise Complete!")).toBeVisible({
+      timeout: 15000,
+    });
+
+    // Click Next Level
+    await page.getByRole("button", { name: "Next Level" }).click();
+
+    await expect(page).toHaveURL(/\/read\/2$/);
+  });
+
+  test("back link navigates to level list", async ({ page }) => {
+    await mockExerciseApi(page);
+    await page.goto("/read/1");
+
+    await page.getByRole("link", { name: /Levels/ }).click();
+
+    await expect(page).toHaveURL(/\/read$/);
+    await expect(page.locator("h1")).toContainText("Read Music");
+  });
+
   test("shows error state with retry button when API fails", async ({
     page,
   }) => {
     await mockExerciseApiError(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
 
     await expect(page.getByText(/Failed to load exercise/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
   });
 
-  test("retry button re-fetches the exercise", async ({ page }) => {
+  test("retry button re-fetches the exercise on error", async ({ page }) => {
     await mockExerciseApiError(page);
-    await page.goto("/read");
+    await page.goto("/read/1");
 
     await expect(page.getByText(/Failed to load exercise/)).toBeVisible();
 
@@ -202,7 +288,7 @@ test.describe("Read Music Page", () => {
         body: JSON.stringify(MOCK_EXERCISE),
       });
     });
-    await page.goto("/read");
+    await page.goto("/read/1");
 
     await expect(page.getByText("Loading exercise...")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start" })).toBeVisible({

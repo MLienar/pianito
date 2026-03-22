@@ -35,6 +35,7 @@ export const notationExerciseSchema = z.object({
   clef: clefSchema,
   tempo: z.number().int().min(30).max(240),
   notes: z.array(noteSchema).min(1),
+  allowedNotes: z.array(z.string()).min(1),
 });
 
 export const exerciseResultSchema = z.object({
