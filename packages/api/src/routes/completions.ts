@@ -5,16 +5,6 @@ import { auth } from "../auth.js";
 import { db } from "../db/index.js";
 import { lessonCompletion } from "../db/schema.js";
 
-type Clef = "treble" | "bass";
-
-const VALID_CLEFS = new Set<string>(["treble", "bass"]);
-
-function parseClef(value: unknown): Clef {
-  return typeof value === "string" && VALID_CLEFS.has(value)
-    ? (value as Clef)
-    : "treble";
-}
-
 async function getSessionUser(request: {
   headers: Record<string, string | string[] | undefined>;
 }) {
@@ -56,7 +46,7 @@ export async function completionRoutes(app: FastifyInstance) {
       }
 
       const { level } = request.body;
-      const clef = parseClef(request.body.clef);
+      const clef = request.body.clef === "bass" ? "bass" : "treble";
       const maxLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1]?.level ?? 0;
       if (!Number.isInteger(level) || level < 1 || level > maxLevel) {
         return reply.status(400).send({ error: "Invalid level" });

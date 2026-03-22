@@ -1,11 +1,10 @@
-import type { ExerciseLevel } from "@pianito/shared";
+import type { Clef, ExerciseLevel } from "@pianito/shared";
 import { getNewNotes, getNoteVariants } from "@pianito/shared";
 import { useState } from "react";
 import { Button } from "@/components/button";
 import { NoteGlyph, StaffLines } from "@/components/staff-primitives";
 import { COLORS, LINE_SPACING, parseNote, STAFF_TOP } from "@/lib/staff-utils";
 
-type Clef = "treble" | "bass";
 const SVG_HEIGHT = STAFF_TOP + 4 * LINE_SPACING + 60;
 const NOTE_GAP = 70;
 const CLEF_WIDTH = 70;

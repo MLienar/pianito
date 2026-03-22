@@ -1,3 +1,4 @@
+import type { Clef } from "@pianito/shared";
 import { EXERCISE_LEVELS } from "@pianito/shared";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -8,8 +9,6 @@ import { ExerciseIntroModal } from "@/components/exercise-intro-modal";
 import { ExerciseResults } from "@/components/exercise-results";
 import { StaffRenderer } from "@/components/staff-renderer";
 import { useNotationExercise } from "@/hooks/use-notation-exercise";
-
-type Clef = "treble" | "bass";
 
 export const Route = createFileRoute("/read/$level")({
   component: ReadExercise,

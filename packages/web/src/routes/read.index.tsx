@@ -1,14 +1,12 @@
+import type { Clef } from "@pianito/shared";
 import { EXERCISE_LEVELS, SCALE_GROUPS, STEP_LABELS } from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSession } from "@/lib/auth";
-
-type Clef = "treble" | "bass";
 
 interface Completion {
   level: number;
-  clef: string;
+  clef: Clef;
 }
 
 export const Route = createFileRoute("/read/")({
@@ -25,8 +23,8 @@ const CLEF_TABS: { value: Clef; label: string }[] = [
 
 function ReadLevels() {
   const { data: session } = useSession();
-  const { clef: initialClef } = Route.useSearch();
-  const [activeClef, setActiveClef] = useState<Clef>(initialClef);
+  const { clef: activeClef } = Route.useSearch();
+  const navigate = useNavigate();
 
   const { data: completions } = useQuery<{ levels: Completion[] }>({
     queryKey: ["completions"],
@@ -58,7 +56,9 @@ function ReadLevels() {
           <button
             key={tab.value}
             type="button"
-            onClick={() => setActiveClef(tab.value)}
+            onClick={() =>
+              navigate({ to: "/read", search: { clef: tab.value } })
+            }
             className={`border-3 border-border px-4 py-2 text-sm font-bold transition-all ${
               activeClef === tab.value
                 ? "bg-primary text-primary-foreground shadow-[var(--shadow-brutal)]"
