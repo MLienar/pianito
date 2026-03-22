@@ -34,7 +34,11 @@
       "!**/routeTree.gen.ts",
       "!**/node_modules",
       "!**/dist",
-      "!**/.claude"
+      "!**/.claude",
+      "!**/*.test.ts",
+      "!**/*.test.tsx",
+      "!**/*.spec.ts",
+      "!**/*.spec.tsx"
     ]
   }
 }
