@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  /* Neobrutalist color palette */
+  --color-background: #f5f0e8;
+  --color-foreground: #1a1a1a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-primary: #ff6b35;
+  --color-primary-foreground: #1a1a1a;
+  --color-secondary: #ffd166;
+  --color-secondary-foreground: #1a1a1a;
+  --color-accent: #06d6a0;
+  --color-accent-foreground: #1a1a1a;
+  --color-muted: #e8e0d4;
+  --color-muted-foreground: #6b6b6b;
+  --color-destructive: #ef476f;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #1a1a1a;
+  --color-ring: #1a1a1a;
+
+  /* Typography */
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  /* Neobrutalist shadow */
+  --shadow-brutal: 4px 4px 0px 0px #1a1a1a;
+  --shadow-brutal-sm: 2px 2px 0px 0px #1a1a1a;
+  --shadow-brutal-lg: 6px 6px 0px 0px #1a1a1a;
+  --shadow-brutal-hover: 6px 6px 0px 0px #1a1a1a;
+
+  /* Border */
+  --radius-brutal: 0px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
