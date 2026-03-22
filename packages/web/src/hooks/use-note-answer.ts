@@ -5,14 +5,9 @@ import { Note } from "tonal";
 interface UseNoteAnswerOptions {
   exercise: NotationExercise | null;
   canAnswer: boolean;
-  allowedNotes?: string[];
 }
 
-export function useNoteAnswer({
-  exercise,
-  canAnswer,
-  allowedNotes,
-}: UseNoteAnswerOptions) {
+export function useNoteAnswer({ exercise, canAnswer }: UseNoteAnswerOptions) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [answers, setAnswers] = useState<(string | null)[]>([]);

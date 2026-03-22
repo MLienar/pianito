@@ -66,7 +66,6 @@ export function useNotationExercise(
   } = useNoteAnswer({
     exercise: exercise ?? null,
     canAnswer: exerciseState !== "finished",
-    allowedNotes: exercise?.allowedNotes,
   });
 
   const targetOffset = currentIndex * NOTE_SPACING;
