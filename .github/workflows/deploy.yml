@@ -29,24 +29,6 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: pianito
-          POSTGRES_PASSWORD: pianito
-          POSTGRES_DB: pianito
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U pianito"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      DATABASE_URL: postgresql://pianito:pianito@localhost:5432/pianito
-      BETTER_AUTH_SECRET: ci-test-secret
-      CORS_ORIGIN: http://localhost:5173
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -55,7 +37,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: docker compose -f docker-compose.ci.yml up -d --build --wait
       - run: pnpm --filter @pianito/api db:migrate
+        env:
+          DATABASE_URL: postgresql://pianito:pianito@localhost:5432/pianito
       - run: npx playwright install --with-deps chromium
       - run: pnpm e2e
       - uses: actions/upload-artifact@v4
@@ -64,6 +49,8 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+      - run: docker compose -f docker-compose.ci.yml down
+        if: always()
 
   build-and-deploy:
     needs: [lint, e2e]

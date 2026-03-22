@@ -27,13 +27,13 @@ export default defineConfig({
     {
       command: "pnpm --filter @pianito/api dev",
       url: "http://localhost:3000/health",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       timeout: 30_000,
     },
     {
       command: "pnpm --filter @pianito/web dev",
       url: "http://localhost:5173",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       timeout: 30_000,
     },
   ],

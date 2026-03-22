@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pianito
+      POSTGRES_PASSWORD: pianito
+      POSTGRES_DB: pianito
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pianito"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://pianito:pianito@db:5432/pianito
+      BETTER_AUTH_SECRET: ci-test-secret
+      CORS_ORIGIN: http://localhost:5173
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+
+  web:
+    build:
+      context: .
+      dockerfile: packages/web/Dockerfile
+    ports:
+      - "5173:80"
