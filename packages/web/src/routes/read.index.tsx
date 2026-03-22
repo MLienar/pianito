@@ -32,12 +32,18 @@ function ReadLevels() {
 
               <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {groupLevels.map((el, stepIndex) => (
-                  <Link key={el.level} to="/read/$level" params={{ level: String(el.level) }}>
+                  <Link
+                    key={el.level}
+                    to="/read/$level"
+                    params={{ level: String(el.level) }}
+                  >
                     <div className="border-3 border-border bg-background p-3 text-center transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] cursor-pointer">
                       <span className="text-xs font-mono text-muted-foreground">
                         {el.level}
                       </span>
-                      <p className="text-sm font-bold mt-1">{STEP_LABELS[stepIndex]}</p>
+                      <p className="text-sm font-bold mt-1">
+                        {STEP_LABELS[stepIndex]}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {el.degrees} notes · {el.tempo} bpm
                       </p>

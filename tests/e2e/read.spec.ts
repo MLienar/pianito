@@ -1,4 +1,4 @@
-import { type Page, expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const MOCK_EXERCISE = {
   id: "test-exercise-id",
@@ -32,9 +32,7 @@ test.describe("Level List Page", () => {
     await page.goto("/read");
 
     await expect(page.locator("h1")).toContainText("Read Music");
-    await expect(
-      page.getByText("Progress through scales"),
-    ).toBeVisible();
+    await expect(page.getByText("Progress through scales")).toBeVisible();
 
     // There should be 10 scale group cards
     const groups = page.locator("h2");
@@ -184,17 +182,13 @@ test.describe("Read Exercise Page", () => {
     });
     await expect(page.getByText("Score: 10/10")).toBeVisible();
     await expect(page.getByText("Perfect score!")).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Retry" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Next Level" }),
     ).toBeVisible();
   });
 
-  test("Retry button resets and fetches a new exercise", async ({
-    page,
-  }) => {
+  test("Retry button resets and fetches a new exercise", async ({ page }) => {
     await mockExerciseApi(page);
     await page.goto("/read/1");
     await page.getByRole("button", { name: "Start" }).click();

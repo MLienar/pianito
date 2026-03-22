@@ -1,6 +1,7 @@
 import type { NotationExercise } from "@pianito/shared";
 import { EXERCISE_LEVELS, getExerciseLevel } from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NOTE_SPACING } from "@/lib/constants";
 import { useExerciseAnimation } from "./use-exercise-animation";
@@ -12,9 +13,23 @@ export type ExerciseState = "idle" | "playing" | "finished";
 export function useNotationExercise(level: number) {
   const [exerciseState, setExerciseState] = useState<ExerciseState>("idle");
   const lastPlayedIndexRef = useRef(-1);
+  const navigate = useNavigate();
 
-  const currentLevel = getExerciseLevel(level) ?? EXERCISE_LEVELS[0]!;
-  const isLastLevel = level >= EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1]!.level;
+  const firstLevel = EXERCISE_LEVELS[0];
+  const lastLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1];
+
+  if (!firstLevel || !lastLevel) {
+    throw new Error("No exercise levels configured");
+  }
+
+  const resolvedLevel = getExerciseLevel(level);
+  if (!resolvedLevel) {
+    navigate({ to: "/read" });
+    throw new Error(`Exercise level ${level} does not exist`);
+  }
+
+  const currentLevel = resolvedLevel;
+  const isLastLevel = level >= lastLevel.level;
 
   const {
     data: exercise,
@@ -56,6 +71,7 @@ export function useNotationExercise(level: number) {
     });
 
   // Reset when navigating to a different level
+  // biome-ignore lint/correctness/useExhaustiveDependencies: level change must trigger reset
   useEffect(() => {
     setExerciseState("idle");
     resetScroll();

@@ -8,19 +8,74 @@ export interface ExerciseLevel {
 }
 
 export const SCALE_GROUPS = [
-  { name: "First Notes", scale: "C major", degrees: [3, 4, 5, 7], tempos: [45, 48, 50, 52] },
-  { name: "Full C Major", scale: "C major", degrees: [4, 5, 6, 7], tempos: [50, 53, 55, 58] },
-  { name: "G Major — 1♯", scale: "G major", degrees: [3, 4, 5, 7], tempos: [50, 53, 55, 58] },
-  { name: "F Major — 1♭", scale: "F major", degrees: [3, 4, 5, 7], tempos: [50, 53, 55, 58] },
-  { name: "D Major — 2♯", scale: "D major", degrees: [3, 5, 6, 7], tempos: [52, 55, 58, 60] },
-  { name: "B♭ Major — 2♭", scale: "Bb major", degrees: [3, 5, 6, 7], tempos: [52, 55, 58, 60] },
-  { name: "A Major — 3♯", scale: "A major", degrees: [3, 5, 6, 7], tempos: [52, 55, 58, 62] },
-  { name: "E♭ Major — 3♭", scale: "Eb major", degrees: [3, 5, 6, 7], tempos: [52, 55, 58, 62] },
-  { name: "E Major — 4♯", scale: "E major", degrees: [4, 5, 6, 7], tempos: [55, 58, 62, 65] },
-  { name: "A♭ Major — 4♭", scale: "Ab major", degrees: [4, 5, 6, 7], tempos: [55, 58, 62, 65] },
+  {
+    name: "First Notes",
+    scale: "C major",
+    degrees: [3, 4, 5, 7],
+    tempos: [45, 48, 50, 52],
+  },
+  {
+    name: "Full C Major",
+    scale: "C major",
+    degrees: [4, 5, 6, 7],
+    tempos: [50, 53, 55, 58],
+  },
+  {
+    name: "G Major — 1♯",
+    scale: "G major",
+    degrees: [3, 4, 5, 7],
+    tempos: [50, 53, 55, 58],
+  },
+  {
+    name: "F Major — 1♭",
+    scale: "F major",
+    degrees: [3, 4, 5, 7],
+    tempos: [50, 53, 55, 58],
+  },
+  {
+    name: "D Major — 2♯",
+    scale: "D major",
+    degrees: [3, 5, 6, 7],
+    tempos: [52, 55, 58, 60],
+  },
+  {
+    name: "B♭ Major — 2♭",
+    scale: "Bb major",
+    degrees: [3, 5, 6, 7],
+    tempos: [52, 55, 58, 60],
+  },
+  {
+    name: "A Major — 3♯",
+    scale: "A major",
+    degrees: [3, 5, 6, 7],
+    tempos: [52, 55, 58, 62],
+  },
+  {
+    name: "E♭ Major — 3♭",
+    scale: "Eb major",
+    degrees: [3, 5, 6, 7],
+    tempos: [52, 55, 58, 62],
+  },
+  {
+    name: "E Major — 4♯",
+    scale: "E major",
+    degrees: [4, 5, 6, 7],
+    tempos: [55, 58, 62, 65],
+  },
+  {
+    name: "A♭ Major — 4♭",
+    scale: "Ab major",
+    degrees: [4, 5, 6, 7],
+    tempos: [55, 58, 62, 65],
+  },
 ] as const;
 
-export const STEP_LABELS = ["Introduction", "Practice", "Consolidation", "Mastery"] as const;
+export const STEP_LABELS = [
+  "Introduction",
+  "Practice",
+  "Consolidation",
+  "Mastery",
+] as const;
 
 const NOTE_COUNT = 10;
 

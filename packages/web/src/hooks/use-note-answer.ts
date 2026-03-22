@@ -65,7 +65,8 @@ export function useNoteAnswer({
     function handleKey(e: KeyboardEvent) {
       const key = e.key.toUpperCase();
       if (!(ANSWER_NOTES as readonly string[]).includes(key)) return;
-      if (allowedNotesRef.current && !allowedNotesRef.current.includes(key)) return;
+      if (allowedNotesRef.current && !allowedNotesRef.current.includes(key))
+        return;
       handleAnswer(key);
     }
     window.addEventListener("keydown", handleKey);

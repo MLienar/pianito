@@ -1,0 +1,48 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
+  web:
+    image: ghcr.io/mlienar/pianito-web:latest
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/mlienar/pianito-api:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://pianito:${DB_PASSWORD}@db:5432/pianito
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      CORS_ORIGIN: https://pianito.matheolienard.fr
+      PORT: "3000"
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pianito
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: pianito
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pianito"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

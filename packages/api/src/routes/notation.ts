@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { getExerciseLevel } from "@pianito/shared";
 import type { FastifyInstance } from "fastify";
 import { Note, Scale } from "tonal";
-import { getExerciseLevel } from "@pianito/shared";
 import { NATURAL_NOTES } from "../config.js";
 
 const CLEF_RANGES = {

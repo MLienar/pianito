@@ -61,7 +61,10 @@ function ReadExercise() {
     <div className="flex flex-col gap-6 py-8">
       <div className="flex items-center justify-between">
         <div>
-          <Link to="/read" className="text-muted-foreground hover:text-foreground">
+          <Link
+            to="/read"
+            className="text-muted-foreground hover:text-foreground"
+          >
             &larr; Levels
           </Link>
           <h1 className="text-3xl font-bold tracking-tight mt-1">
@@ -88,7 +91,12 @@ function ReadExercise() {
                   <Button
                     variant="accent"
                     size="lg"
-                    onClick={() => navigate({ to: "/read/$level", params: { level: String(level + 1) } })}
+                    onClick={() =>
+                      navigate({
+                        to: "/read/$level",
+                        params: { level: String(level + 1) },
+                      })
+                    }
                   >
                     Next Level
                   </Button>
