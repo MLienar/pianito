@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import {
   CLEF_RANGES,
+  defaultClefSchema,
   getExerciseLevel,
   type NotationExercise,
   type NotationQuery,
+  notationQuerySchema,
 } from "@pianito/shared";
 import type { FastifyInstance } from "fastify";
 import { Note, Scale } from "tonal";
@@ -69,9 +71,9 @@ export async function notationRoutes(app: FastifyInstance) {
     Querystring: NotationQuery;
     Reply: NotationExercise;
   }>("/api/exercises/notation", async (request) => {
-    const clef = request.query.clef ?? "treble";
-
-    const levelNum = request.query.level ?? 0;
+    const query = notationQuerySchema.parse(request.query);
+    const clef = defaultClefSchema.parse(query.clef);
+    const levelNum = query.level ?? 0;
     const exerciseLevel = getExerciseLevel(levelNum);
 
     const params = exerciseLevel ?? {

@@ -43,10 +43,3 @@ export const completeResponseSchema = z.object({
 export const errorResponseSchema = z.object({
   error: z.string(),
 });
-
-export const exerciseResultSchema = z.object({
-  exerciseId: z.string(),
-  score: z.number().min(0).max(100),
-  completedAt: z.string().datetime(),
-  durationMs: z.number().positive(),
-});

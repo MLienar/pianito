@@ -29,3 +29,6 @@ export const chordSchema = z.string().refine(
 );
 
 export const clefSchema = z.enum(["treble", "bass"]);
+
+/** Parses a clef value, defaulting to "treble" for invalid/missing input. */
+export const defaultClefSchema = clefSchema.catch("treble");

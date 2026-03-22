@@ -1,5 +1,5 @@
 import type { Clef } from "@pianito/shared";
-import { EXERCISE_LEVELS } from "@pianito/shared";
+import { defaultClefSchema, EXERCISE_LEVELS } from "@pianito/shared";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { match } from "ts-pattern";
@@ -13,7 +13,7 @@ import { useNotationExercise } from "@/hooks/use-notation-exercise";
 export const Route = createFileRoute("/read/$level")({
   component: ReadExercise,
   validateSearch: (search: Record<string, unknown>): { clef: Clef } => ({
-    clef: search.clef === "bass" ? "bass" : "treble",
+    clef: defaultClefSchema.parse(search.clef),
   }),
 });
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   chordSchema,
   clefSchema,
-  exerciseResultSchema,
+  defaultClefSchema,
   noteSchema,
   notationExerciseSchema,
 } from "./schemas/index.ts";
@@ -71,34 +71,15 @@ describe("notationExerciseSchema", () => {
   });
 });
 
-describe("exerciseResultSchema", () => {
-  const valid = {
-    exerciseId: "abc-123",
-    score: 85,
-    completedAt: "2026-01-15T10:30:00Z",
-    durationMs: 5000,
-  };
-
-  it("accepts a valid result", () => {
-    expect(exerciseResultSchema.safeParse(valid).success).toBe(true);
+describe("defaultClefSchema", () => {
+  it("accepts treble and bass", () => {
+    expect(defaultClefSchema.parse("treble")).toBe("treble");
+    expect(defaultClefSchema.parse("bass")).toBe("bass");
   });
 
-  it("rejects score below 0", () => {
-    expect(exerciseResultSchema.safeParse({ ...valid, score: -1 }).success).toBe(false);
-  });
-
-  it("rejects score above 100", () => {
-    expect(exerciseResultSchema.safeParse({ ...valid, score: 101 }).success).toBe(false);
-  });
-
-  it("rejects non-positive duration", () => {
-    expect(exerciseResultSchema.safeParse({ ...valid, durationMs: 0 }).success).toBe(false);
-    expect(exerciseResultSchema.safeParse({ ...valid, durationMs: -1 }).success).toBe(false);
-  });
-
-  it("rejects invalid datetime format", () => {
-    expect(
-      exerciseResultSchema.safeParse({ ...valid, completedAt: "not-a-date" }).success,
-    ).toBe(false);
+  it("defaults to treble for invalid input", () => {
+    expect(defaultClefSchema.parse("alto")).toBe("treble");
+    expect(defaultClefSchema.parse("")).toBe("treble");
+    expect(defaultClefSchema.parse(undefined)).toBe("treble");
   });
 });

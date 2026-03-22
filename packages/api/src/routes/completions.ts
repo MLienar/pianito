@@ -2,6 +2,7 @@ import {
   type CompleteBody,
   type CompleteResponse,
   type CompletionsResponse,
+  defaultClefSchema,
   type ErrorResponse,
   EXERCISE_LEVELS,
 } from "@pianito/shared";
@@ -40,9 +41,7 @@ export async function completionRoutes(app: FastifyInstance) {
         .from(lessonCompletion)
         .where(eq(lessonCompletion.userId, user.id));
 
-      return {
-        levels: rows.map((r) => ({ level: r.level, clef: r.clef })),
-      };
+      return { levels: rows };
     },
   );
 
@@ -55,7 +54,7 @@ export async function completionRoutes(app: FastifyInstance) {
       }
 
       const { level } = request.body;
-      const clef = request.body.clef === "bass" ? "bass" : "treble";
+      const clef = defaultClefSchema.parse(request.body.clef);
       const maxLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1]?.level ?? 0;
       if (!Number.isInteger(level) || level < 1 || level > maxLevel) {
         return reply.status(400).send({ error: "Invalid level" });

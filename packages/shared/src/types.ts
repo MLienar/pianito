@@ -7,7 +7,6 @@ import type {
   completionSchema,
   completionsResponseSchema,
   errorResponseSchema,
-  exerciseResultSchema,
   notationExerciseSchema,
   notationQuerySchema,
   noteSchema,
@@ -26,4 +25,3 @@ export type CompletionsResponse = z.infer<typeof completionsResponseSchema>;
 export type CompleteBody = z.infer<typeof completeBodySchema>;
 export type CompleteResponse = z.infer<typeof completeResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
-export type ExerciseResult = z.infer<typeof exerciseResultSchema>;

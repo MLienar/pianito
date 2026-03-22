@@ -1,13 +1,19 @@
 import type { Clef, CompletionsResponse } from "@pianito/shared";
-import { EXERCISE_LEVELS, SCALE_GROUPS, STEP_LABELS } from "@pianito/shared";
+import {
+  defaultClefSchema,
+  EXERCISE_LEVELS,
+  SCALE_GROUPS,
+  STEP_LABELS,
+} from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/read/")({
   component: ReadLevels,
   validateSearch: (search: Record<string, unknown>): { clef: Clef } => ({
-    clef: search.clef === "bass" ? "bass" : "treble",
+    clef: defaultClefSchema.parse(search.clef),
   }),
 });
 
@@ -31,10 +37,14 @@ function ReadLevels() {
     enabled: !!session,
   });
 
-  const completedSet = new Set(
-    completions?.levels
-      .filter((c) => c.clef === activeClef)
-      .map((c) => c.level),
+  const completedSet = useMemo(
+    () =>
+      new Set(
+        completions?.levels
+          .filter((c) => c.clef === activeClef)
+          .map((c) => c.level),
+      ),
+    [completions, activeClef],
   );
 
   return (
