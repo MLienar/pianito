@@ -107,7 +107,6 @@ function ReadExercise() {
         clef={exercise.clef}
         scrollOffset={scrollOffset}
         currentIndex={currentIndex}
-        isPlaying={exerciseState === "playing"}
         answers={answers}
         feedback={feedback}
       />

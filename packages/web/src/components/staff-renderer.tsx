@@ -76,7 +76,6 @@ interface StaffRendererProps {
   clef: "treble" | "bass";
   scrollOffset: number;
   currentIndex: number;
-  isPlaying: boolean;
   answers: (string | null)[];
   feedback: "correct" | "wrong" | null;
 }
@@ -86,7 +85,6 @@ export const StaffRenderer = memo(function StaffRenderer({
   clef,
   scrollOffset,
   currentIndex,
-  isPlaying,
   answers,
   feedback,
 }: StaffRendererProps) {
@@ -156,7 +154,7 @@ export const StaffRenderer = memo(function StaffRenderer({
             noteStr,
             clef,
           );
-          const isActive = i === currentIndex && isPlaying;
+          const isActive = i === currentIndex;
           const wasAnswered = answers[i] !== undefined;
           const wasCorrect = wasAnswered && answers[i] === letter;
 

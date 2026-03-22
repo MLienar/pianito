@@ -1,21 +1,19 @@
 import type { NotationExercise } from "@pianito/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Note } from "tonal";
-import { ANSWER_NOTES } from "@/lib/constants";
 
 interface UseNoteAnswerOptions {
   exercise: NotationExercise | null;
-  currentIndex: number;
   canAnswer: boolean;
   allowedNotes?: string[];
 }
 
 export function useNoteAnswer({
   exercise,
-  currentIndex,
   canAnswer,
   allowedNotes,
 }: UseNoteAnswerOptions) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [answers, setAnswers] = useState<(string | null)[]>([]);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
@@ -54,24 +52,11 @@ export function useNoteAnswer({
       setFeedback("wrong");
     }
 
+    setCurrentIndex((prev) => prev + 1);
+
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 400);
   }, []);
-
-  const allowedNotesRef = useRef(allowedNotes);
-  allowedNotesRef.current = allowedNotes;
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      const key = e.key.toUpperCase();
-      if (!(ANSWER_NOTES as readonly string[]).includes(key)) return;
-      if (allowedNotesRef.current && !allowedNotesRef.current.includes(key))
-        return;
-      handleAnswer(key);
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [handleAnswer]);
 
   // Cleanup feedback timeout on unmount
   useEffect(() => {
@@ -81,10 +66,11 @@ export function useNoteAnswer({
   }, []);
 
   const resetAnswers = useCallback(() => {
+    setCurrentIndex(0);
     setScore(0);
     setAnswers([]);
     setFeedback(null);
   }, []);
 
-  return { score, answers, feedback, handleAnswer, resetAnswers };
+  return { currentIndex, score, answers, feedback, handleAnswer, resetAnswers };
 }

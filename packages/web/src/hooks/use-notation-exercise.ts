@@ -3,8 +3,7 @@ import { EXERCISE_LEVELS, getExerciseLevel } from "@pianito/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NOTE_SPACING } from "@/lib/constants";
-import { useExerciseAnimation } from "./use-exercise-animation";
+import { ANSWER_NOTES, NOTE_SPACING } from "@/lib/constants";
 import { useNoteAnswer } from "./use-note-answer";
 import { useNotePlayer } from "./use-note-player";
 
@@ -49,21 +48,11 @@ export function useNotationExercise(level: number) {
   });
 
   const totalNotes = exercise?.notes.length ?? 0;
-  const isPlaying = exerciseState === "playing";
-
-  const { scrollOffset, reset: resetScroll } = useExerciseAnimation(
-    exercise?.tempo ?? 60,
-    isPlaying,
-  );
-
-  const currentIndex = Math.min(
-    Math.max(0, Math.floor(scrollOffset / NOTE_SPACING)),
-    Math.max(0, totalNotes - 1),
-  );
 
   const { playNote, ensureReady } = useNotePlayer();
 
   const {
+    currentIndex,
     score,
     answers,
     feedback,
@@ -71,38 +60,59 @@ export function useNotationExercise(level: number) {
     resetAnswers,
   } = useNoteAnswer({
     exercise: exercise ?? null,
-    currentIndex,
     canAnswer: exerciseState !== "finished",
     allowedNotes: exercise?.allowedNotes,
   });
+
+  const targetOffset = currentIndex * NOTE_SPACING;
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const scrollRef = useRef(0);
+
+  useEffect(() => {
+    const target = targetOffset;
+    let raf: number;
+
+    function tick() {
+      const diff = target - scrollRef.current;
+      if (Math.abs(diff) < 0.5) {
+        scrollRef.current = target;
+        setScrollOffset(target);
+        return;
+      }
+      scrollRef.current += diff * 0.15;
+      setScrollOffset(scrollRef.current);
+      raf = requestAnimationFrame(tick);
+    }
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [targetOffset]);
 
   // Reset when navigating to a different level
   // biome-ignore lint/correctness/useExhaustiveDependencies: level change must trigger reset
   useEffect(() => {
     setExerciseState("idle");
-    resetScroll();
     resetAnswers();
+    setScrollOffset(0);
+    scrollRef.current = 0;
     lastPlayedIndexRef.current = -1;
-  }, [level, resetScroll, resetAnswers]);
+  }, [level, resetAnswers]);
 
+  // Play note sound when currentIndex changes
   useEffect(() => {
-    if (!isPlaying || !exercise) return;
+    if (exerciseState === "idle" || !exercise) return;
     if (currentIndex === lastPlayedIndexRef.current) return;
     lastPlayedIndexRef.current = currentIndex;
     const note = exercise.notes[currentIndex];
     if (note != null) {
       playNote(note, exercise.tempo).catch(console.error);
     }
-  }, [isPlaying, exercise, currentIndex, playNote]);
+  }, [exerciseState, exercise, currentIndex, playNote]);
 
+  // Finish when all notes have been answered
   // biome-ignore lint/correctness/useExhaustiveDependencies: queryClient is stable
   useEffect(() => {
-    if (
-      isPlaying &&
-      exercise &&
-      currentIndex >= totalNotes - 1 &&
-      scrollOffset >= totalNotes * NOTE_SPACING
-    ) {
+    if (exerciseState === "playing" && exercise && currentIndex >= totalNotes) {
       setExerciseState("finished");
       if (score === totalNotes) {
         fetch("/api/completions", {
@@ -117,38 +127,44 @@ export function useNotationExercise(level: number) {
           .catch(() => {});
       }
     }
-  }, [
-    isPlaying,
-    exercise,
-    currentIndex,
-    totalNotes,
-    scrollOffset,
-    score,
-    level,
-  ]);
-
-  const start = useCallback(() => {
-    setExerciseState("playing");
-    resetScroll();
-    ensureReady().catch(console.error);
-  }, [resetScroll, ensureReady]);
+  }, [exerciseState, exercise, currentIndex, totalNotes, score, level]);
 
   const handleAnswer = useCallback(
     (note: string) => {
       if (exerciseState === "idle") {
-        start();
+        setExerciseState("playing");
+        ensureReady().catch(console.error);
       }
       rawHandleAnswer(note);
     },
-    [exerciseState, start, rawHandleAnswer],
+    [exerciseState, rawHandleAnswer, ensureReady],
   );
+
+  // Keyboard listener using the wrapped handler
+  const handleAnswerRef = useRef(handleAnswer);
+  handleAnswerRef.current = handleAnswer;
+  const allowedNotesRef = useRef(exercise?.allowedNotes);
+  allowedNotesRef.current = exercise?.allowedNotes;
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const key = e.key.toUpperCase();
+      if (!(ANSWER_NOTES as readonly string[]).includes(key)) return;
+      const allowed = allowedNotesRef.current;
+      if (allowed && !allowed.includes(key)) return;
+      handleAnswerRef.current(key);
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   const retry = useCallback(() => {
     setExerciseState("idle");
-    resetScroll();
     resetAnswers();
+    setScrollOffset(0);
+    scrollRef.current = 0;
     refetch();
-  }, [resetScroll, resetAnswers, refetch]);
+  }, [resetAnswers, refetch]);
 
   return {
     exercise,
