@@ -83,3 +83,12 @@ export const progress = pgTable("progress", {
   durationMs: integer("duration_ms").notNull(),
   completedAt: timestamp("completed_at").notNull().defaultNow(),
 });
+
+export const lessonCompletion = pgTable("lesson_completion", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  level: integer("level").notNull(),
+  completedAt: timestamp("completed_at").notNull().defaultNow(),
+});

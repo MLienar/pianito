@@ -1,6 +1,6 @@
 import type { NotationExercise } from "@pianito/shared";
 import { EXERCISE_LEVELS, getExerciseLevel } from "@pianito/shared";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NOTE_SPACING } from "@/lib/constants";
@@ -14,6 +14,7 @@ export function useNotationExercise(level: number) {
   const [exerciseState, setExerciseState] = useState<ExerciseState>("idle");
   const lastPlayedIndexRef = useRef(-1);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const firstLevel = EXERCISE_LEVELS[0];
   const lastLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1];
@@ -94,6 +95,7 @@ export function useNotationExercise(level: number) {
     }
   }, [isPlaying, exercise, currentIndex, playNote]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: queryClient is stable
   useEffect(() => {
     if (
       isPlaying &&
@@ -102,8 +104,28 @@ export function useNotationExercise(level: number) {
       scrollOffset >= totalNotes * NOTE_SPACING
     ) {
       setExerciseState("finished");
+      if (score === totalNotes) {
+        fetch("/api/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ level }),
+        })
+          .then(() =>
+            queryClient.invalidateQueries({ queryKey: ["completions"] }),
+          )
+          .catch(() => {});
+      }
     }
-  }, [isPlaying, exercise, currentIndex, totalNotes, scrollOffset]);
+  }, [
+    isPlaying,
+    exercise,
+    currentIndex,
+    totalNotes,
+    scrollOffset,
+    score,
+    level,
+  ]);
 
   const start = useCallback(() => {
     setExerciseState("playing");
