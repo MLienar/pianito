@@ -29,18 +29,3 @@ export const chordSchema = z.string().refine(
 );
 
 export const clefSchema = z.enum(["treble", "bass"]);
-
-export const notationExerciseSchema = z.object({
-  id: z.string(),
-  clef: clefSchema,
-  tempo: z.number().int().min(30).max(240),
-  notes: z.array(noteSchema).min(1),
-  allowedNotes: z.array(z.string()).min(1),
-});
-
-export const exerciseResultSchema = z.object({
-  exerciseId: z.string(),
-  score: z.number().min(0).max(100),
-  completedAt: z.string().datetime(),
-  durationMs: z.number().positive(),
-});

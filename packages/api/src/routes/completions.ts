@@ -1,4 +1,10 @@
-import { EXERCISE_LEVELS } from "@pianito/shared";
+import {
+  type CompleteBody,
+  type CompleteResponse,
+  type CompletionsResponse,
+  type ErrorResponse,
+  EXERCISE_LEVELS,
+} from "@pianito/shared";
 import { and, eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { auth } from "../auth.js";
@@ -18,26 +24,29 @@ async function getSessionUser(request: {
 }
 
 export async function completionRoutes(app: FastifyInstance) {
-  app.get("/api/completions", async (request, reply) => {
-    const user = await getSessionUser(request);
-    if (!user) {
-      return reply.status(401).send({ error: "Unauthorized" });
-    }
+  app.get<{ Reply: CompletionsResponse | ErrorResponse }>(
+    "/api/completions",
+    async (request, reply) => {
+      const user = await getSessionUser(request);
+      if (!user) {
+        return reply.status(401).send({ error: "Unauthorized" });
+      }
 
-    const rows = await db
-      .select({
-        level: lessonCompletion.level,
-        clef: lessonCompletion.clef,
-      })
-      .from(lessonCompletion)
-      .where(eq(lessonCompletion.userId, user.id));
+      const rows = await db
+        .select({
+          level: lessonCompletion.level,
+          clef: lessonCompletion.clef,
+        })
+        .from(lessonCompletion)
+        .where(eq(lessonCompletion.userId, user.id));
 
-    return {
-      levels: rows.map((r) => ({ level: r.level, clef: r.clef })),
-    };
-  });
+      return {
+        levels: rows.map((r) => ({ level: r.level, clef: r.clef })),
+      };
+    },
+  );
 
-  app.post<{ Body: { level: number; clef?: string } }>(
+  app.post<{ Body: CompleteBody; Reply: CompleteResponse | ErrorResponse }>(
     "/api/completions",
     async (request, reply) => {
       const user = await getSessionUser(request);

@@ -90,6 +90,6 @@ export const lessonCompletion = pgTable("lesson_completion", {
     .notNull()
     .references(() => user.id),
   level: integer("level").notNull(),
-  clef: text("clef").notNull().default("treble"),
+  clef: text("clef").$type<"treble" | "bass">().notNull().default("treble"),
   completedAt: timestamp("completed_at").notNull().defaultNow(),
 });

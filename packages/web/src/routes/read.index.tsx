@@ -1,13 +1,8 @@
-import type { Clef } from "@pianito/shared";
+import type { Clef, CompletionsResponse } from "@pianito/shared";
 import { EXERCISE_LEVELS, SCALE_GROUPS, STEP_LABELS } from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSession } from "@/lib/auth";
-
-interface Completion {
-  level: number;
-  clef: Clef;
-}
 
 export const Route = createFileRoute("/read/")({
   component: ReadLevels,
@@ -26,7 +21,7 @@ function ReadLevels() {
   const { clef: activeClef } = Route.useSearch();
   const navigate = useNavigate();
 
-  const { data: completions } = useQuery<{ levels: Completion[] }>({
+  const { data: completions } = useQuery<CompletionsResponse>({
     queryKey: ["completions"],
     queryFn: async () => {
       const res = await fetch("/api/completions", { credentials: "include" });

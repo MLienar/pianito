@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { CLEF_RANGES, getExerciseLevel } from "@pianito/shared";
+import {
+  CLEF_RANGES,
+  getExerciseLevel,
+  type NotationExercise,
+  type NotationQuery,
+} from "@pianito/shared";
 import type { FastifyInstance } from "fastify";
 import { Note, Scale } from "tonal";
 import { NATURAL_NOTES } from "../config.js";
@@ -61,29 +66,18 @@ function getCandidatePool(
 
 export async function notationRoutes(app: FastifyInstance) {
   app.get<{
-    Querystring: {
-      clef?: string;
-      count?: string;
-      tempo?: string;
-      scale?: string;
-      level?: string;
-    };
+    Querystring: NotationQuery;
+    Reply: NotationExercise;
   }>("/api/exercises/notation", async (request) => {
-    const clef = request.query.clef === "bass" ? "bass" : "treble";
+    const clef = request.query.clef ?? "treble";
 
-    const levelNum = parseInt(request.query.level ?? "0", 10);
+    const levelNum = request.query.level ?? 0;
     const exerciseLevel = getExerciseLevel(levelNum);
 
     const params = exerciseLevel ?? {
-      count: Math.min(
-        Math.max(parseInt(request.query.count ?? "10", 10) || 10, 4),
-        30,
-      ),
-      tempo: Math.min(
-        Math.max(parseInt(request.query.tempo ?? "60", 10) || 60, 30),
-        240,
-      ),
-      scale: request.query.scale ?? "C major",
+      count: 10,
+      tempo: 60,
+      scale: "C major",
       degrees: undefined as number | undefined,
     };
 

@@ -5,7 +5,7 @@ import {
   exerciseResultSchema,
   noteSchema,
   notationExerciseSchema,
-} from "./schemas.ts";
+} from "./schemas/index.ts";
 
 describe("noteSchema", () => {
   it.each(["C4", "F#5", "Bb3", "D2", "G6"])("accepts valid note %s", (note) => {
