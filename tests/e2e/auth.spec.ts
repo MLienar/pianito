@@ -8,7 +8,9 @@ test.describe("Login Page", () => {
     await expect(page.locator("text=Welcome back to pianito.")).toBeVisible();
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+    await expect(
+      page.getByRole("main").getByRole("button", { name: "Sign in" }),
+    ).toBeVisible();
   });
 
   test("has link to signup page", async ({ page }) => {
@@ -25,7 +27,7 @@ test.describe("Login Page", () => {
   test("shows validation on empty submit", async ({ page }) => {
     await page.goto("/login");
 
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("main").getByRole("button", { name: "Sign in" }).click();
 
     // HTML5 validation should prevent submission
     const emailInput = page.locator('input[type="email"]');
@@ -37,7 +39,7 @@ test.describe("Login Page", () => {
 
     await page.locator('input[type="email"]').fill("nonexistent@test.com");
     await page.locator('input[type="password"]').fill("wrongpassword");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("main").getByRole("button", { name: "Sign in" }).click();
 
     // Should show error message (API must be running)
     await expect(page.locator("text=Signing in...")).toBeVisible();
