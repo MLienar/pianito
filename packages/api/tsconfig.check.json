@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": null,
+    "allowImportingTsExtensions": true,
     "paths": {
       "@pianito/shared": ["../shared/src/index.ts"]
     }

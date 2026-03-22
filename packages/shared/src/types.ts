@@ -5,7 +5,7 @@ import type {
   exerciseResultSchema,
   notationExerciseSchema,
   noteSchema,
-} from "./schemas";
+} from "./schemas.ts";
 
 export type NoteName = z.infer<typeof noteSchema>;
 export type ChordName = z.infer<typeof chordSchema>;
