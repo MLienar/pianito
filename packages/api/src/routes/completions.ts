@@ -5,6 +5,16 @@ import { auth } from "../auth.js";
 import { db } from "../db/index.js";
 import { lessonCompletion } from "../db/schema.js";
 
+type Clef = "treble" | "bass";
+
+const VALID_CLEFS = new Set<string>(["treble", "bass"]);
+
+function parseClef(value: unknown): Clef {
+  return typeof value === "string" && VALID_CLEFS.has(value)
+    ? (value as Clef)
+    : "treble";
+}
+
 async function getSessionUser(request: {
   headers: Record<string, string | string[] | undefined>;
 }) {
@@ -25,14 +35,19 @@ export async function completionRoutes(app: FastifyInstance) {
     }
 
     const rows = await db
-      .select({ level: lessonCompletion.level })
+      .select({
+        level: lessonCompletion.level,
+        clef: lessonCompletion.clef,
+      })
       .from(lessonCompletion)
       .where(eq(lessonCompletion.userId, user.id));
 
-    return { levels: rows.map((r) => r.level) };
+    return {
+      levels: rows.map((r) => ({ level: r.level, clef: r.clef })),
+    };
   });
 
-  app.post<{ Body: { level: number } }>(
+  app.post<{ Body: { level: number; clef?: string } }>(
     "/api/completions",
     async (request, reply) => {
       const user = await getSessionUser(request);
@@ -41,6 +56,7 @@ export async function completionRoutes(app: FastifyInstance) {
       }
 
       const { level } = request.body;
+      const clef = parseClef(request.body.clef);
       const maxLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1]?.level ?? 0;
       if (!Number.isInteger(level) || level < 1 || level > maxLevel) {
         return reply.status(400).send({ error: "Invalid level" });
@@ -53,6 +69,7 @@ export async function completionRoutes(app: FastifyInstance) {
           and(
             eq(lessonCompletion.userId, user.id),
             eq(lessonCompletion.level, level),
+            eq(lessonCompletion.clef, clef),
           ),
         )
         .limit(1);
@@ -61,7 +78,9 @@ export async function completionRoutes(app: FastifyInstance) {
         return { ok: true };
       }
 
-      await db.insert(lessonCompletion).values({ userId: user.id, level });
+      await db
+        .insert(lessonCompletion)
+        .values({ userId: user.id, level, clef });
       return { ok: true };
     },
   );

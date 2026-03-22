@@ -9,24 +9,30 @@ import { ExerciseResults } from "@/components/exercise-results";
 import { StaffRenderer } from "@/components/staff-renderer";
 import { useNotationExercise } from "@/hooks/use-notation-exercise";
 
+type Clef = "treble" | "bass";
+
 export const Route = createFileRoute("/read/$level")({
   component: ReadExercise,
+  validateSearch: (search: Record<string, unknown>): { clef: Clef } => ({
+    clef: search.clef === "bass" ? "bass" : "treble",
+  }),
 });
 
 function ReadExercise() {
   const { level: levelParam } = Route.useParams();
+  const { clef } = Route.useSearch();
   const level = Number(levelParam);
   const navigate = useNavigate();
 
-  const introKey = `intro-dismissed-${level}`;
+  const introKey = `intro-dismissed-${clef}-${level}`;
   const [showIntro, setShowIntro] = useState(
     () => !localStorage.getItem(introKey),
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: introKey is derived from level
+  // biome-ignore lint/correctness/useExhaustiveDependencies: introKey is derived from level+clef
   useEffect(() => {
     setShowIntro(!localStorage.getItem(introKey));
-  }, [level]);
+  }, [level, clef]);
 
   const {
     exercise,
@@ -43,7 +49,7 @@ function ReadExercise() {
     isLastLevel,
     handleAnswer,
     retry,
-  } = useNotationExercise(level);
+  } = useNotationExercise(level, clef);
 
   if (isLoading) {
     return (
@@ -72,6 +78,7 @@ function ReadExercise() {
     return (
       <ExerciseIntroModal
         level={currentLevel}
+        clef={clef}
         onStart={() => setShowIntro(false)}
         onDontShowAgain={() => {
           localStorage.setItem(introKey, "1");
@@ -87,6 +94,7 @@ function ReadExercise() {
         <div>
           <Link
             to="/read"
+            search={{ clef }}
             className="text-muted-foreground hover:text-foreground"
           >
             &larr; Levels
@@ -114,6 +122,7 @@ function ReadExercise() {
                       navigate({
                         to: "/read/$level",
                         params: { level: String(level + 1) },
+                        search: { clef },
                       })
                     }
                   >

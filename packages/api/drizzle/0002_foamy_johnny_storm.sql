@@ -1,0 +1,1 @@
+ALTER TABLE "lesson_completion" ADD COLUMN "clef" text DEFAULT 'treble' NOT NULL;

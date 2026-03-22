@@ -15,7 +15,7 @@ function Home() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Link to="/read">
+        <Link to="/read" search={{ clef: "treble" }}>
           <Card
             title="Read Music"
             description="Learn to read music notation with interactive exercises."

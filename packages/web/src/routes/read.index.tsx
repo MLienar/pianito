@@ -1,16 +1,34 @@
 import { EXERCISE_LEVELS, SCALE_GROUPS, STEP_LABELS } from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useSession } from "@/lib/auth";
+
+type Clef = "treble" | "bass";
+
+interface Completion {
+  level: number;
+  clef: string;
+}
 
 export const Route = createFileRoute("/read/")({
   component: ReadLevels,
+  validateSearch: (search: Record<string, unknown>): { clef: Clef } => ({
+    clef: search.clef === "bass" ? "bass" : "treble",
+  }),
 });
+
+const CLEF_TABS: { value: Clef; label: string }[] = [
+  { value: "treble", label: "Treble Clef" },
+  { value: "bass", label: "Bass Clef" },
+];
 
 function ReadLevels() {
   const { data: session } = useSession();
+  const { clef: initialClef } = Route.useSearch();
+  const [activeClef, setActiveClef] = useState<Clef>(initialClef);
 
-  const { data: completions } = useQuery<{ levels: number[] }>({
+  const { data: completions } = useQuery<{ levels: Completion[] }>({
     queryKey: ["completions"],
     queryFn: async () => {
       const res = await fetch("/api/completions", { credentials: "include" });
@@ -20,7 +38,11 @@ function ReadLevels() {
     enabled: !!session,
   });
 
-  const completedSet = new Set(completions?.levels);
+  const completedSet = new Set(
+    completions?.levels
+      .filter((c) => c.clef === activeClef)
+      .map((c) => c.level),
+  );
 
   return (
     <div className="flex flex-col gap-8 py-8">
@@ -29,6 +51,23 @@ function ReadLevels() {
         <p className="mt-1 text-muted-foreground">
           Progress through scales, from natural notes to four accidentals.
         </p>
+      </div>
+
+      <div className="flex gap-2">
+        {CLEF_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => setActiveClef(tab.value)}
+            className={`border-3 border-border px-4 py-2 text-sm font-bold transition-all ${
+              activeClef === tab.value
+                ? "bg-primary text-primary-foreground shadow-[var(--shadow-brutal)]"
+                : "bg-card hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-col gap-6">
@@ -52,6 +91,7 @@ function ReadLevels() {
                     key={el.level}
                     to="/read/$level"
                     params={{ level: String(el.level) }}
+                    search={{ clef: activeClef }}
                   >
                     <div className="border-3 border-border bg-background p-3 text-center transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] cursor-pointer relative">
                       {completedSet.has(el.level) && (

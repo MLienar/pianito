@@ -9,7 +9,10 @@ import { useNotePlayer } from "./use-note-player";
 
 export type ExerciseState = "idle" | "playing" | "finished";
 
-export function useNotationExercise(level: number) {
+export function useNotationExercise(
+  level: number,
+  clef: "treble" | "bass" = "treble",
+) {
   const [exerciseState, setExerciseState] = useState<ExerciseState>("idle");
   const lastPlayedIndexRef = useRef(-1);
   const navigate = useNavigate();
@@ -24,7 +27,7 @@ export function useNotationExercise(level: number) {
 
   const resolvedLevel = getExerciseLevel(level);
   if (!resolvedLevel) {
-    navigate({ to: "/read" });
+    navigate({ to: "/read", search: { clef } });
     throw new Error(`Exercise level ${level} does not exist`);
   }
 
@@ -37,9 +40,11 @@ export function useNotationExercise(level: number) {
     error: fetchError,
     refetch,
   } = useQuery<NotationExercise>({
-    queryKey: ["notation-exercise", level],
+    queryKey: ["notation-exercise", level, clef],
     queryFn: async () => {
-      const res = await fetch(`/api/exercises/notation?level=${level}`);
+      const res = await fetch(
+        `/api/exercises/notation?level=${level}&clef=${clef}`,
+      );
       if (!res.ok) {
         throw new Error(`Failed to load exercise (${res.status})`);
       }
@@ -119,7 +124,7 @@ export function useNotationExercise(level: number) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ level }),
+          body: JSON.stringify({ level, clef }),
         })
           .then(() =>
             queryClient.invalidateQueries({ queryKey: ["completions"] }),

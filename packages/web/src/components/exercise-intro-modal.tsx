@@ -5,13 +5,19 @@ import { Button } from "@/components/button";
 import { NoteGlyph, StaffLines } from "@/components/staff-primitives";
 import { COLORS, LINE_SPACING, parseNote, STAFF_TOP } from "@/lib/staff-utils";
 
-const CLEF = "treble" as const;
+type Clef = "treble" | "bass";
 const SVG_HEIGHT = STAFF_TOP + 4 * LINE_SPACING + 60;
 const NOTE_GAP = 70;
 const CLEF_WIDTH = 70;
 const PADDING = 30;
 
-function NoteVariantsStaff({ variants }: { variants: string[] }) {
+function NoteVariantsStaff({
+  variants,
+  clef,
+}: {
+  variants: string[];
+  clef: Clef;
+}) {
   const svgWidth = CLEF_WIDTH + variants.length * NOTE_GAP + PADDING;
 
   return (
@@ -22,11 +28,11 @@ function NoteVariantsStaff({ variants }: { variants: string[] }) {
       role="img"
       aria-label="Staff showing note variants"
     >
-      <StaffLines width={svgWidth} clef={CLEF} />
+      <StaffLines width={svgWidth} clef={clef} />
 
       {variants.map((noteStr, i) => {
         const x = CLEF_WIDTH + i * NOTE_GAP + NOTE_GAP / 2;
-        const { y, accidental, ledgerLines } = parseNote(noteStr, CLEF);
+        const { y, accidental, ledgerLines } = parseNote(noteStr, clef);
 
         return (
           <NoteGlyph
@@ -45,12 +51,14 @@ function NoteVariantsStaff({ variants }: { variants: string[] }) {
 
 interface ExerciseIntroModalProps {
   level: ExerciseLevel;
+  clef: Clef;
   onStart: () => void;
   onDontShowAgain: () => void;
 }
 
 export function ExerciseIntroModal({
   level,
+  clef,
   onStart,
   onDontShowAgain,
 }: ExerciseIntroModalProps) {
@@ -60,8 +68,9 @@ export function ExerciseIntroModal({
   const currentNote = newNotes[page];
   if (!currentNote) return null;
 
-  const variants = getNoteVariants(currentNote, CLEF);
-  const parsed = parseNote(`${currentNote}4`, CLEF);
+  const variants = getNoteVariants(currentNote, clef);
+  const referenceOctave = clef === "bass" ? 3 : 4;
+  const parsed = parseNote(`${currentNote}${referenceOctave}`, clef);
   const displayName = parsed.accidental
     ? `${parsed.letter}${parsed.accidental}`
     : parsed.letter;
@@ -80,7 +89,7 @@ export function ExerciseIntroModal({
         </div>
 
         <div className="border-3 border-border bg-background p-4">
-          <NoteVariantsStaff variants={variants} />
+          <NoteVariantsStaff variants={variants} clef={clef} />
           <p className="text-center text-xl font-bold mt-2">
             {displayName}
             {variants.length > 1 && (
