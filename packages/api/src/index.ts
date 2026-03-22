@@ -1,12 +1,16 @@
 import "dotenv/config";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { auth } from "./auth.js";
 import { CORS_ORIGIN } from "./config.js";
+import { db } from "./db/index.js";
 import { healthRoutes } from "./routes/health.js";
 import { notationRoutes } from "./routes/notation.js";
 
 const app = Fastify({ logger: true });
+
+await migrate(db, { migrationsFolder: "./drizzle" });
 
 await app.register(cors, {
   origin: CORS_ORIGIN,
