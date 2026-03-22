@@ -89,8 +89,11 @@ export function ExerciseIntroModal({
 
         <div className="border-3 border-border bg-background p-4">
           <NoteVariantsStaff variants={variants} clef={clef} />
-          <p className="text-center text-xl font-bold mt-2">
-            {displayName}
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            This is a{" "}
+            <span className="text-xl font-bold text-foreground">
+              {displayName}
+            </span>
             {variants.length > 1 && (
               <span className="text-sm font-normal text-muted-foreground ml-2">
                 ({variants.join(", ")})
