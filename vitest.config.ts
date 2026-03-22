@@ -5,6 +5,7 @@ export default defineConfig({
     include: ["packages/*/src/**/*.test.ts"],
   },
   resolve: {
+    conditions: ["source"],
     alias: {
       "@": new URL("./packages/web/src", import.meta.url).pathname,
     },
