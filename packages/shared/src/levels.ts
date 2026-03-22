@@ -1,3 +1,5 @@
+import { Note, Scale } from "tonal";
+
 export interface ExerciseLevel {
   level: number;
   name: string;
@@ -95,4 +97,53 @@ const LEVEL_MAP = new Map(EXERCISE_LEVELS.map((l) => [l.level, l]));
 
 export function getExerciseLevel(level: number): ExerciseLevel | undefined {
   return LEVEL_MAP.get(level);
+}
+
+function getScaleNotes(scale: string, degrees: number): string[] {
+  const notes = Scale.get(scale).notes;
+  return notes.slice(0, degrees);
+}
+
+export function getNewNotes(level: number): string[] {
+  const current = getExerciseLevel(level);
+  if (!current) return [];
+
+  const currentNotes = getScaleNotes(current.scale, current.degrees);
+
+  if (level === 1) return currentNotes;
+
+  const previous = getExerciseLevel(level - 1);
+  if (!previous) return currentNotes;
+
+  const previousNotes = new Set(
+    getScaleNotes(previous.scale, previous.degrees),
+  );
+
+  const newNotes = currentNotes.filter((n) => !previousNotes.has(n));
+  return newNotes.length > 0 ? newNotes : currentNotes;
+}
+
+export const CLEF_RANGES = {
+  treble: { low: "C4", high: "G5" },
+  bass: { low: "G2", high: "D4" },
+} as const;
+
+export function getNoteVariants(
+  noteName: string,
+  clef: "treble" | "bass" = "treble",
+): string[] {
+  const range = CLEF_RANGES[clef];
+  const lowMidi = Note.midi(range.low) as number;
+  const highMidi = Note.midi(range.high) as number;
+  const variants: string[] = [];
+
+  for (let octave = 2; octave <= 6; octave++) {
+    const full = `${noteName}${octave}`;
+    const midi = Note.midi(full);
+    if (midi !== null && midi >= lowMidi && midi <= highMidi) {
+      variants.push(full);
+    }
+  }
+
+  return variants;
 }

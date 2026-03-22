@@ -1,13 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { getExerciseLevel } from "@pianito/shared";
+import { CLEF_RANGES, getExerciseLevel } from "@pianito/shared";
 import type { FastifyInstance } from "fastify";
 import { Note, Scale } from "tonal";
 import { NATURAL_NOTES } from "../config.js";
-
-const CLEF_RANGES = {
-  treble: { low: "C4", high: "G5" },
-  bass: { low: "G2", high: "D4" },
-} as const;
 
 interface CandidatePool {
   candidates: string[];

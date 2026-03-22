@@ -1,13 +1,6 @@
+import { CLEF_RANGES } from "@pianito/shared";
 import { describe, expect, it } from "vitest";
 import { Note, Scale } from "tonal";
-
-// Re-implement getCandidatePool logic for testing since it's not exported.
-// We test the same algorithm against known musical expectations.
-
-const CLEF_RANGES = {
-  treble: { low: "C4", high: "G5" },
-  bass: { low: "G2", high: "D4" },
-} as const;
 
 const NATURAL_NOTES = ["C", "D", "E", "F", "G", "A", "B"];
 

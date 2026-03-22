@@ -1,8 +1,10 @@
 import { EXERCISE_LEVELS } from "@pianito/shared";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { match } from "ts-pattern";
 import { AnswerButtons } from "@/components/answer-buttons";
 import { Button } from "@/components/button";
+import { ExerciseIntroModal } from "@/components/exercise-intro-modal";
 import { ExerciseResults } from "@/components/exercise-results";
 import { StaffRenderer } from "@/components/staff-renderer";
 import { useNotationExercise } from "@/hooks/use-notation-exercise";
@@ -15,6 +17,16 @@ function ReadExercise() {
   const { level: levelParam } = Route.useParams();
   const level = Number(levelParam);
   const navigate = useNavigate();
+
+  const introKey = `intro-dismissed-${level}`;
+  const [showIntro, setShowIntro] = useState(
+    () => !localStorage.getItem(introKey),
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: introKey is derived from level
+  useEffect(() => {
+    setShowIntro(!localStorage.getItem(introKey));
+  }, [level]);
 
   const {
     exercise,
@@ -55,6 +67,19 @@ function ReadExercise() {
   }
 
   if (!exercise) return null;
+
+  if (showIntro && exerciseState === "idle") {
+    return (
+      <ExerciseIntroModal
+        level={currentLevel}
+        onStart={() => setShowIntro(false)}
+        onDontShowAgain={() => {
+          localStorage.setItem(introKey, "1");
+          setShowIntro(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 py-8">
