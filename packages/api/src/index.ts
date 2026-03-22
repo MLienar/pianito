@@ -1,7 +1,7 @@
 import "dotenv/config";
 import cors from "@fastify/cors";
-import Fastify from "fastify";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import Fastify from "fastify";
 import { auth } from "./auth.js";
 import { CORS_ORIGIN } from "./config.js";
 import { db } from "./db/index.js";
