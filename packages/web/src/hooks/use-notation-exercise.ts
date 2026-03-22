@@ -62,13 +62,18 @@ export function useNotationExercise(level: number) {
 
   const { playNote, ensureReady } = useNotePlayer();
 
-  const { score, answers, feedback, handleAnswer, resetAnswers } =
-    useNoteAnswer({
-      exercise: exercise ?? null,
-      currentIndex,
-      isPlaying,
-      allowedNotes: exercise?.allowedNotes,
-    });
+  const {
+    score,
+    answers,
+    feedback,
+    handleAnswer: rawHandleAnswer,
+    resetAnswers,
+  } = useNoteAnswer({
+    exercise: exercise ?? null,
+    currentIndex,
+    canAnswer: exerciseState !== "finished",
+    allowedNotes: exercise?.allowedNotes,
+  });
 
   // Reset when navigating to a different level
   // biome-ignore lint/correctness/useExhaustiveDependencies: level change must trigger reset
@@ -103,9 +108,18 @@ export function useNotationExercise(level: number) {
   const start = useCallback(() => {
     setExerciseState("playing");
     resetScroll();
-    resetAnswers();
     ensureReady().catch(console.error);
-  }, [resetScroll, resetAnswers, ensureReady]);
+  }, [resetScroll, ensureReady]);
+
+  const handleAnswer = useCallback(
+    (note: string) => {
+      if (exerciseState === "idle") {
+        start();
+      }
+      rawHandleAnswer(note);
+    },
+    [exerciseState, start, rawHandleAnswer],
+  );
 
   const retry = useCallback(() => {
     setExerciseState("idle");
@@ -128,7 +142,6 @@ export function useNotationExercise(level: number) {
     currentLevel,
     isLastLevel,
     handleAnswer,
-    start,
     retry,
   };
 }

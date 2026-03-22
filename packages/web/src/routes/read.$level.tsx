@@ -30,7 +30,6 @@ function ReadExercise() {
     currentLevel,
     isLastLevel,
     handleAnswer,
-    start,
     retry,
   } = useNotationExercise(level);
 
@@ -77,11 +76,6 @@ function ReadExercise() {
             Score: {score}/{totalNotes}
           </span>
           {match(exerciseState)
-            .with("idle", () => (
-              <Button variant="accent" size="lg" onClick={start}>
-                Start
-              </Button>
-            ))
             .with("finished", () => (
               <div className="flex gap-2">
                 <Button variant="primary" size="lg" onClick={retry}>
@@ -103,7 +97,7 @@ function ReadExercise() {
                 )}
               </div>
             ))
-            .with("playing", () => null)
+            .with("idle", "playing", () => null)
             .exhaustive()}
         </div>
       </div>
@@ -133,7 +127,7 @@ function ReadExercise() {
           .exhaustive()}
 
       <AnswerButtons
-        disabled={exerciseState !== "playing"}
+        disabled={exerciseState === "finished"}
         allowedNotes={exercise.allowedNotes}
         onAnswer={handleAnswer}
       />
@@ -141,9 +135,8 @@ function ReadExercise() {
       {match(exerciseState)
         .with("idle", () => (
           <p className="text-center text-muted-foreground">
-            Press <strong>Start</strong> to begin. Identify each note as it
-            reaches the orange zone. You can also use your keyboard (C, D, E, F,
-            G, A, B).
+            Press any note button to begin. Identify each note as it reaches the
+            orange zone. You can also use your keyboard (C, D, E, F, G, A, B).
           </p>
         ))
         .with("finished", () => (

@@ -6,14 +6,14 @@ import { ANSWER_NOTES } from "@/lib/constants";
 interface UseNoteAnswerOptions {
   exercise: NotationExercise | null;
   currentIndex: number;
-  isPlaying: boolean;
+  canAnswer: boolean;
   allowedNotes?: string[];
 }
 
 export function useNoteAnswer({
   exercise,
   currentIndex,
-  isPlaying,
+  canAnswer,
   allowedNotes,
 }: UseNoteAnswerOptions) {
   const [score, setScore] = useState(0);
@@ -24,16 +24,16 @@ export function useNoteAnswer({
   const exerciseRef = useRef(exercise);
   const answersRef = useRef(answers);
   const currentIndexRef = useRef(currentIndex);
-  const isPlayingRef = useRef(isPlaying);
+  const canAnswerRef = useRef(canAnswer);
   exerciseRef.current = exercise;
   answersRef.current = answers;
   currentIndexRef.current = currentIndex;
-  isPlayingRef.current = isPlaying;
+  canAnswerRef.current = canAnswer;
 
   const handleAnswer = useCallback((letter: string) => {
     const ex = exerciseRef.current;
     const idx = currentIndexRef.current;
-    if (!isPlayingRef.current || !ex) return;
+    if (!canAnswerRef.current || !ex) return;
     if (answersRef.current[idx] !== undefined) return;
 
     const noteStr = ex.notes[idx];
