@@ -1,9 +1,10 @@
 import type { NotationExercise } from "@pianito/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NOTE_SPACING } from "@/lib/constants";
 import { useExerciseAnimation } from "./use-exercise-animation";
 import { useNoteAnswer } from "./use-note-answer";
+import { useNotePlayer } from "./use-note-player";
 
 export type ExerciseState = "idle" | "playing" | "finished";
 
@@ -39,6 +40,8 @@ export function useNotationExercise() {
     Math.max(0, totalNotes - 1),
   );
 
+  const { playNote, ensureReady } = useNotePlayer();
+
   const { score, answers, feedback, handleAnswer, resetAnswers } =
     useNoteAnswer({
       exercise: exercise ?? null,
@@ -46,20 +49,42 @@ export function useNotationExercise() {
       isPlaying,
     });
 
+  // Play note when it enters the active zone
+  const lastPlayedIndexRef = useRef(-1);
+  useEffect(() => {
+    if (!isPlaying || !exercise) return;
+    if (currentIndex === lastPlayedIndexRef.current) return;
+    lastPlayedIndexRef.current = currentIndex;
+    const note = exercise.notes[currentIndex];
+    if (note != null) {
+      playNote(note, exercise.tempo).catch(console.error);
+    }
+  }, [isPlaying, exercise, currentIndex, playNote]);
+
+  // Reset played index when exercise resets
+  useEffect(() => {
+    if (exerciseState === "idle") {
+      lastPlayedIndexRef.current = -1;
+    }
+  }, [exerciseState]);
+
   // Detect exercise completion
-  if (
-    isPlaying &&
-    exercise &&
-    Math.floor(scrollOffset / NOTE_SPACING) >= exercise.notes.length
-  ) {
-    setExerciseState("finished");
-  }
+  useEffect(() => {
+    if (
+      isPlaying &&
+      exercise &&
+      Math.floor(scrollOffset / NOTE_SPACING) >= exercise.notes.length
+    ) {
+      setExerciseState("finished");
+    }
+  }, [isPlaying, exercise, scrollOffset]);
 
   function resetExercise(fetchNew: boolean) {
     setExerciseState(fetchNew ? "idle" : "playing");
     resetScroll();
     resetAnswers();
     if (fetchNew) refetch();
+    if (!fetchNew) ensureReady().catch(console.error);
   }
 
   return {
