@@ -3,8 +3,13 @@ import {
   chordSchema,
   clefSchema,
   defaultClefSchema,
-  noteSchema,
+  languageSchema,
   notationExerciseSchema,
+  notationSchema,
+  noteSchema,
+  themeSchema,
+  updatePreferenceBodySchema,
+  userPreferenceSchema,
 } from "./schemas/index.ts";
 
 describe("noteSchema", () => {
@@ -81,5 +86,104 @@ describe("defaultClefSchema", () => {
     expect(defaultClefSchema.parse("alto")).toBe("treble");
     expect(defaultClefSchema.parse("")).toBe("treble");
     expect(defaultClefSchema.parse(undefined)).toBe("treble");
+  });
+});
+
+describe("notationSchema", () => {
+  it.each(["letter", "solfege"])("accepts %s", (v) => {
+    expect(notationSchema.safeParse(v).success).toBe(true);
+  });
+
+  it.each(["doremi", "", "LETTER", 42])("rejects %s", (v) => {
+    expect(notationSchema.safeParse(v).success).toBe(false);
+  });
+});
+
+describe("themeSchema", () => {
+  it.each(["default", "ocean", "forest", "sunset", "midnight"])(
+    "accepts %s",
+    (v) => {
+      expect(themeSchema.safeParse(v).success).toBe(true);
+    },
+  );
+
+  it.each(["dark", "light", "", 0])("rejects %s", (v) => {
+    expect(themeSchema.safeParse(v).success).toBe(false);
+  });
+});
+
+describe("languageSchema", () => {
+  it.each(["en", "fr", "es", "zh"])("accepts %s", (v) => {
+    expect(languageSchema.safeParse(v).success).toBe(true);
+  });
+
+  it.each(["de", "ja", "", "EN"])("rejects %s", (v) => {
+    expect(languageSchema.safeParse(v).success).toBe(false);
+  });
+});
+
+describe("userPreferenceSchema", () => {
+  it("accepts a complete valid preference object", () => {
+    const result = userPreferenceSchema.safeParse({
+      notation: "solfege",
+      theme: "ocean",
+      language: "fr",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects when a field is missing", () => {
+    expect(
+      userPreferenceSchema.safeParse({ notation: "letter", theme: "default" })
+        .success,
+    ).toBe(false);
+  });
+
+  it("rejects when a field has an invalid value", () => {
+    expect(
+      userPreferenceSchema.safeParse({
+        notation: "letter",
+        theme: "neon",
+        language: "en",
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("updatePreferenceBodySchema", () => {
+  it("accepts a single field update", () => {
+    expect(
+      updatePreferenceBodySchema.safeParse({ theme: "midnight" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts multiple fields", () => {
+    expect(
+      updatePreferenceBodySchema.safeParse({
+        notation: "solfege",
+        language: "zh",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects an empty object", () => {
+    expect(updatePreferenceBodySchema.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects invalid field values", () => {
+    expect(
+      updatePreferenceBodySchema.safeParse({ theme: "neon" }).success,
+    ).toBe(false);
+  });
+
+  it("strips unknown fields", () => {
+    const result = updatePreferenceBodySchema.safeParse({
+      theme: "ocean",
+      foo: "bar",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).not.toHaveProperty("foo");
+    }
   });
 });
