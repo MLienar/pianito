@@ -1,11 +1,5 @@
 import { useTranslation } from "react-i18next";
-
-const LANGUAGES = [
-  { code: "en", label: "EN" },
-  { code: "fr", label: "FR" },
-  { code: "es", label: "ES" },
-  { code: "zh", label: "中" },
-];
+import { LANGUAGES } from "@/lib/constants";
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
@@ -23,7 +17,7 @@ export function LanguageSwitcher() {
               : "bg-card hover:bg-muted"
           }`}
         >
-          {lang.label}
+          {lang.shortLabel}
         </button>
       ))}
     </div>

@@ -4,6 +4,7 @@ export default {
     signIn: "Sign in",
     signUp: "Sign up",
     signOut: "Sign out",
+    settings: "Settings",
     retry: "Retry",
     previous: "Previous",
     next: "Next",
@@ -66,5 +67,10 @@ export default {
     perfectScore: "Perfect score!",
     greatJob: "Great job!",
     keepPracticing: "Keep practicing!",
+  },
+  settings: {
+    title: "Settings",
+    language: "Language",
+    languageDescription: "Choose the language for the app interface.",
   },
 } as const;

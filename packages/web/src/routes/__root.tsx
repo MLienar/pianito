@@ -7,7 +7,7 @@ import {
 import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/button";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { UserMenu } from "@/components/user-menu";
 import { signOut, useSession } from "@/lib/auth";
 
 const TanStackRouterDevtools = import.meta.env.DEV
@@ -46,16 +46,11 @@ function RootLayout() {
           </div>
 
           <div className="flex items-center gap-3">
-            <LanguageSwitcher />
             {isPending ? null : session ? (
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold">
-                  {session.user.name}
-                </span>
-                <Button onClick={handleSignOut} size="sm">
-                  {t("common.signOut")}
-                </Button>
-              </div>
+              <UserMenu
+                userName={session.user.name}
+                onSignOut={handleSignOut}
+              />
             ) : (
               <>
                 <Link to="/login">

@@ -4,6 +4,7 @@ export default {
     signIn: "Iniciar sesión",
     signUp: "Registrarse",
     signOut: "Cerrar sesión",
+    settings: "Ajustes",
     retry: "Reintentar",
     previous: "Anterior",
     next: "Siguiente",
@@ -66,5 +67,10 @@ export default {
     perfectScore: "¡Puntuación perfecta!",
     greatJob: "¡Buen trabajo!",
     keepPracticing: "¡Sigue practicando!",
+  },
+  settings: {
+    title: "Ajustes",
+    language: "Idioma",
+    languageDescription: "Elige el idioma de la interfaz de la aplicación.",
   },
 } as const;

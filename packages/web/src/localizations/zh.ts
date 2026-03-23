@@ -4,6 +4,7 @@ export default {
     signIn: "登录",
     signUp: "注册",
     signOut: "退出登录",
+    settings: "设置",
     retry: "重试",
     previous: "上一个",
     next: "下一个",
@@ -64,5 +65,10 @@ export default {
     perfectScore: "满分！",
     greatJob: "做得好！",
     keepPracticing: "继续练习！",
+  },
+  settings: {
+    title: "设置",
+    language: "语言",
+    languageDescription: "选择应用界面的语言。",
   },
 } as const;

@@ -4,6 +4,7 @@ export default {
     signIn: "Se connecter",
     signUp: "S'inscrire",
     signOut: "Se déconnecter",
+    settings: "Paramètres",
     retry: "Réessayer",
     previous: "Précédent",
     next: "Suivant",
@@ -67,5 +68,10 @@ export default {
     perfectScore: "Score parfait !",
     greatJob: "Bien joué !",
     keepPracticing: "Continuez à pratiquer !",
+  },
+  settings: {
+    title: "Paramètres",
+    language: "Langue",
+    languageDescription: "Choisissez la langue de l'interface.",
   },
 } as const;
