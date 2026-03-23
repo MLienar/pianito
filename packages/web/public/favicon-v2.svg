@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Variation 2: Filled-bowl P — bold version -->
-  <!-- Thick stem -->
-  <rect x="10" y="2" width="10" height="58" fill="#ff6b35"/>
-  <!-- Bold filled oval note head as the P bowl -->
-  <ellipse cx="36" cy="20" rx="18" ry="16" fill="#ff6b35" transform="rotate(-15, 36, 20)"/>
-  <!-- White cut-out to form the P opening -->
-  <ellipse cx="35" cy="20" rx="8" ry="7" fill="white" transform="rotate(-15, 35, 20)"/>
-  <!-- Circle on the bottom right, like a note head -->
-  <circle cx="46" cy="52" r="8" fill="#ff6b35"/>
+  <defs>
+    <mask id="cutout">
+      <rect width="64" height="64" fill="white"/>
+      <ellipse cx="35" cy="20" rx="8" ry="7" fill="black" transform="rotate(-15, 35, 20)"/>
+    </mask>
+  </defs>
+  <g mask="url(#cutout)">
+    <!-- Thick stem -->
+    <rect x="10" y="2" width="10" height="58" fill="#ff6b35"/>
+    <!-- Bold filled oval note head as the P bowl -->
+    <ellipse cx="36" cy="20" rx="18" ry="16" fill="#ff6b35" transform="rotate(-15, 36, 20)"/>
+    <!-- Circle on the bottom right, like a note head -->
+    <circle cx="46" cy="52" r="8" fill="#ff6b35"/>
+  </g>
 </svg>
