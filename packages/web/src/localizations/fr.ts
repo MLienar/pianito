@@ -19,8 +19,7 @@ export default {
     chordsDescription:
       "Visualisez et apprenez les accords avec les degrés de gamme.",
     playSongs: "Jouer des morceaux",
-    playSongsDescription:
-      "Jouez avec des pistes d'accompagnement.",
+    playSongsDescription: "Jouez avec des pistes d'accompagnement.",
   },
   auth: {
     createAccount: "Créer un compte",

@@ -16,11 +16,9 @@ export default {
     readMusicDescription:
       "Aprende a leer partituras con ejercicios interactivos.",
     chords: "Acordes",
-    chordsDescription:
-      "Visualiza y aprende acordes con grados de escala.",
+    chordsDescription: "Visualiza y aprende acordes con grados de escala.",
     playSongs: "Tocar canciones",
-    playSongsDescription:
-      "Toca con pistas de acompañamiento.",
+    playSongsDescription: "Toca con pistas de acompañamiento.",
   },
   auth: {
     createAccount: "Crear cuenta",

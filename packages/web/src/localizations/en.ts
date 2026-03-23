@@ -18,8 +18,7 @@ export default {
     chords: "Chords",
     chordsDescription: "Visualize and learn chords with scale degrees.",
     playSongs: "Play Songs",
-    playSongsDescription:
-      "Play along with backing tracks and accompaniment.",
+    playSongsDescription: "Play along with backing tracks and accompaniment.",
   },
   auth: {
     createAccount: "Create account",

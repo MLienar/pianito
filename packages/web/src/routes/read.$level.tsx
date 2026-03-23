@@ -101,7 +101,10 @@ function ReadExercise() {
             &larr; {t("read.levels")}
           </Link>
           <h1 className="text-3xl font-bold tracking-tight mt-1">
-            {t("read.levelProgress", { current: level, total: EXERCISE_LEVELS.length })}
+            {t("read.levelProgress", {
+              current: level,
+              total: EXERCISE_LEVELS.length,
+            })}
           </h1>
           <p className="text-muted-foreground">{currentLevel.name}</p>
         </div>

@@ -106,7 +106,10 @@ export function ExerciseIntroModal({
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground font-mono">
-            {t("intro.pageProgress", { current: page + 1, total: newNotes.length })}
+            {t("intro.pageProgress", {
+              current: page + 1,
+              total: newNotes.length,
+            })}
           </span>
           <div className="flex gap-2">
             {page > 0 && (

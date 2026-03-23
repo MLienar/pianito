@@ -49,7 +49,9 @@ function RootLayout() {
             <LanguageSwitcher />
             {isPending ? null : session ? (
               <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold">{session.user.name}</span>
+                <span className="text-sm font-semibold">
+                  {session.user.name}
+                </span>
                 <Button onClick={handleSignOut} size="sm">
                   {t("common.signOut")}
                 </Button>

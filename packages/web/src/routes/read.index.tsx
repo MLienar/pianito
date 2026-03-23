@@ -53,9 +53,7 @@ function ReadLevels() {
     <div className="flex flex-col gap-8 py-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("read.title")}</h1>
-        <p className="mt-1 text-muted-foreground">
-          {t("read.description")}
-        </p>
+        <p className="mt-1 text-muted-foreground">{t("read.description")}</p>
       </div>
 
       <div className="flex gap-2">
@@ -113,7 +111,10 @@ function ReadLevels() {
                         {STEP_LABELS[stepIndex]}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {t("read.notesAndTempo", { degrees: el.degrees, tempo: el.tempo })}
+                        {t("read.notesAndTempo", {
+                          degrees: el.degrees,
+                          tempo: el.tempo,
+                        })}
                       </p>
                     </div>
                   </Link>
