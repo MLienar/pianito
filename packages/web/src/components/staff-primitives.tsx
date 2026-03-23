@@ -29,7 +29,11 @@ export function StaffLines({
       ))}
       <text
         x={20}
-        y={STAFF_TOP + 3.3 * LINE_SPACING}
+        y={
+          clef === "treble"
+            ? STAFF_TOP + 3.3 * LINE_SPACING
+            : STAFF_TOP + 2.8 * LINE_SPACING
+        }
         fontSize={72}
         fontFamily="serif"
         fill={COLORS.foreground}
