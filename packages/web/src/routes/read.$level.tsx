@@ -149,20 +149,6 @@ function ReadExercise() {
         feedback={feedback}
       />
 
-      {feedback &&
-        match(feedback)
-          .with("correct", () => (
-            <div className="text-center text-xl font-bold py-2 border-3 border-border bg-accent">
-              {t("read.correct")}
-            </div>
-          ))
-          .with("wrong", () => (
-            <div className="text-center text-xl font-bold py-2 border-3 border-border bg-destructive text-destructive-foreground">
-              {t("read.wrong")}
-            </div>
-          ))
-          .exhaustive()}
-
       <AnswerButtons
         disabled={exerciseState === "finished"}
         allowedNotes={exercise.allowedNotes}
