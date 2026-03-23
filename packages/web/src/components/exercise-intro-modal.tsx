@@ -1,6 +1,7 @@
 import type { Clef, ExerciseLevel } from "@pianito/shared";
 import { getNewNotes, getNoteVariants } from "@pianito/shared";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/button";
 import { NoteGlyph, StaffLines } from "@/components/staff-primitives";
 import { COLORS, LINE_SPACING, parseNote, STAFF_TOP } from "@/lib/staff-utils";
@@ -61,6 +62,7 @@ export function ExerciseIntroModal({
   onStart,
   onDontShowAgain,
 }: ExerciseIntroModalProps) {
+  const { t } = useTranslation();
   const newNotes = getNewNotes(level.level);
   const [page, setPage] = useState(0);
 
@@ -80,7 +82,7 @@ export function ExerciseIntroModal({
       <div className="border-3 border-border bg-card p-8 shadow-[var(--shadow-brutal)] max-w-sm w-full mx-4 flex flex-col gap-6">
         <div>
           <p className="text-sm font-mono text-muted-foreground">
-            Level {level.level}
+            {t("read.level", { level: level.level })}
           </p>
           <h2 className="text-2xl font-bold tracking-tight mt-1">
             {level.name}
@@ -90,7 +92,7 @@ export function ExerciseIntroModal({
         <div className="border-3 border-border bg-background p-4">
           <NoteVariantsStaff variants={variants} clef={clef} />
           <p className="text-center text-sm text-muted-foreground mt-2">
-            This is a{" "}
+            {t("intro.thisIsA")}
             <span className="text-xl font-bold text-foreground">
               {displayName}
             </span>
@@ -104,21 +106,21 @@ export function ExerciseIntroModal({
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground font-mono">
-            {page + 1} / {newNotes.length}
+            {t("intro.pageProgress", { current: page + 1, total: newNotes.length })}
           </span>
           <div className="flex gap-2">
             {page > 0 && (
               <Button variant="default" onClick={() => setPage(page - 1)}>
-                Previous
+                {t("common.previous")}
               </Button>
             )}
             {isLast ? (
               <Button variant="accent" onClick={onStart}>
-                Start
+                {t("common.start")}
               </Button>
             ) : (
               <Button variant="primary" onClick={() => setPage(page + 1)}>
-                Next
+                {t("common.next")}
               </Button>
             )}
           </div>
@@ -130,7 +132,7 @@ export function ExerciseIntroModal({
           className="text-muted-foreground"
           onClick={onDontShowAgain}
         >
-          Don't show again for this level
+          {t("intro.dontShowAgain")}
         </Button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import type { Clef } from "@pianito/shared";
 import { defaultClefSchema, EXERCISE_LEVELS } from "@pianito/shared";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { match } from "ts-pattern";
 import { AnswerButtons } from "@/components/answer-buttons";
 import { Button } from "@/components/button";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/read/$level")({
 });
 
 function ReadExercise() {
+  const { t } = useTranslation();
   const { level: levelParam } = Route.useParams();
   const { clef } = Route.useSearch();
   const level = Number(levelParam);
@@ -53,7 +55,7 @@ function ReadExercise() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-lg font-bold">Loading exercise...</p>
+        <p className="text-lg font-bold">{t("read.loadingExercise")}</p>
       </div>
     );
   }
@@ -65,7 +67,7 @@ function ReadExercise() {
           {fetchError.message}
         </p>
         <Button variant="primary" onClick={retry}>
-          Retry
+          {t("common.retry")}
         </Button>
       </div>
     );
@@ -96,22 +98,22 @@ function ReadExercise() {
             search={{ clef }}
             className="text-muted-foreground hover:text-foreground"
           >
-            &larr; Levels
+            &larr; {t("read.levels")}
           </Link>
           <h1 className="text-3xl font-bold tracking-tight mt-1">
-            Level {level}/{EXERCISE_LEVELS.length}
+            {t("read.levelProgress", { current: level, total: EXERCISE_LEVELS.length })}
           </h1>
           <p className="text-muted-foreground">{currentLevel.name}</p>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-lg font-bold font-mono">
-            Score: {score}/{totalNotes}
+            {t("read.score", { score, total: totalNotes })}
           </span>
           {match(exerciseState)
             .with("finished", () => (
               <div className="flex gap-2">
                 <Button variant="primary" size="lg" onClick={retry}>
-                  Retry
+                  {t("common.retry")}
                 </Button>
                 {!isLastLevel && (
                   <Button
@@ -125,7 +127,7 @@ function ReadExercise() {
                       })
                     }
                   >
-                    Next Level
+                    {t("read.nextLevel")}
                   </Button>
                 )}
               </div>
@@ -148,12 +150,12 @@ function ReadExercise() {
         match(feedback)
           .with("correct", () => (
             <div className="text-center text-xl font-bold py-2 border-3 border-border bg-accent">
-              Correct!
+              {t("read.correct")}
             </div>
           ))
           .with("wrong", () => (
             <div className="text-center text-xl font-bold py-2 border-3 border-border bg-destructive text-destructive-foreground">
-              Wrong!
+              {t("read.wrong")}
             </div>
           ))
           .exhaustive()}
@@ -167,8 +169,7 @@ function ReadExercise() {
       {match(exerciseState)
         .with("idle", () => (
           <p className="text-center text-muted-foreground">
-            Press any note button to begin. Identify each note as it reaches the
-            orange zone. You can also use your keyboard (C, D, E, F, G, A, B).
+            {t("read.instructions")}
           </p>
         ))
         .with("finished", () => (

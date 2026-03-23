@@ -5,7 +5,9 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { signOut, useSession } from "@/lib/auth";
 
 const TanStackRouterDevtools = import.meta.env.DEV
@@ -21,6 +23,7 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
+  const { t } = useTranslation();
   const { data: session, isPending } = useSession();
   const navigate = useNavigate();
 
@@ -42,25 +45,28 @@ function RootLayout() {
             </Link>
           </div>
 
-          {isPending ? null : session ? (
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-semibold">{session.user.name}</span>
-              <Button onClick={handleSignOut} size="sm">
-                Sign out
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link to="/login">
-                <Button size="sm">Sign in</Button>
-              </Link>
-              <Link to="/signup">
-                <Button variant="primary" size="sm">
-                  Sign up
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            {isPending ? null : session ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-semibold">{session.user.name}</span>
+                <Button onClick={handleSignOut} size="sm">
+                  {t("common.signOut")}
                 </Button>
-              </Link>
-            </div>
-          )}
+              </div>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button size="sm">{t("common.signIn")}</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant="primary" size="sm">
+                    {t("common.signUp")}
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </nav>
       <main className="mx-auto max-w-6xl p-6">

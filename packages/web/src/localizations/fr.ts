@@ -1,0 +1,72 @@
+export default {
+  common: {
+    pianito: "pianito",
+    signIn: "Se connecter",
+    signUp: "S'inscrire",
+    signOut: "Se déconnecter",
+    retry: "Réessayer",
+    previous: "Précédent",
+    next: "Suivant",
+    start: "Commencer",
+    loading: "Chargement...",
+  },
+  home: {
+    tagline: "Apprenez le piano, lisez la musique, maîtrisez les accords.",
+    readMusic: "Lire la musique",
+    readMusicDescription:
+      "Apprenez à lire les partitions avec des exercices interactifs.",
+    chords: "Accords",
+    chordsDescription:
+      "Visualisez et apprenez les accords avec les degrés de gamme.",
+    playSongs: "Jouer des morceaux",
+    playSongsDescription:
+      "Jouez avec des pistes d'accompagnement.",
+  },
+  auth: {
+    createAccount: "Créer un compte",
+    startJourney: "Commencez votre aventure musicale.",
+    welcomeBack: "Content de vous revoir sur pianito.",
+    name: "Nom",
+    namePlaceholder: "Votre nom",
+    email: "Email",
+    emailPlaceholder: "vous@exemple.com",
+    password: "Mot de passe",
+    passwordPlaceholder: "••••••••",
+    creatingAccount: "Création du compte...",
+    signingIn: "Connexion...",
+    failedCreate: "Échec de la création du compte",
+    failedSignIn: "Échec de la connexion",
+    alreadyHaveAccount: "Vous avez déjà un compte ? ",
+    dontHaveAccount: "Vous n'avez pas de compte ? ",
+  },
+  read: {
+    title: "Lire la musique",
+    description:
+      "Progressez à travers les gammes, des notes naturelles aux quatre altérations.",
+    trebleClef: "Clé de Sol",
+    bassClef: "Clé de Fa",
+    levels: "Niveaux",
+    level: "Niveau {{level}}",
+    levelProgress: "Niveau {{current}}/{{total}}",
+    score: "Score : {{score}}/{{total}}",
+    nextLevel: "Niveau suivant",
+    correct: "Correct !",
+    wrong: "Faux !",
+    loadingExercise: "Chargement de l'exercice...",
+    instructions:
+      "Appuyez sur un bouton de note pour commencer. Identifiez chaque note lorsqu'elle atteint la zone orange. Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B).",
+    notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
+  },
+  intro: {
+    thisIsA: "Ceci est un ",
+    dontShowAgain: "Ne plus afficher pour ce niveau",
+    pageProgress: "{{current}} / {{total}}",
+  },
+  results: {
+    exerciseComplete: "Exercice terminé !",
+    scoreDisplay: "{{score}}/{{total}}",
+    perfectScore: "Score parfait !",
+    greatJob: "Bien joué !",
+    keepPracticing: "Continuez à pratiquer !",
+  },
+} as const;

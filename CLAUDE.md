@@ -24,3 +24,4 @@ pnpm monorepo with three packages:
 - **Tests**: Vitest for unit, Playwright for e2e
 - **Commits**: Conventional commits (feat:, fix:, refactor:, etc.)
 - **Package manager**: pnpm (never npm or yarn)
+- **i18n**: All user-facing text in `packages/web` must use `react-i18next`. Never hardcode strings in JSX — use `t("namespace.key")` from `useTranslation()`. When adding or modifying rendered text, always add the corresponding translation keys to all four locale files in `packages/web/src/localizations/` (en, fr, es, zh)

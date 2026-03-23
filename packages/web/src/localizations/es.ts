@@ -1,0 +1,72 @@
+export default {
+  common: {
+    pianito: "pianito",
+    signIn: "Iniciar sesión",
+    signUp: "Registrarse",
+    signOut: "Cerrar sesión",
+    retry: "Reintentar",
+    previous: "Anterior",
+    next: "Siguiente",
+    start: "Empezar",
+    loading: "Cargando...",
+  },
+  home: {
+    tagline: "Aprende piano, lee música, domina los acordes.",
+    readMusic: "Leer música",
+    readMusicDescription:
+      "Aprende a leer partituras con ejercicios interactivos.",
+    chords: "Acordes",
+    chordsDescription:
+      "Visualiza y aprende acordes con grados de escala.",
+    playSongs: "Tocar canciones",
+    playSongsDescription:
+      "Toca con pistas de acompañamiento.",
+  },
+  auth: {
+    createAccount: "Crear cuenta",
+    startJourney: "Comienza tu aventura musical.",
+    welcomeBack: "Bienvenido de nuevo a pianito.",
+    name: "Nombre",
+    namePlaceholder: "Tu nombre",
+    email: "Correo electrónico",
+    emailPlaceholder: "tu@ejemplo.com",
+    password: "Contraseña",
+    passwordPlaceholder: "••••••••",
+    creatingAccount: "Creando cuenta...",
+    signingIn: "Iniciando sesión...",
+    failedCreate: "Error al crear la cuenta",
+    failedSignIn: "Error al iniciar sesión",
+    alreadyHaveAccount: "¿Ya tienes una cuenta? ",
+    dontHaveAccount: "¿No tienes una cuenta? ",
+  },
+  read: {
+    title: "Leer música",
+    description:
+      "Progresa a través de las escalas, desde notas naturales hasta cuatro alteraciones.",
+    trebleClef: "Clave de Sol",
+    bassClef: "Clave de Fa",
+    levels: "Niveles",
+    level: "Nivel {{level}}",
+    levelProgress: "Nivel {{current}}/{{total}}",
+    score: "Puntuación: {{score}}/{{total}}",
+    nextLevel: "Siguiente nivel",
+    correct: "¡Correcto!",
+    wrong: "¡Incorrecto!",
+    loadingExercise: "Cargando ejercicio...",
+    instructions:
+      "Pulsa cualquier botón de nota para empezar. Identifica cada nota cuando llegue a la zona naranja. También puedes usar tu teclado (C, D, E, F, G, A, B).",
+    notesAndTempo: "{{degrees}} notas · {{tempo}} bpm",
+  },
+  intro: {
+    thisIsA: "Esto es un ",
+    dontShowAgain: "No mostrar de nuevo para este nivel",
+    pageProgress: "{{current}} / {{total}}",
+  },
+  results: {
+    exerciseComplete: "¡Ejercicio completado!",
+    scoreDisplay: "{{score}}/{{total}}",
+    perfectScore: "¡Puntuación perfecta!",
+    greatJob: "¡Buen trabajo!",
+    keepPracticing: "¡Sigue practicando!",
+  },
+} as const;

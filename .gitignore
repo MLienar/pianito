@@ -8,3 +8,4 @@ dist/
 playwright-report/
 test-results/
 tests/e2e/artifacts/
+tsconfig.tsbuilinfo

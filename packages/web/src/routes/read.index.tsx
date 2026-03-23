@@ -8,6 +8,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/read/")({
@@ -17,15 +18,16 @@ export const Route = createFileRoute("/read/")({
   }),
 });
 
-const CLEF_TABS: { value: Clef; label: string }[] = [
-  { value: "treble", label: "Treble Clef" },
-  { value: "bass", label: "Bass Clef" },
-];
-
 function ReadLevels() {
+  const { t } = useTranslation();
   const { data: session } = useSession();
   const { clef: activeClef } = Route.useSearch();
   const navigate = useNavigate();
+
+  const clefTabs: { value: Clef; label: string }[] = [
+    { value: "treble", label: t("read.trebleClef") },
+    { value: "bass", label: t("read.bassClef") },
+  ];
 
   const { data: completions } = useQuery<CompletionsResponse>({
     queryKey: ["completions"],
@@ -50,14 +52,14 @@ function ReadLevels() {
   return (
     <div className="flex flex-col gap-8 py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Read Music</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("read.title")}</h1>
         <p className="mt-1 text-muted-foreground">
-          Progress through scales, from natural notes to four accidentals.
+          {t("read.description")}
         </p>
       </div>
 
       <div className="flex gap-2">
-        {CLEF_TABS.map((tab) => (
+        {clefTabs.map((tab) => (
           <button
             key={tab.value}
             type="button"
@@ -111,7 +113,7 @@ function ReadLevels() {
                         {STEP_LABELS[stepIndex]}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {el.degrees} notes · {el.tempo} bpm
+                        {t("read.notesAndTempo", { degrees: el.degrees, tempo: el.tempo })}
                       </p>
                     </div>
                   </Link>
