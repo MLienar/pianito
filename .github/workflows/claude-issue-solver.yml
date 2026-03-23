@@ -1,0 +1,64 @@
+name: Claude Issue Solver
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  solve-issue:
+    if: github.event.label.name == 'claude'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - uses: anthropics/claude-code-action@beta
+        with:
+          claude_max: true
+          trigger_phrase: ""
+          direct_prompt: |
+            You are solving GitHub issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"
+
+            Issue body:
+            ${{ github.event.issue.body }}
+
+            Follow this workflow precisely:
+
+            1. **Plan**: Read the issue carefully. Explore the codebase to understand the relevant files and architecture. Create a step-by-step plan to solve the issue. Comment the plan on the issue for visibility.
+
+            2. **Implement**: Execute the plan. Choose the right approach — use skills, agents, and tools as needed. Work on a new branch named `claude/issue-${{ github.event.issue.number }}`.
+
+            3. **Simplify**: Run /simplify to review your changes for reuse, quality, and efficiency.
+
+            4. **Check**: Run `pnpm check` (which runs lint, typecheck, and tests). Fix any errors until it passes cleanly.
+
+            5. **Commit**: Use /git:commit to stage and commit your changes with a conventional commit message. Reference the issue number in the commit.
+
+            6. **Create PR**: Push the branch and create a pull request that:
+               - References the issue with "Closes #${{ github.event.issue.number }}"
+               - Has a clear summary of changes
+               - Includes a test plan
+
+            7. **Self-review**: Review your own PR critically. Look for edge cases, missing tests, code quality issues. Push fix commits if needed.
+
+            Important constraints:
+            - This is a pnpm monorepo with packages: api, web, shared
+            - Uses Biome for linting (not ESLint)
+            - Uses Vitest for unit tests, Playwright for e2e
+            - Uses ts-pattern for type-safe branching (not switch/if-else)
+            - Keep changes minimal and focused on the issue
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep,Agent,Skill"
+          model: "sonnet"
