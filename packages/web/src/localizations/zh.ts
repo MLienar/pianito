@@ -10,6 +10,7 @@ export default {
     next: "下一个",
     start: "开始",
     loading: "加载中...",
+    cancel: "取消",
   },
   home: {
     tagline: "学钢琴，读乐谱，掌握和弦。",
@@ -70,5 +71,19 @@ export default {
     title: "设置",
     language: "语言",
     languageDescription: "选择应用界面的语言。",
+    notation: "记谱法",
+    notationDescription:
+      "选择音符显示方式：字母（A、B、C）或唱名（Do、Ré、Mi）。",
+    theme: "主题",
+    themeDescription: "选择应用的颜色主题。",
+    dangerZone: "危险区域",
+    deleteAccount: "删除账户",
+    deleteAccountDescription:
+      "永久删除您的账户和所有关联数据。此操作无法撤销。",
+    deleteAccountConfirmation:
+      "这将永久删除您的账户、进度和所有数据。此操作无法撤销。",
+    typeDelete: '输入 "DELETE" 以确认：',
+    deleteButton: "删除我的账户",
+    deleting: "删除中...",
   },
 } as const;

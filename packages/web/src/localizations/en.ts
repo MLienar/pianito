@@ -10,6 +10,7 @@ export default {
     next: "Next",
     start: "Start",
     loading: "Loading...",
+    cancel: "Cancel",
   },
   home: {
     tagline: "Learn piano, read music, master chords.",
@@ -72,5 +73,19 @@ export default {
     title: "Settings",
     language: "Language",
     languageDescription: "Choose the language for the app interface.",
+    notation: "Notation",
+    notationDescription:
+      "Choose how notes are displayed: letter names (A, B, C) or solfege (Do, Ré, Mi).",
+    theme: "Theme",
+    themeDescription: "Choose the color theme for the app.",
+    dangerZone: "Danger Zone",
+    deleteAccount: "Delete Account",
+    deleteAccountDescription:
+      "Permanently delete your account and all associated data. This action cannot be undone.",
+    deleteAccountConfirmation:
+      "This will permanently delete your account, progress, and all data. This action cannot be undone.",
+    typeDelete: 'Type "DELETE" to confirm:',
+    deleteButton: "Delete My Account",
+    deleting: "Deleting...",
   },
 } as const;

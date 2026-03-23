@@ -1,4 +1,5 @@
-import { ANSWER_NOTES } from "@/lib/constants";
+import { usePreferences } from "@/hooks/use-preferences";
+import { ANSWER_NOTES, SOLFEGE_MAP } from "@/lib/constants";
 import { Button } from "./button";
 
 interface AnswerButtonsProps {
@@ -12,6 +13,9 @@ export function AnswerButtons({
   allowedNotes,
   onAnswer,
 }: AnswerButtonsProps) {
+  const { data: preferences } = usePreferences();
+  const useSolfege = preferences?.notation === "solfege";
+
   return (
     <div className="flex justify-center gap-3 flex-wrap">
       {ANSWER_NOTES.map((note) => {
@@ -23,7 +27,7 @@ export function AnswerButtons({
             disabled={disabled || !isAllowed}
             className="px-6 py-4 text-2xl font-mono min-w-[70px]"
           >
-            {note}
+            {useSolfege ? (SOLFEGE_MAP[note] ?? note) : note}
           </Button>
         );
       })}

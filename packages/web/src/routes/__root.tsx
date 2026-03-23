@@ -8,7 +8,14 @@ import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/button";
 import { UserMenu } from "@/components/user-menu";
+import { useSyncPreferences } from "@/hooks/use-preferences";
 import { signOut, useSession } from "@/lib/auth";
+import { applyTheme, getStoredTheme } from "@/lib/theme";
+
+// Apply stored theme immediately to prevent flash
+if (typeof document !== "undefined") {
+  applyTheme(getStoredTheme());
+}
 
 const TanStackRouterDevtools = import.meta.env.DEV
   ? lazy(() =>
@@ -26,6 +33,8 @@ function RootLayout() {
   const { t } = useTranslation();
   const { data: session, isPending } = useSession();
   const navigate = useNavigate();
+
+  useSyncPreferences();
 
   async function handleSignOut() {
     await signOut();

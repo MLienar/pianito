@@ -84,6 +84,25 @@ export const progress = pgTable("progress", {
   completedAt: timestamp("completed_at").notNull().defaultNow(),
 });
 
+export const userPreference = pgTable("user_preference", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id),
+  notation: text("notation")
+    .$type<"letter" | "solfege">()
+    .notNull()
+    .default("letter"),
+  theme: text("theme")
+    .$type<"default" | "ocean" | "forest" | "sunset" | "midnight">()
+    .notNull()
+    .default("default"),
+  language: text("language")
+    .$type<"en" | "fr" | "es" | "zh">()
+    .notNull()
+    .default("en"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const lessonCompletion = pgTable("lesson_completion", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")

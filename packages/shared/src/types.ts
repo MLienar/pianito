@@ -10,6 +10,8 @@ import type {
   notationExerciseSchema,
   notationQuerySchema,
   noteSchema,
+  updatePreferenceBodySchema,
+  userPreferenceSchema,
 } from "./schemas/index.ts";
 
 // Domain types
@@ -25,3 +27,5 @@ export type CompletionsResponse = z.infer<typeof completionsResponseSchema>;
 export type CompleteBody = z.infer<typeof completeBodySchema>;
 export type CompleteResponse = z.infer<typeof completeResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
+export type UserPreference = z.infer<typeof userPreferenceSchema>;
+export type UpdatePreferenceBody = z.infer<typeof updatePreferenceBodySchema>;

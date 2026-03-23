@@ -33,6 +33,78 @@
   --radius-brutal: 0px;
 }
 
+/* Theme overrides */
+[data-theme="ocean"] {
+  --color-background: #e8f0f5;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #7dd3fc;
+  --color-secondary-foreground: #1a1a1a;
+  --color-accent: #06d6a0;
+  --color-accent-foreground: #1a1a1a;
+  --color-muted: #d4e4f0;
+  --color-muted-foreground: #4b5563;
+  --color-destructive: #ef476f;
+  --color-destructive-foreground: #ffffff;
+}
+
+[data-theme="forest"] {
+  --color-background: #e8f5eb;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-primary: #16a34a;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #bef264;
+  --color-secondary-foreground: #1a1a1a;
+  --color-accent: #f59e0b;
+  --color-accent-foreground: #1a1a1a;
+  --color-muted: #d4f0d9;
+  --color-muted-foreground: #4b5563;
+  --color-destructive: #ef476f;
+  --color-destructive-foreground: #ffffff;
+}
+
+[data-theme="sunset"] {
+  --color-background: #f5e8e8;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-primary: #e11d48;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #fb923c;
+  --color-secondary-foreground: #1a1a1a;
+  --color-accent: #fbbf24;
+  --color-accent-foreground: #1a1a1a;
+  --color-muted: #f0d4d4;
+  --color-muted-foreground: #4b5563;
+  --color-destructive: #7f1d1d;
+  --color-destructive-foreground: #ffffff;
+}
+
+[data-theme="midnight"] {
+  --color-background: #1a1a2e;
+  --color-foreground: #e2e8f0;
+  --color-card: #2a2a4a;
+  --color-card-foreground: #e2e8f0;
+  --color-primary: #a78bfa;
+  --color-primary-foreground: #1a1a2e;
+  --color-secondary: #f472b6;
+  --color-secondary-foreground: #1a1a2e;
+  --color-accent: #22d3ee;
+  --color-accent-foreground: #1a1a2e;
+  --color-muted: #3a3a5a;
+  --color-muted-foreground: #94a3b8;
+  --color-destructive: #ef476f;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #4a4a6a;
+  --color-ring: #a78bfa;
+  --shadow-brutal: 4px 4px 0px 0px #4a4a6a;
+  --shadow-brutal-sm: 2px 2px 0px 0px #4a4a6a;
+  --shadow-brutal-lg: 6px 6px 0px 0px #4a4a6a;
+  --shadow-brutal-hover: 6px 6px 0px 0px #4a4a6a;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-background);

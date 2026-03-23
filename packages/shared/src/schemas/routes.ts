@@ -38,6 +38,36 @@ export const completeResponseSchema = z.object({
   ok: z.literal(true),
 });
 
+// ─── GET /api/preferences ────────────────────────────────────────────
+
+export const notationSchema = z.enum(["letter", "solfege"]);
+export const themeSchema = z.enum([
+  "default",
+  "ocean",
+  "forest",
+  "sunset",
+  "midnight",
+]);
+export const languageSchema = z.enum(["en", "fr", "es", "zh"]);
+
+export const userPreferenceSchema = z.object({
+  notation: notationSchema,
+  theme: themeSchema,
+  language: languageSchema,
+});
+
+// ─── PATCH /api/preferences ─────────────────────────────────────────
+
+export const updatePreferenceBodySchema = z
+  .object({
+    notation: notationSchema.optional(),
+    theme: themeSchema.optional(),
+    language: languageSchema.optional(),
+  })
+  .refine((obj) => Object.keys(obj).length > 0, {
+    message: "At least one preference field is required",
+  });
+
 // ─── Shared error response ───────────────────────────────────────────
 
 export const errorResponseSchema = z.object({

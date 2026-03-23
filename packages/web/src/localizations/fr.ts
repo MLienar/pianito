@@ -10,6 +10,7 @@ export default {
     next: "Suivant",
     start: "Commencer",
     loading: "Chargement...",
+    cancel: "Annuler",
   },
   home: {
     tagline: "Apprenez le piano, lisez la musique, maîtrisez les accords.",
@@ -73,5 +74,19 @@ export default {
     title: "Paramètres",
     language: "Langue",
     languageDescription: "Choisissez la langue de l'interface.",
+    notation: "Notation",
+    notationDescription:
+      "Choisissez l'affichage des notes : lettres (A, B, C) ou solfège (Do, Ré, Mi).",
+    theme: "Thème",
+    themeDescription: "Choisissez le thème de couleur de l'application.",
+    dangerZone: "Zone de danger",
+    deleteAccount: "Supprimer le compte",
+    deleteAccountDescription:
+      "Supprimez définitivement votre compte et toutes les données associées. Cette action est irréversible.",
+    deleteAccountConfirmation:
+      "Cela supprimera définitivement votre compte, votre progression et toutes vos données. Cette action est irréversible.",
+    typeDelete: 'Tapez "DELETE" pour confirmer :',
+    deleteButton: "Supprimer mon compte",
+    deleting: "Suppression...",
   },
 } as const;

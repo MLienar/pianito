@@ -5,9 +5,11 @@ import Fastify from "fastify";
 import { auth } from "./auth.js";
 import { CORS_ORIGIN } from "./config.js";
 import { db } from "./db/index.js";
+import { accountRoutes } from "./routes/account.js";
 import { completionRoutes } from "./routes/completions.js";
 import { healthRoutes } from "./routes/health.js";
 import { notationRoutes } from "./routes/notation.js";
+import { preferenceRoutes } from "./routes/preferences.js";
 
 const app = Fastify({ logger: true });
 
@@ -44,9 +46,11 @@ app.route({
   },
 });
 
+await app.register(accountRoutes);
 await app.register(completionRoutes);
 await app.register(healthRoutes);
 await app.register(notationRoutes);
+await app.register(preferenceRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 

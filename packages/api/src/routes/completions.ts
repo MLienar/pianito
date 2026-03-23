@@ -8,21 +8,9 @@ import {
 } from "@pianito/shared";
 import { and, eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
-import { auth } from "../auth.js";
 import { db } from "../db/index.js";
 import { lessonCompletion } from "../db/schema.js";
-
-async function getSessionUser(request: {
-  headers: Record<string, string | string[] | undefined>;
-}) {
-  const headers = new Headers();
-  for (const [key, value] of Object.entries(request.headers)) {
-    if (value)
-      headers.append(key, Array.isArray(value) ? value.join(", ") : value);
-  }
-  const session = await auth.api.getSession({ headers });
-  return session?.user ?? null;
-}
+import { getSessionUser } from "../lib/session.js";
 
 export async function completionRoutes(app: FastifyInstance) {
   app.get<{ Reply: CompletionsResponse | ErrorResponse }>(
