@@ -19,12 +19,12 @@ function SettingsPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session) {
+    if (!isPending && !session?.user) {
       navigate({ to: "/login" });
     }
   }, [isPending, session, navigate]);
 
-  if (isPending || !session) return null;
+  if (isPending || !session?.user) return null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">

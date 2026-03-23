@@ -55,7 +55,7 @@ function RootLayout() {
           </div>
 
           <div className="flex items-center gap-3">
-            {isPending ? null : session ? (
+            {isPending ? null : session?.user ? (
               <UserMenu
                 userName={session.user.name}
                 onSignOut={handleSignOut}

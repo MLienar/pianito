@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { match } from "ts-pattern";
 import { NoteGlyph, StaffLines } from "@/components/staff-primitives";
+import { useNoteFormatter } from "@/hooks/use-note-formatter";
 import { NOTE_SPACING } from "@/lib/constants";
 import { COLORS, LINE_SPACING, parseNote, STAFF_TOP } from "@/lib/staff-utils";
 
@@ -25,6 +26,8 @@ export const StaffRenderer = memo(function StaffRenderer({
   answers,
   feedback,
 }: StaffRendererProps) {
+  const formatNote = useNoteFormatter();
+
   return (
     <div className="border-3 border-border bg-card p-4 shadow-[var(--shadow-brutal)] overflow-hidden">
       <svg
@@ -89,7 +92,7 @@ export const StaffRenderer = memo(function StaffRenderer({
               fill={noteColor}
               label={
                 wasAnswered && !wasCorrect
-                  ? { text: letter, color: COLORS.destructive }
+                  ? { text: formatNote(letter), color: COLORS.destructive }
                   : undefined
               }
             />

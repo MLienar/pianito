@@ -27,6 +27,13 @@ async function mockExerciseApiError(page: Page) {
   );
 }
 
+async function dismissIntroModal(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem("intro-dismissed-treble-1", "1");
+    localStorage.setItem("intro-dismissed-treble-2", "1");
+  });
+}
+
 test.describe("Level List Page", () => {
   test("renders heading, description, and scale groups", async ({ page }) => {
     await page.goto("/read");
@@ -55,18 +62,23 @@ test.describe("Level List Page", () => {
   test("clicking a level card navigates to the exercise page", async ({
     page,
   }) => {
+    await dismissIntroModal(page);
     await mockExerciseApi(page);
     await page.goto("/read");
 
     // Click the first level card (level 1)
     await page.getByText("Introduction").first().click();
 
-    await expect(page).toHaveURL(/\/read\/1$/);
+    await expect(page).toHaveURL(/\/read\/1/);
     await expect(page.locator("h1")).toContainText("Level 1/");
   });
 });
 
 test.describe("Read Exercise Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissIntroModal(page);
+  });
+
   test("displays idle state with staff, answer buttons, and instructions", async ({
     page,
   }) => {
@@ -146,6 +158,9 @@ test.describe("Read Exercise Page", () => {
     await mockExerciseApi(page);
     await page.goto("/read/1");
 
+    // Wait for exercise UI to be ready before using keyboard
+    await expect(page.getByRole("button", { name: "C", exact: true })).toBeVisible();
+
     // First note is C4 → press "c" key (also starts the exercise)
     await page.keyboard.press("c");
 
@@ -158,6 +173,7 @@ test.describe("Read Exercise Page", () => {
   }) => {
     await mockExerciseApi(page);
     await page.goto("/read/1");
+    await expect(page.getByRole("button", { name: "C", exact: true })).toBeVisible();
     // At tempo 60 and NOTE_SPACING 100, each note takes 1s.
     // First answer also starts the exercise.
     // Answer the first note immediately, then wait ~1s between each subsequent note.
@@ -183,6 +199,7 @@ test.describe("Read Exercise Page", () => {
   test("Retry button resets and fetches a new exercise", async ({ page }) => {
     await mockExerciseApi(page);
     await page.goto("/read/1");
+    await expect(page.getByRole("button", { name: "C", exact: true })).toBeVisible();
 
     // At tempo 60 and NOTE_SPACING 100, each note takes 1s.
     // First answer also starts the exercise.
@@ -210,6 +227,7 @@ test.describe("Read Exercise Page", () => {
   test("Next Level button navigates to next level", async ({ page }) => {
     await mockExerciseApi(page);
     await page.goto("/read/1");
+    await expect(page.getByRole("button", { name: "C", exact: true })).toBeVisible();
 
     // At tempo 60 and NOTE_SPACING 100, each note takes 1s.
     // First answer also starts the exercise.
@@ -227,7 +245,7 @@ test.describe("Read Exercise Page", () => {
     // Click Next Level
     await page.getByRole("button", { name: "Next Level" }).click();
 
-    await expect(page).toHaveURL(/\/read\/2$/);
+    await expect(page).toHaveURL(/\/read\/2/);
   });
 
   test("back link navigates to level list", async ({ page }) => {
@@ -236,7 +254,7 @@ test.describe("Read Exercise Page", () => {
 
     await page.getByRole("link", { name: /Levels/ }).click();
 
-    await expect(page).toHaveURL(/\/read$/);
+    await expect(page).toHaveURL(/\/read(\?|$)/);
     await expect(page.locator("h1")).toContainText("Read Music");
   });
 

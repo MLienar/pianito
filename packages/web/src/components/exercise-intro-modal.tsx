@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/button";
 import { NoteGlyph, StaffLines } from "@/components/staff-primitives";
+import { useNoteFormatter } from "@/hooks/use-note-formatter";
 import { COLORS, LINE_SPACING, parseNote, STAFF_TOP } from "@/lib/staff-utils";
 
 const SVG_HEIGHT = STAFF_TOP + 4 * LINE_SPACING + 60;
@@ -63,6 +64,7 @@ export function ExerciseIntroModal({
   onDontShowAgain,
 }: ExerciseIntroModalProps) {
   const { t } = useTranslation();
+  const formatNote = useNoteFormatter();
   const newNotes = getNewNotes(level.level);
   const [page, setPage] = useState(0);
 
@@ -72,9 +74,9 @@ export function ExerciseIntroModal({
   const variants = getNoteVariants(currentNote, clef);
   const referenceOctave = clef === "bass" ? 3 : 4;
   const parsed = parseNote(`${currentNote}${referenceOctave}`, clef);
-  const displayName = parsed.accidental
-    ? `${parsed.letter}${parsed.accidental}`
-    : parsed.letter;
+  const displayName = formatNote(
+    parsed.accidental ? `${parsed.letter}${parsed.accidental}` : parsed.letter,
+  );
   const isLast = page === newNotes.length - 1;
 
   return (
