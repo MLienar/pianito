@@ -6,10 +6,18 @@ import type {
   completeResponseSchema,
   completionSchema,
   completionsResponseSchema,
+  createGridBodySchema,
   errorResponseSchema,
+  gridDataSchema,
+  gridLineSchema,
+  gridListResponseSchema,
+  gridSchema,
+  gridSquareSchema,
+  gridSummarySchema,
   notationExerciseSchema,
   notationQuerySchema,
   noteSchema,
+  updateGridBodySchema,
   updatePreferenceBodySchema,
   userPreferenceSchema,
 } from "./schemas/index.ts";
@@ -29,3 +37,13 @@ export type CompleteResponse = z.infer<typeof completeResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
 export type UserPreference = z.infer<typeof userPreferenceSchema>;
 export type UpdatePreferenceBody = z.infer<typeof updatePreferenceBodySchema>;
+
+// Grid types
+export type GridSquare = z.infer<typeof gridSquareSchema>;
+export type GridLine = z.infer<typeof gridLineSchema>;
+export type GridData = z.infer<typeof gridDataSchema>;
+export type Grid = z.infer<typeof gridSchema>;
+export type GridSummary = z.infer<typeof gridSummarySchema>;
+export type CreateGridBody = z.infer<typeof createGridBodySchema>;
+export type UpdateGridBody = z.infer<typeof updateGridBodySchema>;
+export type GridListResponse = z.infer<typeof gridListResponseSchema>;

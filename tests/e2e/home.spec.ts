@@ -37,6 +37,13 @@ test.describe("Home Page", () => {
     ).toBeVisible();
   });
 
+  test("Play Songs card navigates to accompaniment page", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("heading", { name: "Play Songs" }).click();
+    await expect(page).toHaveURL("/accomp");
+  });
+
   test("navbar shows sign in and sign up links when logged out", async ({
     page,
   }) => {

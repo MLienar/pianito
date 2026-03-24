@@ -13,9 +13,12 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReadRouteImport } from './routes/read'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AccompRouteImport } from './routes/accomp'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReadIndexRouteImport } from './routes/read.index'
+import { Route as AccompIndexRouteImport } from './routes/accomp.index'
 import { Route as ReadLevelRouteImport } from './routes/read.$level'
+import { Route as AccompGridIdRouteImport } from './routes/accomp.$gridId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -37,6 +40,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccompRoute = AccompRouteImport.update({
+  id: '/accomp',
+  path: '/accomp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -47,19 +55,32 @@ const ReadIndexRoute = ReadIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ReadRoute,
 } as any)
+const AccompIndexRoute = AccompIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccompRoute,
+} as any)
 const ReadLevelRoute = ReadLevelRouteImport.update({
   id: '/$level',
   path: '/$level',
   getParentRoute: () => ReadRoute,
 } as any)
+const AccompGridIdRoute = AccompGridIdRouteImport.update({
+  id: '/$gridId',
+  path: '/$gridId',
+  getParentRoute: () => AccompRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accomp': typeof AccompRouteWithChildren
   '/login': typeof LoginRoute
   '/read': typeof ReadRouteWithChildren
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/accomp/$gridId': typeof AccompGridIdRoute
   '/read/$level': typeof ReadLevelRoute
+  '/accomp/': typeof AccompIndexRoute
   '/read/': typeof ReadIndexRoute
 }
 export interface FileRoutesByTo {
@@ -67,44 +88,64 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/accomp/$gridId': typeof AccompGridIdRoute
   '/read/$level': typeof ReadLevelRoute
+  '/accomp': typeof AccompIndexRoute
   '/read': typeof ReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accomp': typeof AccompRouteWithChildren
   '/login': typeof LoginRoute
   '/read': typeof ReadRouteWithChildren
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/accomp/$gridId': typeof AccompGridIdRoute
   '/read/$level': typeof ReadLevelRoute
+  '/accomp/': typeof AccompIndexRoute
   '/read/': typeof ReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accomp'
     | '/login'
     | '/read'
     | '/settings'
     | '/signup'
+    | '/accomp/$gridId'
     | '/read/$level'
+    | '/accomp/'
     | '/read/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/settings' | '/signup' | '/read/$level' | '/read'
+  to:
+    | '/'
+    | '/login'
+    | '/settings'
+    | '/signup'
+    | '/accomp/$gridId'
+    | '/read/$level'
+    | '/accomp'
+    | '/read'
   id:
     | '__root__'
     | '/'
+    | '/accomp'
     | '/login'
     | '/read'
     | '/settings'
     | '/signup'
+    | '/accomp/$gridId'
     | '/read/$level'
+    | '/accomp/'
     | '/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccompRoute: typeof AccompRouteWithChildren
   LoginRoute: typeof LoginRoute
   ReadRoute: typeof ReadRouteWithChildren
   SettingsRoute: typeof SettingsRoute
@@ -141,6 +182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accomp': {
+      id: '/accomp'
+      path: '/accomp'
+      fullPath: '/accomp'
+      preLoaderRoute: typeof AccompRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -155,6 +203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadIndexRouteImport
       parentRoute: typeof ReadRoute
     }
+    '/accomp/': {
+      id: '/accomp/'
+      path: '/'
+      fullPath: '/accomp/'
+      preLoaderRoute: typeof AccompIndexRouteImport
+      parentRoute: typeof AccompRoute
+    }
     '/read/$level': {
       id: '/read/$level'
       path: '/$level'
@@ -162,8 +217,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadLevelRouteImport
       parentRoute: typeof ReadRoute
     }
+    '/accomp/$gridId': {
+      id: '/accomp/$gridId'
+      path: '/$gridId'
+      fullPath: '/accomp/$gridId'
+      preLoaderRoute: typeof AccompGridIdRouteImport
+      parentRoute: typeof AccompRoute
+    }
   }
 }
+
+interface AccompRouteChildren {
+  AccompGridIdRoute: typeof AccompGridIdRoute
+  AccompIndexRoute: typeof AccompIndexRoute
+}
+
+const AccompRouteChildren: AccompRouteChildren = {
+  AccompGridIdRoute: AccompGridIdRoute,
+  AccompIndexRoute: AccompIndexRoute,
+}
+
+const AccompRouteWithChildren =
+  AccompRoute._addFileChildren(AccompRouteChildren)
 
 interface ReadRouteChildren {
   ReadLevelRoute: typeof ReadLevelRoute
@@ -179,6 +254,7 @@ const ReadRouteWithChildren = ReadRoute._addFileChildren(ReadRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccompRoute: AccompRouteWithChildren,
   LoginRoute: LoginRoute,
   ReadRoute: ReadRouteWithChildren,
   SettingsRoute: SettingsRoute,

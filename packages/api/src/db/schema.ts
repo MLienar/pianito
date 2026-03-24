@@ -103,6 +103,19 @@ export const userPreference = pgTable("user_preference", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const grid = pgTable("grid", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  tempo: integer("tempo").notNull().default(90),
+  loopCount: integer("loop_count").notNull().default(1),
+  data: jsonb("data").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const lessonCompletion = pgTable("lesson_completion", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")

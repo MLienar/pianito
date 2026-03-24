@@ -7,6 +7,7 @@ import { CORS_ORIGIN } from "./config.js";
 import { db } from "./db/index.js";
 import { accountRoutes } from "./routes/account.js";
 import { completionRoutes } from "./routes/completions.js";
+import { gridRoutes } from "./routes/grids.js";
 import { healthRoutes } from "./routes/health.js";
 import { notationRoutes } from "./routes/notation.js";
 import { preferenceRoutes } from "./routes/preferences.js";
@@ -48,6 +49,7 @@ app.route({
 
 await app.register(accountRoutes);
 await app.register(completionRoutes);
+await app.register(gridRoutes);
 await app.register(healthRoutes);
 await app.register(notationRoutes);
 await app.register(preferenceRoutes);

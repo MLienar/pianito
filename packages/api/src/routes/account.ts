@@ -4,6 +4,7 @@ import type { FastifyInstance } from "fastify";
 import { db } from "../db/index.js";
 import {
   account,
+  grid,
   lessonCompletion,
   progress,
   session,
@@ -27,6 +28,7 @@ export async function accountRoutes(app: FastifyInstance) {
         await tx
           .delete(lessonCompletion)
           .where(eq(lessonCompletion.userId, userId));
+        await tx.delete(grid).where(eq(grid.userId, userId));
         await tx.delete(progress).where(eq(progress.userId, userId));
         await tx
           .delete(userPreference)

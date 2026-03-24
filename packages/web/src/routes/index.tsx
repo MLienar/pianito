@@ -17,7 +17,7 @@ function Home() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Link to="/read" search={{ clef: "treble" }}>
           <Card
             title={t("home.readMusic")}
@@ -30,11 +30,13 @@ function Home() {
           description={t("home.chordsDescription")}
           color="bg-secondary"
         />
-        <Card
-          title={t("home.playSongs")}
-          description={t("home.playSongsDescription")}
-          color="bg-accent"
-        />
+        <Link to="/accomp">
+          <Card
+            title={t("home.playSongs")}
+            description={t("home.playSongsDescription")}
+            color="bg-accent"
+          />
+        </Link>
       </div>
     </div>
   );
