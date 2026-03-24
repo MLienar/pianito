@@ -38,6 +38,10 @@ export default {
     failedSignIn: "Failed to sign in",
     alreadyHaveAccount: "Already have an account? ",
     dontHaveAccount: "Don't have an account? ",
+    orContinueWith: "or continue with",
+    continueWithGoogle: "Continue with Google",
+    continueWithGitHub: "Continue with GitHub",
+    continueWithApple: "Continue with Apple",
   },
   read: {
     title: "Read Music",

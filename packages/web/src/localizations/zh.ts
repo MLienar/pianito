@@ -37,6 +37,10 @@ export default {
     failedSignIn: "登录失败",
     alreadyHaveAccount: "已有账户？",
     dontHaveAccount: "没有账户？",
+    orContinueWith: "或继续使用",
+    continueWithGoogle: "使用 Google 继续",
+    continueWithGitHub: "使用 GitHub 继续",
+    continueWithApple: "使用 Apple 继续",
   },
   read: {
     title: "读谱",
