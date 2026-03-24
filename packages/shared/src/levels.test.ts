@@ -37,10 +37,17 @@ describe("EXERCISE_LEVELS", () => {
     expect(level4.tempo).toBe(52);
   });
 
-  it("sets count to 10 for every level", () => {
-    for (const level of EXERCISE_LEVELS) {
-      expect(level.count).toBe(10);
-    }
+  it("sets count based on tier (10, 13, 16, 20) with 25 for last level", () => {
+    // Check first 4 levels (first scale group)
+    expect(EXERCISE_LEVELS[0].count).toBe(10); // Introduction
+    expect(EXERCISE_LEVELS[1].count).toBe(13); // Practice
+    expect(EXERCISE_LEVELS[2].count).toBe(16); // Consolidation
+    expect(EXERCISE_LEVELS[3].count).toBe(20); // Mastery
+    
+    // Check last level (level 40)
+    const lastLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1];
+    expect(lastLevel.count).toBe(25);
+    expect(lastLevel.level).toBe(40);
   });
 });
 

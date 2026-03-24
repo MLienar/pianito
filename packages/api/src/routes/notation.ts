@@ -3,6 +3,7 @@ import {
   CLEF_RANGES,
   defaultClefSchema,
   getExerciseLevel,
+  getNewNotes,
   type NotationExercise,
   type NotationQuery,
   notationQuerySchema,
@@ -66,6 +67,69 @@ function getCandidatePool(
   return pool;
 }
 
+function generateNotesWithNewNoteBias(
+  candidates: string[],
+  count: number,
+  newNotes: string[],
+  clef: "treble" | "bass",
+): string[] {
+  if (newNotes.length === 0) {
+    // No new notes, use pure random selection
+    return Array.from(
+      { length: count },
+      () => candidates[Math.floor(Math.random() * candidates.length)] as string,
+    );
+  }
+
+  // Get variants for new notes within the clef range
+  const range = CLEF_RANGES[clef];
+  const lowMidi = Note.midi(range.low) as number;
+  const highMidi = Note.midi(range.high) as number;
+
+  const newNoteCandidates: string[] = [];
+  for (const noteName of newNotes) {
+    for (let octave = 2; octave <= 6; octave++) {
+      const full = `${noteName}${octave}`;
+      const midi = Note.midi(full);
+      if (midi !== null && midi >= lowMidi && midi <= highMidi) {
+        if (candidates.includes(full)) {
+          newNoteCandidates.push(full);
+        }
+      }
+    }
+  }
+
+  const notes: string[] = [];
+
+  // Ensure at least 50% of notes are from new notes if available
+  const newNoteTargetCount = Math.min(
+    Math.ceil(count * 0.5),
+    newNoteCandidates.length > 0 ? count : 0,
+  );
+
+  // Add new notes first
+  for (let i = 0; i < newNoteTargetCount && newNoteCandidates.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * newNoteCandidates.length);
+    notes.push(newNoteCandidates[randomIndex] as string);
+  }
+
+  // Fill remaining with random selection from all candidates
+  const remainingCount = count - notes.length;
+  for (let i = 0; i < remainingCount; i++) {
+    notes.push(
+      candidates[Math.floor(Math.random() * candidates.length)] as string,
+    );
+  }
+
+  // Shuffle the notes so new notes aren't always at the beginning
+  for (let i = notes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [notes[i], notes[j]] = [notes[j] as string, notes[i] as string];
+  }
+
+  return notes;
+}
+
 export async function notationRoutes(app: FastifyInstance) {
   app.get<{
     Querystring: NotationQuery;
@@ -89,9 +153,12 @@ export async function notationRoutes(app: FastifyInstance) {
       params.degrees,
     );
 
-    const notes = Array.from(
-      { length: params.count },
-      () => candidates[Math.floor(Math.random() * candidates.length)] as string,
+    const newNotes = getNewNotes(levelNum);
+    const notes = generateNotesWithNewNoteBias(
+      candidates,
+      params.count,
+      newNotes,
+      clef,
     );
 
     return {
