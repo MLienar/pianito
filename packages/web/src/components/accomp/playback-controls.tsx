@@ -1,11 +1,15 @@
 import { useTranslation } from "react-i18next";
+import type { DrumPatternId } from "@/lib/drum-patterns";
+import { DRUM_PATTERN_IDS, isDrumPatternId } from "@/lib/drum-patterns";
 import { useGridEditorStore } from "@/stores/grid-editor";
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
   isSaving: boolean;
   metronome: boolean;
+  drumPattern: DrumPatternId | null;
   onMetronomeToggle: () => void;
+  onDrumPatternChange: (id: DrumPatternId | null) => void;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
@@ -15,7 +19,9 @@ export function PlaybackControls({
   isPlaying,
   isSaving,
   metronome,
+  drumPattern,
   onMetronomeToggle,
+  onDrumPatternChange,
   onPlay,
   onStop,
   onSave,
@@ -75,6 +81,23 @@ export function PlaybackControls({
       >
         {t("accomp.metronome")}
       </button>
+
+      <select
+        value={drumPattern ?? ""}
+        onChange={(e) => {
+          const value = e.target.value;
+          onDrumPatternChange(isDrumPatternId(value) ? value : null);
+        }}
+        disabled={isPlaying}
+        className="border-3 border-border bg-background px-2 py-1.5 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+      >
+        <option value="">{t("accomp.drumsOff")}</option>
+        {DRUM_PATTERN_IDS.map((id) => (
+          <option key={id} value={id}>
+            {t(`accomp.drums.${id}`)}
+          </option>
+        ))}
+      </select>
 
       <button
         type="button"

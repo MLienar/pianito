@@ -1,5 +1,8 @@
 import type { GridData } from "@pianito/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { startDrums, stopDrums } from "@/lib/drum-engine";
+import type { DrumPatternId } from "@/lib/drum-patterns";
+
 import { playClick } from "@/lib/metronome";
 import { useChordPlayer } from "./use-chord-player";
 
@@ -36,6 +39,7 @@ export function useGridPlayback(
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [metronome, setMetronome] = useState(false);
+  const [drumPattern, setDrumPattern] = useState<DrumPatternId | null>(null);
   const { playChord, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
@@ -55,6 +59,7 @@ export function useGridPlayback(
     isPlayingRef.current = false;
     clearScheduled();
     stopAll();
+    stopDrums();
     setIsPlaying(false);
     setCurrentIndex(null);
   }, [clearScheduled, stopAll]);
@@ -67,6 +72,10 @@ export function useGridPlayback(
     await ensureReady();
     isPlayingRef.current = true;
     setIsPlaying(true);
+
+    if (drumPattern) {
+      startDrums(tempo, drumPattern);
+    }
 
     const beatDurationMs = (60 / tempo) * 1000;
     const squareDurationSec = (60 / tempo) * BEATS_PER_SQUARE;
@@ -130,7 +139,7 @@ export function useGridPlayback(
     };
 
     playNext();
-  }, [tempo, loopCount, ensureReady, playChord, stop]);
+  }, [tempo, loopCount, drumPattern, ensureReady, playChord, stop]);
 
   useEffect(() => {
     return () => {
@@ -139,5 +148,14 @@ export function useGridPlayback(
     };
   }, [clearScheduled]);
 
-  return { isPlaying, currentIndex, metronome, toggleMetronome, play, stop };
+  return {
+    isPlaying,
+    currentIndex,
+    metronome,
+    toggleMetronome,
+    drumPattern,
+    selectDrumPattern: setDrumPattern,
+    play,
+    stop,
+  };
 }
