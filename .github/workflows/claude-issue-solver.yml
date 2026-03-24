@@ -48,10 +48,10 @@ jobs:
 
             5. **Commit**: Use /git:commit to stage and commit your changes with a conventional commit message. Reference the issue number in the commit.
 
-            6. **Create PR**: Push the branch and create a pull request that:
-               - References the issue with "Closes #${{ github.event.issue.number }}"
-               - Has a clear summary of changes
-               - Includes a test plan
+            6. **Create PR**: Use `gh pr create` to automatically create a pull request that:
+              - References the issue with "Closes #${{ github.event.issue.number }}"
+              - Has a clear summary of changes  
+              - Includes a test plan
 
             7. **Self-review**: Review your own PR critically. Look for edge cases, missing tests, code quality issues. Push fix commits if needed.
 
@@ -61,5 +61,5 @@ jobs:
             - Uses Vitest for unit tests, Playwright for e2e
             - Uses ts-pattern for type-safe branching (not switch/if-else)
             - Keep changes minimal and focused on the issue
-          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep,Agent,Skill"
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep,Agent,Skill,Bash(gh pr:*)"
           model: "sonnet"
