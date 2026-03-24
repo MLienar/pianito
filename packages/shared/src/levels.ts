@@ -79,18 +79,29 @@ export const STEP_LABELS = [
   "Mastery",
 ] as const;
 
-const NOTE_COUNT = 10;
+function getNotesCountForStep(stepIndex: number, isLastLevel: boolean): number {
+  if (isLastLevel) return 25;
+
+  // stepIndex: 0=Introduction, 1=Practice, 2=Consolidation, 3=Mastery
+  const counts = [10, 13, 16, 20];
+  return counts[stepIndex] ?? 10;
+}
 
 export const EXERCISE_LEVELS: ExerciseLevel[] = SCALE_GROUPS.flatMap(
   (group, groupIndex) =>
-    STEP_LABELS.map((step, stepIndex) => ({
-      level: groupIndex * 4 + stepIndex + 1,
-      name: `${group.name} — ${step}`,
-      scale: group.scale,
-      count: NOTE_COUNT,
-      tempo: group.tempos[stepIndex],
-      degrees: group.degrees[stepIndex],
-    })),
+    STEP_LABELS.map((step, stepIndex) => {
+      const level = groupIndex * 4 + stepIndex + 1;
+      const isLastLevel = level === SCALE_GROUPS.length * 4;
+
+      return {
+        level,
+        name: `${group.name} — ${step}`,
+        scale: group.scale,
+        count: getNotesCountForStep(stepIndex, isLastLevel),
+        tempo: group.tempos[stepIndex],
+        degrees: group.degrees[stepIndex],
+      };
+    }),
 );
 
 const LEVEL_MAP = new Map(EXERCISE_LEVELS.map((l) => [l.level, l]));
