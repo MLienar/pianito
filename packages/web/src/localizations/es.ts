@@ -80,6 +80,7 @@ export default {
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Bucles",
+    metronome: "Metrónomo",
     play: "Reproducir",
     stop: "Detener",
     save: "Guardar",

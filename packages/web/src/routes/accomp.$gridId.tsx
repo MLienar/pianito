@@ -117,6 +117,8 @@ function GridEditor() {
       <PlaybackControls
         isPlaying={playback.isPlaying}
         isSaving={isSaving}
+        metronome={playback.metronome}
+        onMetronomeToggle={playback.toggleMetronome}
         onPlay={playback.play}
         onStop={playback.stop}
         onSave={save}

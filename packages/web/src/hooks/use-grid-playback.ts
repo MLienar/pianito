@@ -1,6 +1,9 @@
 import type { GridData } from "@pianito/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { playClick } from "@/lib/metronome";
 import { useChordPlayer } from "./use-chord-player";
+
+const BEATS_PER_SQUARE = 4;
 
 interface PlaybackSquare {
   index: number;
@@ -32,9 +35,12 @@ export function useGridPlayback(
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  const [metronome, setMetronome] = useState(false);
   const { playChord, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
+  const metronomeRef = useRef(metronome);
+  metronomeRef.current = metronome;
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -53,50 +59,72 @@ export function useGridPlayback(
     setCurrentIndex(null);
   }, [clearScheduled, stopAll]);
 
+  const toggleMetronome = useCallback(() => {
+    setMetronome((v) => !v);
+  }, []);
+
   const play = useCallback(async () => {
     await ensureReady();
     isPlayingRef.current = true;
     setIsPlaying(true);
 
     const beatDurationMs = (60 / tempo) * 1000;
-    const squareDurationMs = beatDurationMs * 4;
-    const squareDurationSec = (60 / tempo) * 4;
+    const squareDurationSec = (60 / tempo) * BEATS_PER_SQUARE;
 
     let cachedData = dataRef.current;
     let allSquares = flattenGrid(cachedData);
     let currentLoop = 0;
     let squareIdx = 0;
+    let beatInSquare = 0;
+    let totalBeats = 0;
     const startTime = performance.now();
 
     const playNext = () => {
       if (!isPlayingRef.current) return;
 
-      if (dataRef.current !== cachedData) {
-        cachedData = dataRef.current;
-        allSquares = flattenGrid(cachedData);
-        squareIdx = Math.min(squareIdx, allSquares.length - 1);
-      }
-
-      if (squareIdx >= allSquares.length) {
-        currentLoop++;
-        if (currentLoop >= loopCount) {
-          stop();
-          return;
+      if (beatInSquare === 0) {
+        if (dataRef.current !== cachedData) {
+          cachedData = dataRef.current;
+          allSquares = flattenGrid(cachedData);
+          squareIdx = Math.min(squareIdx, allSquares.length - 1);
         }
-        squareIdx = 0;
+
+        if (squareIdx >= allSquares.length) {
+          currentLoop++;
+          if (currentLoop >= loopCount) {
+            stop();
+            return;
+          }
+          squareIdx = 0;
+        }
+
+        const sq = allSquares[squareIdx];
+        if (!sq) return;
+
+        setCurrentIndex(sq.index);
+        if (sq.chord) {
+          playChord(sq.chord, squareDurationSec);
+        }
       }
 
-      const sq = allSquares[squareIdx];
-      if (!sq) return;
-      setCurrentIndex(sq.index);
-
-      if (sq.chord) {
-        playChord(sq.chord, squareDurationSec);
+      if (metronomeRef.current) {
+        playClick(beatInSquare);
       }
 
-      squareIdx++;
-      const totalElapsed = squareIdx + currentLoop * allSquares.length;
-      const nextFireTime = startTime + totalElapsed * squareDurationMs;
+      beatInSquare++;
+      totalBeats++;
+
+      if (!metronomeRef.current) {
+        const remaining = BEATS_PER_SQUARE - beatInSquare;
+        totalBeats += remaining;
+        beatInSquare = 0;
+        squareIdx++;
+      } else if (beatInSquare >= BEATS_PER_SQUARE) {
+        beatInSquare = 0;
+        squareIdx++;
+      }
+
+      const nextFireTime = startTime + totalBeats * beatDurationMs;
       const delay = Math.max(0, nextFireTime - performance.now());
       timeoutRef.current = setTimeout(playNext, delay);
     };
@@ -111,5 +139,5 @@ export function useGridPlayback(
     };
   }, [clearScheduled]);
 
-  return { isPlaying, currentIndex, play, stop };
+  return { isPlaying, currentIndex, metronome, toggleMetronome, play, stop };
 }

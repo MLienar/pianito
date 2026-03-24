@@ -4,6 +4,8 @@ import { useGridEditorStore } from "@/stores/grid-editor";
 interface PlaybackControlsProps {
   isPlaying: boolean;
   isSaving: boolean;
+  metronome: boolean;
+  onMetronomeToggle: () => void;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
@@ -12,6 +14,8 @@ interface PlaybackControlsProps {
 export function PlaybackControls({
   isPlaying,
   isSaving,
+  metronome,
+  onMetronomeToggle,
   onPlay,
   onStop,
   onSave,
@@ -59,6 +63,18 @@ export function PlaybackControls({
           className="w-16 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
       </div>
+
+      <button
+        type="button"
+        onClick={onMetronomeToggle}
+        className={`border-3 border-border px-4 py-1.5 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none ${
+          metronome
+            ? "bg-accent text-accent-foreground"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        {t("accomp.metronome")}
+      </button>
 
       <button
         type="button"

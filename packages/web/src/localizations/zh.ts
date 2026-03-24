@@ -78,6 +78,7 @@ export default {
     tempo: "速度",
     bpm: "BPM",
     loopCount: "循环次数",
+    metronome: "节拍器",
     play: "播放",
     stop: "停止",
     save: "保存",
