@@ -6,6 +6,7 @@ import { PlaybackControls } from "@/components/accomp/playback-controls";
 import { SelectionToolbar } from "@/components/accomp/selection-toolbar";
 import { useGridEditor } from "@/hooks/use-grid-editor";
 import { useGridPlayback } from "@/hooks/use-grid-playback";
+import { useGridEditorStore } from "@/stores/grid-editor";
 import { useSquareSelectionStore } from "@/stores/square-selection";
 
 export const Route = createFileRoute("/accomp/$gridId")({
@@ -18,8 +19,16 @@ function GridEditor() {
   const [editingName, setEditingName] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const editor = useGridEditor(gridId);
-  const playback = useGridPlayback(editor.data, editor.tempo, editor.loopCount);
+  const { isLoading, isSaving, error, save } = useGridEditor(gridId);
+
+  const name = useGridEditorStore((s) => s.name);
+  const tempo = useGridEditorStore((s) => s.tempo);
+  const loopCount = useGridEditorStore((s) => s.loopCount);
+  const data = useGridEditorStore((s) => s.data);
+  const updateName = useGridEditorStore((s) => s.updateName);
+  const groupSquares = useGridEditorStore((s) => s.groupSquares);
+
+  const playback = useGridPlayback(data, tempo, loopCount);
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);
@@ -42,19 +51,19 @@ function GridEditor() {
 
   const handleNameBlur = useCallback(() => {
     setEditingName(false);
-    if (editor.name.trim() === "") {
-      editor.updateName(t("accomp.untitled"));
+    if (useGridEditorStore.getState().name.trim() === "") {
+      updateName(t("accomp.untitled"));
     }
-  }, [editor, t]);
+  }, [updateName, t]);
 
   const handleGroup = useCallback(() => {
     const range = useSquareSelectionStore.getState().selectedRange();
     if (!range) return;
-    editor.groupSquares(range.start, range.end);
+    groupSquares(range.start, range.end);
     clearSelection();
-  }, [editor, clearSelection]);
+  }, [groupSquares, clearSelection]);
 
-  if (editor.isLoading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col gap-8 py-8">
         <p className="text-muted-foreground">{t("common.loading")}</p>
@@ -62,7 +71,7 @@ function GridEditor() {
     );
   }
 
-  if (editor.error) {
+  if (error) {
     return (
       <div className="flex flex-col gap-8 py-8">
         <p className="text-destructive">{t("accomp.loadError")}</p>
@@ -86,8 +95,8 @@ function GridEditor() {
           <input
             ref={nameInputRef}
             type="text"
-            value={editor.name}
-            onChange={(e) => editor.updateName(e.target.value)}
+            value={name}
+            onChange={(e) => updateName(e.target.value)}
             onBlur={handleNameBlur}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleNameBlur();
@@ -100,35 +109,20 @@ function GridEditor() {
             onClick={() => setEditingName(true)}
             className="text-3xl font-bold tracking-tight hover:text-primary"
           >
-            {editor.name}
+            {name}
           </button>
         )}
       </div>
 
       <PlaybackControls
-        tempo={editor.tempo}
-        loopCount={editor.loopCount}
         isPlaying={playback.isPlaying}
-        isDirty={editor.isDirty}
-        isSaving={editor.isSaving}
-        onTempoChange={editor.updateTempo}
-        onTempoBlur={editor.clampTempo}
-        onLoopCountChange={editor.updateLoopCount}
+        isSaving={isSaving}
         onPlay={playback.play}
         onStop={playback.stop}
-        onSave={editor.save}
+        onSave={save}
       />
 
-      <GridView
-        data={editor.data}
-        playingIndex={playback.currentIndex}
-        onSetChord={editor.setChord}
-        onClearChord={editor.clearChord}
-        onReorderSquares={editor.reorderSquares}
-        onAddSquare={editor.addSquare}
-        onUpdateGroupRepeatCount={editor.updateGroupRepeatCount}
-        onMergeWithPreviousGroup={editor.mergeWithPreviousGroup}
-      />
+      <GridView playingIndex={playback.currentIndex} />
 
       {selectedSize > 0 && (
         <SelectionToolbar

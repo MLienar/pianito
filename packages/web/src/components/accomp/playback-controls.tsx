@@ -1,33 +1,28 @@
 import { useTranslation } from "react-i18next";
+import { useGridEditorStore } from "@/stores/grid-editor";
 
 interface PlaybackControlsProps {
-  tempo: number;
-  loopCount: number;
   isPlaying: boolean;
-  isDirty: boolean;
   isSaving: boolean;
-  onTempoChange: (tempo: number) => void;
-  onTempoBlur: () => void;
-  onLoopCountChange: (count: number) => void;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
 }
 
 export function PlaybackControls({
-  tempo,
-  loopCount,
   isPlaying,
-  isDirty,
   isSaving,
-  onTempoChange,
-  onTempoBlur,
-  onLoopCountChange,
   onPlay,
   onStop,
   onSave,
 }: PlaybackControlsProps) {
   const { t } = useTranslation();
+  const tempo = useGridEditorStore((s) => s.tempo);
+  const loopCount = useGridEditorStore((s) => s.loopCount);
+  const isDirty = useGridEditorStore((s) => s.isDirty);
+  const updateTempo = useGridEditorStore((s) => s.updateTempo);
+  const clampTempo = useGridEditorStore((s) => s.clampTempo);
+  const updateLoopCount = useGridEditorStore((s) => s.updateLoopCount);
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -41,8 +36,8 @@ export function PlaybackControls({
           min={30}
           max={300}
           value={tempo}
-          onChange={(e) => onTempoChange(Number(e.target.value))}
-          onBlur={onTempoBlur}
+          onChange={(e) => updateTempo(Number(e.target.value))}
+          onBlur={clampTempo}
           disabled={isPlaying}
           className="w-20 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
@@ -59,7 +54,7 @@ export function PlaybackControls({
           min={1}
           max={50}
           value={loopCount}
-          onChange={(e) => onLoopCountChange(Number(e.target.value))}
+          onChange={(e) => updateLoopCount(Number(e.target.value))}
           disabled={isPlaying}
           className="w-16 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />

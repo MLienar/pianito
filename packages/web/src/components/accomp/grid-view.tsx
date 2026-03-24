@@ -14,33 +14,29 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { GridData, GridGroup } from "@pianito/shared";
+import type { GridGroup } from "@pianito/shared";
 import { Fragment, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useGridEditorStore } from "@/stores/grid-editor";
 import { GridSquare } from "./grid-square";
 
 interface GridViewProps {
-  data: GridData;
   playingIndex: number | null;
-  onSetChord: (index: number, chord: string) => void;
-  onClearChord: (index: number) => void;
-  onReorderSquares: (fromIndex: number, toIndex: number) => void;
-  onAddSquare: () => void;
-  onUpdateGroupRepeatCount: (groupIndex: number, repeatCount: number) => void;
-  onMergeWithPreviousGroup: (groupIndex: number) => void;
 }
 
-export function GridView({
-  data,
-  playingIndex,
-  onSetChord,
-  onClearChord,
-  onReorderSquares,
-  onAddSquare,
-  onUpdateGroupRepeatCount,
-  onMergeWithPreviousGroup,
-}: GridViewProps) {
+export function GridView({ playingIndex }: GridViewProps) {
   const { t } = useTranslation();
+  const data = useGridEditorStore((s) => s.data);
+  const reorderSquares = useGridEditorStore((s) => s.reorderSquares);
+  const setChord = useGridEditorStore((s) => s.setChord);
+  const clearChord = useGridEditorStore((s) => s.clearChord);
+  const addSquare = useGridEditorStore((s) => s.addSquare);
+  const updateGroupRepeatCount = useGridEditorStore(
+    (s) => s.updateGroupRepeatCount,
+  );
+  const mergeWithPreviousGroup = useGridEditorStore(
+    (s) => s.mergeWithPreviousGroup,
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -49,9 +45,10 @@ export function GridView({
     }),
   );
 
+  const squareCount = data.squares.length;
   const squareIds = useMemo(
-    () => data.squares.map((_, i) => `sq-${i}`),
-    [data.squares],
+    () => Array.from({ length: squareCount }, (_, i) => `sq-${i}`),
+    [squareCount],
   );
 
   const handleDragEnd = useCallback(
@@ -62,10 +59,10 @@ export function GridView({
       const fromIndex = squareIds.indexOf(String(active.id));
       const toIndex = squareIds.indexOf(String(over.id));
       if (fromIndex !== -1 && toIndex !== -1) {
-        onReorderSquares(fromIndex, toIndex);
+        reorderSquares(fromIndex, toIndex);
       }
     },
-    [squareIds, onReorderSquares],
+    [squareIds, reorderSquares],
   );
 
   const groupedSquares = useMemo(() => {
@@ -104,7 +101,7 @@ export function GridView({
                   <div className="h-px flex-1 border-t-2 border-dashed border-border" />
                   <button
                     type="button"
-                    onClick={() => onMergeWithPreviousGroup(groupIndex)}
+                    onClick={() => mergeWithPreviousGroup(groupIndex)}
                     className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 border-2 border-dashed border-border hover:border-primary"
                   >
                     {t("accomp.mergeGroup")}
@@ -133,15 +130,15 @@ export function GridView({
                           isPlaying={playingIndex === globalIndex}
                           index={globalIndex}
                           totalSquares={data.squares.length}
-                          onSetChord={(chord) => onSetChord(globalIndex, chord)}
-                          onClear={() => onClearChord(globalIndex)}
+                          onSetChord={(chord) => setChord(globalIndex, chord)}
+                          onClear={() => clearChord(globalIndex)}
                         />
                       );
                     })}
                     {groupIndex === groupedSquares.length - 1 && (
                       <button
                         type="button"
-                        onClick={onAddSquare}
+                        onClick={addSquare}
                         className="flex h-20 w-full items-center justify-center border-3 border-dashed border-border bg-background text-2xl text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-brutal)]"
                       >
                         +
@@ -163,7 +160,7 @@ export function GridView({
                       max={50}
                       value={group.repeatCount}
                       onChange={(e) =>
-                        onUpdateGroupRepeatCount(
+                        updateGroupRepeatCount(
                           groupIndex,
                           Number(e.target.value),
                         )
