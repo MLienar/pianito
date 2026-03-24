@@ -1,17 +1,13 @@
 import { type MouseEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  SQUARES_PER_LINE,
-  useSquareSelectionStore,
-} from "@/stores/square-selection";
+import { useSquareSelectionStore } from "@/stores/square-selection";
 import { ChordSearch } from "./chord-search";
 
 interface GridSquareProps {
   chord: string | null;
   isPlaying: boolean;
-  lineIndex: number;
-  squareIndex: number;
-  totalLines: number;
+  index: number;
+  totalSquares: number;
   onSetChord: (chord: string) => void;
   onClear: () => void;
 }
@@ -19,35 +15,31 @@ interface GridSquareProps {
 export function GridSquare({
   chord,
   isPlaying,
-  lineIndex,
-  squareIndex,
-  totalLines,
+  index,
+  totalSquares,
   onSetChord,
   onClear,
 }: GridSquareProps) {
   const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const isSelected = useSquareSelectionStore((s) =>
-    s.selected.has(`${lineIndex}-${squareIndex}`),
-  );
+  const isSelected = useSquareSelectionStore((s) => s.selected.has(index));
   const handleSquareClick =
     useSquareSelectionStore.getState().handleSquareClick;
 
   const handleClick = useCallback(
     (e: MouseEvent) => {
       const handled = handleSquareClick(
-        lineIndex,
-        squareIndex,
+        index,
         e.metaKey || e.ctrlKey,
         e.shiftKey,
-        totalLines * SQUARES_PER_LINE,
+        totalSquares,
       );
       if (!handled) {
         setSearchOpen((prev) => !prev);
       }
     },
-    [handleSquareClick, lineIndex, squareIndex, totalLines],
+    [handleSquareClick, index, totalSquares],
   );
 
   return (

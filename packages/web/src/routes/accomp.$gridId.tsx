@@ -23,14 +23,10 @@ function GridEditor() {
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);
-  const selectedLineRange = useSquareSelectionStore((s) => s.selectedLineRange);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === "Escape" &&
-        useSquareSelectionStore.getState().selected.size > 0
-      ) {
+      if (e.key === "Escape") {
         useSquareSelectionStore.getState().clearSelection();
       }
     };
@@ -52,11 +48,11 @@ function GridEditor() {
   }, [editor, t]);
 
   const handleGroup = useCallback(() => {
-    const range = selectedLineRange();
+    const range = useSquareSelectionStore.getState().selectedRange();
     if (!range) return;
-    editor.groupLines(range.startLine, range.endLine);
+    editor.groupSquares(range.start, range.end);
     clearSelection();
-  }, [selectedLineRange, editor, clearSelection]);
+  }, [editor, clearSelection]);
 
   if (editor.isLoading) {
     return (
@@ -125,15 +121,12 @@ function GridEditor() {
 
       <GridView
         data={editor.data}
-        playingPosition={playback.currentPosition}
+        playingIndex={playback.currentIndex}
         onSetChord={editor.setChord}
         onClearChord={editor.clearChord}
-        onRemoveLine={editor.removeLine}
-        onReorderLines={editor.reorderLines}
         onReorderSquares={editor.reorderSquares}
-        onAddLine={editor.addLine}
+        onAddSquare={editor.addSquare}
         onUpdateGroupRepeatCount={editor.updateGroupRepeatCount}
-        onSplitGroup={editor.splitGroup}
         onMergeWithPreviousGroup={editor.mergeWithPreviousGroup}
       />
 

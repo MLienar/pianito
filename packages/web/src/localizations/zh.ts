@@ -83,6 +83,7 @@ export default {
     save: "保存",
     saved: "已保存",
     saving: "保存中...",
+    addSquare: "添加格子",
     addLine: "添加行",
     removeLine: "删除行",
     clearChord: "清除",

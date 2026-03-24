@@ -85,6 +85,7 @@ export default {
     save: "Save",
     saved: "Saved",
     saving: "Saving...",
+    addSquare: "Add square",
     addLine: "Add line",
     removeLine: "Remove line",
     clearChord: "Clear",

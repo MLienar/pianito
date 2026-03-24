@@ -2,39 +2,27 @@ import type { GridData } from "@pianito/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useChordPlayer } from "./use-chord-player";
 
-interface PlayingPosition {
-  line: number;
-  square: number;
-}
-
 interface PlaybackSquare {
-  line: number;
-  square: number;
+  index: number;
   chord: string | null;
 }
 
 function flattenGrid(gridData: GridData): PlaybackSquare[] {
-  const squares: PlaybackSquare[] = [];
-  let lineOffset = 0;
+  const result: PlaybackSquare[] = [];
+  let offset = 0;
   for (const group of gridData.groups) {
-    const groupLines = gridData.lines.slice(
-      lineOffset,
-      lineOffset + group.lineCount,
+    const groupSquares = gridData.squares.slice(
+      offset,
+      offset + group.squareCount,
     );
     for (let repeat = 0; repeat < group.repeatCount; repeat++) {
-      for (const [li, line] of groupLines.entries()) {
-        for (const [si, sq] of line.entries()) {
-          squares.push({
-            line: lineOffset + li,
-            square: si,
-            chord: sq.chord,
-          });
-        }
+      for (const [i, sq] of groupSquares.entries()) {
+        result.push({ index: offset + i, chord: sq.chord });
       }
     }
-    lineOffset += group.lineCount;
+    offset += group.squareCount;
   }
-  return squares;
+  return result;
 }
 
 export function useGridPlayback(
@@ -43,8 +31,7 @@ export function useGridPlayback(
   loopCount: number,
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentPosition, setCurrentPosition] =
-    useState<PlayingPosition | null>(null);
+  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const { playChord, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
@@ -63,7 +50,7 @@ export function useGridPlayback(
     clearScheduled();
     stopAll();
     setIsPlaying(false);
-    setCurrentPosition(null);
+    setCurrentIndex(null);
   }, [clearScheduled, stopAll]);
 
   const play = useCallback(async () => {
@@ -101,7 +88,7 @@ export function useGridPlayback(
 
       const sq = allSquares[squareIdx];
       if (!sq) return;
-      setCurrentPosition({ line: sq.line, square: sq.square });
+      setCurrentIndex(sq.index);
 
       if (sq.chord) {
         playChord(sq.chord, squareDurationSec);
@@ -124,5 +111,5 @@ export function useGridPlayback(
     };
   }, [clearScheduled]);
 
-  return { isPlaying, currentPosition, play, stop };
+  return { isPlaying, currentIndex, play, stop };
 }

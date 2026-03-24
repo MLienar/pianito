@@ -10,7 +10,6 @@ import type {
   errorResponseSchema,
   gridDataSchema,
   gridGroupSchema,
-  gridLineSchema,
   gridListResponseSchema,
   gridSchema,
   gridSquareSchema,
@@ -41,7 +40,6 @@ export type UpdatePreferenceBody = z.infer<typeof updatePreferenceBodySchema>;
 
 // Grid types
 export type GridSquare = z.infer<typeof gridSquareSchema>;
-export type GridLine = z.infer<typeof gridLineSchema>;
 export type GridGroup = z.infer<typeof gridGroupSchema>;
 export type GridData = z.infer<typeof gridDataSchema>;
 export type Grid = z.infer<typeof gridSchema>;

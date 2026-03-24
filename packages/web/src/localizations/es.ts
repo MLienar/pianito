@@ -85,6 +85,7 @@ export default {
     save: "Guardar",
     saved: "Guardado",
     saving: "Guardando...",
+    addSquare: "Añadir casilla",
     addLine: "Añadir línea",
     removeLine: "Eliminar línea",
     clearChord: "Borrar",

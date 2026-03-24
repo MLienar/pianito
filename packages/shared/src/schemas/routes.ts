@@ -80,20 +80,13 @@ export const gridSquareSchema = z.object({
   chord: chordSchema.nullable(),
 });
 
-export const gridLineSchema = z.tuple([
-  gridSquareSchema,
-  gridSquareSchema,
-  gridSquareSchema,
-  gridSquareSchema,
-]);
-
 export const gridGroupSchema = z.object({
-  lineCount: z.number().int().min(1).max(50),
+  squareCount: z.number().int().min(1).max(200),
   repeatCount: z.number().int().min(1).max(50).default(1),
 });
 
 export const gridDataSchema = z.object({
-  lines: z.array(gridLineSchema).min(1).max(50),
+  squares: z.array(gridSquareSchema).min(1).max(200),
   groups: z.array(gridGroupSchema).min(1).max(50),
 });
 
@@ -120,10 +113,8 @@ export const createGridBodySchema = z.object({
   tempo: z.number().int().min(30).max(300).default(90),
   loopCount: z.number().int().min(1).max(50).default(1),
   data: gridDataSchema.default({
-    lines: [
-      [{ chord: null }, { chord: null }, { chord: null }, { chord: null }],
-    ],
-    groups: [{ lineCount: 1, repeatCount: 1 }],
+    squares: [{ chord: null }],
+    groups: [{ squareCount: 1, repeatCount: 1 }],
   }),
 });
 

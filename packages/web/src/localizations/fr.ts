@@ -86,6 +86,7 @@ export default {
     save: "Enregistrer",
     saved: "Enregistré",
     saving: "Enregistrement...",
+    addSquare: "Ajouter une case",
     addLine: "Ajouter une ligne",
     removeLine: "Supprimer la ligne",
     clearChord: "Effacer",
