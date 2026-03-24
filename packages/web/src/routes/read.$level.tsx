@@ -8,6 +8,7 @@ import { AnswerButtons } from "@/components/answer-buttons";
 import { Button } from "@/components/button";
 import { ExerciseIntroModal } from "@/components/exercise-intro-modal";
 import { ExerciseResults } from "@/components/exercise-results";
+import { MidiIndicator } from "@/components/midi-indicator";
 import { StaffRenderer } from "@/components/staff-renderer";
 import { useNotationExercise } from "@/hooks/use-notation-exercise";
 
@@ -166,6 +167,11 @@ function ReadExercise() {
         ))
         .with("playing", () => null)
         .exhaustive()}
+
+      <MidiIndicator
+        onNotePress={handleAnswer}
+        enableNoteInput={exerciseState !== "finished"}
+      />
     </div>
   );
 }

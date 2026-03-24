@@ -55,7 +55,7 @@ export default {
     wrong: "Faux !",
     loadingExercise: "Chargement de l'exercice...",
     instructions:
-      "Appuyez sur un bouton de note pour commencer. Identifiez chaque note lorsqu'elle atteint la zone orange. Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B).",
+      "Appuyez sur un bouton de note pour commencer. Identifiez chaque note lorsqu'elle atteint la zone orange. Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B) ou connecter un piano MIDI.",
     notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
   },
   intro: {
@@ -88,5 +88,16 @@ export default {
     typeDelete: 'Tapez "DELETE" pour confirmer :',
     deleteButton: "Supprimer mon compte",
     deleting: "Suppression...",
+  },
+  midi: {
+    title: "MIDI",
+    connected: "Connecté",
+    connecting: "Connexion",
+    disconnected: "Déconnecté",
+    connect: "Connecter",
+    disconnect: "Déconnecter",
+    enable: "Activer MIDI",
+    permissionDenied:
+      "L'accès MIDI a été refusé. Veuillez l'activer dans les paramètres de votre navigateur.",
   },
 } as const;

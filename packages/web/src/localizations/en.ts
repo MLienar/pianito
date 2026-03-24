@@ -54,7 +54,7 @@ export default {
     wrong: "Wrong!",
     loadingExercise: "Loading exercise...",
     instructions:
-      "Press any note button to begin. Identify each note as it reaches the orange zone. You can also use your keyboard (C, D, E, F, G, A, B).",
+      "Press any note button to begin. Identify each note as it reaches the orange zone. You can also use your keyboard (C, D, E, F, G, A, B) or connect a MIDI piano.",
     notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
   },
   intro: {
@@ -87,5 +87,16 @@ export default {
     typeDelete: 'Type "DELETE" to confirm:',
     deleteButton: "Delete My Account",
     deleting: "Deleting...",
+  },
+  midi: {
+    title: "MIDI",
+    connected: "Connected",
+    connecting: "Connecting",
+    disconnected: "Disconnected",
+    connect: "Connect",
+    disconnect: "Disconnect",
+    enable: "Enable MIDI",
+    permissionDenied:
+      "MIDI access was denied. Please enable it in your browser settings.",
   },
 } as const;

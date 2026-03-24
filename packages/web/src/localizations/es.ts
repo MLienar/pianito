@@ -54,7 +54,7 @@ export default {
     wrong: "¡Incorrecto!",
     loadingExercise: "Cargando ejercicio...",
     instructions:
-      "Pulsa cualquier botón de nota para empezar. Identifica cada nota cuando llegue a la zona naranja. También puedes usar tu teclado (C, D, E, F, G, A, B).",
+      "Pulsa cualquier botón de nota para empezar. Identifica cada nota cuando llegue a la zona naranja. También puedes usar tu teclado (C, D, E, F, G, A, B) o conectar un piano MIDI.",
     notesAndTempo: "{{degrees}} notas · {{tempo}} bpm",
   },
   intro: {
@@ -87,5 +87,16 @@ export default {
     typeDelete: 'Escribe "DELETE" para confirmar:',
     deleteButton: "Eliminar mi cuenta",
     deleting: "Eliminando...",
+  },
+  midi: {
+    title: "MIDI",
+    connected: "Conectado",
+    connecting: "Conectando",
+    disconnected: "Desconectado",
+    connect: "Conectar",
+    disconnect: "Desconectar",
+    enable: "Habilitar MIDI",
+    permissionDenied:
+      "Se denegó el acceso MIDI. Por favor, habilítalo en la configuración de tu navegador.",
   },
 } as const;

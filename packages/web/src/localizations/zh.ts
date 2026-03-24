@@ -52,7 +52,7 @@ export default {
     wrong: "错误！",
     loadingExercise: "加载练习中...",
     instructions:
-      "按任意音符按钮开始。当音符到达橙色区域时识别它。你也可以使用键盘（C、D、E、F、G、A、B）。",
+      "按任意音符按钮开始。当音符到达橙色区域时识别它。你也可以使用键盘（C、D、E、F、G、A、B）或连接 MIDI 钢琴。",
     notesAndTempo: "{{degrees}} 个音符 · {{tempo}} bpm",
   },
   intro: {
@@ -85,5 +85,15 @@ export default {
     typeDelete: '输入 "DELETE" 以确认：',
     deleteButton: "删除我的账户",
     deleting: "删除中...",
+  },
+  midi: {
+    title: "MIDI",
+    connected: "已连接",
+    connecting: "连接中",
+    disconnected: "未连接",
+    connect: "连接",
+    disconnect: "断开连接",
+    enable: "启用 MIDI",
+    permissionDenied: "MIDI 访问被拒绝。请在浏览器设置中启用它。",
   },
 } as const;
