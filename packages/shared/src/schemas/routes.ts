@@ -87,8 +87,14 @@ export const gridLineSchema = z.tuple([
   gridSquareSchema,
 ]);
 
+export const gridGroupSchema = z.object({
+  lineCount: z.number().int().min(1).max(50),
+  repeatCount: z.number().int().min(1).max(50).default(1),
+});
+
 export const gridDataSchema = z.object({
   lines: z.array(gridLineSchema).min(1).max(50),
+  groups: z.array(gridGroupSchema).min(1).max(50),
 });
 
 export const gridSchema = z.object({
@@ -117,6 +123,7 @@ export const createGridBodySchema = z.object({
     lines: [
       [{ chord: null }, { chord: null }, { chord: null }, { chord: null }],
     ],
+    groups: [{ lineCount: 1, repeatCount: 1 }],
   }),
 });
 

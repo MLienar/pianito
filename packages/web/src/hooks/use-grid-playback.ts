@@ -7,6 +7,36 @@ interface PlayingPosition {
   square: number;
 }
 
+interface PlaybackSquare {
+  line: number;
+  square: number;
+  chord: string | null;
+}
+
+function flattenGrid(gridData: GridData): PlaybackSquare[] {
+  const squares: PlaybackSquare[] = [];
+  let lineOffset = 0;
+  for (const group of gridData.groups) {
+    const groupLines = gridData.lines.slice(
+      lineOffset,
+      lineOffset + group.lineCount,
+    );
+    for (let repeat = 0; repeat < group.repeatCount; repeat++) {
+      for (const [li, line] of groupLines.entries()) {
+        for (const [si, sq] of line.entries()) {
+          squares.push({
+            line: lineOffset + li,
+            square: si,
+            chord: sq.chord,
+          });
+        }
+      }
+    }
+    lineOffset += group.lineCount;
+  }
+  return squares;
+}
+
 export function useGridPlayback(
   data: GridData,
   tempo: number,
@@ -45,20 +75,8 @@ export function useGridPlayback(
     const squareDurationMs = beatDurationMs * 4;
     const squareDurationSec = (60 / tempo) * 4;
 
-    const flattenGrid = (gridData: GridData) => {
-      const squares: {
-        line: number;
-        square: number;
-        chord: string | null;
-      }[] = [];
-      for (const [li, line] of gridData.lines.entries()) {
-        for (const [si, sq] of line.entries()) {
-          squares.push({ line: li, square: si, chord: sq.chord });
-        }
-      }
-      return squares;
-    };
-
+    let cachedData = dataRef.current;
+    let allSquares = flattenGrid(cachedData);
     let currentLoop = 0;
     let squareIdx = 0;
     const startTime = performance.now();
@@ -66,7 +84,11 @@ export function useGridPlayback(
     const playNext = () => {
       if (!isPlayingRef.current) return;
 
-      const allSquares = flattenGrid(dataRef.current);
+      if (dataRef.current !== cachedData) {
+        cachedData = dataRef.current;
+        allSquares = flattenGrid(cachedData);
+        squareIdx = Math.min(squareIdx, allSquares.length - 1);
+      }
 
       if (squareIdx >= allSquares.length) {
         currentLoop++;

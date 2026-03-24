@@ -1,10 +1,17 @@
-import { useCallback, useState } from "react";
+import { type MouseEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  SQUARES_PER_LINE,
+  useSquareSelectionStore,
+} from "@/stores/square-selection";
 import { ChordSearch } from "./chord-search";
 
 interface GridSquareProps {
   chord: string | null;
   isPlaying: boolean;
+  lineIndex: number;
+  squareIndex: number;
+  totalLines: number;
   onSetChord: (chord: string) => void;
   onClear: () => void;
 }
@@ -12,27 +19,50 @@ interface GridSquareProps {
 export function GridSquare({
   chord,
   isPlaying,
+  lineIndex,
+  squareIndex,
+  totalLines,
   onSetChord,
   onClear,
 }: GridSquareProps) {
   const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const handleClick = useCallback(() => {
-    setSearchOpen((prev) => !prev);
-  }, []);
+  const isSelected = useSquareSelectionStore((s) =>
+    s.selected.has(`${lineIndex}-${squareIndex}`),
+  );
+  const handleSquareClick =
+    useSquareSelectionStore.getState().handleSquareClick;
+
+  const handleClick = useCallback(
+    (e: MouseEvent) => {
+      const handled = handleSquareClick(
+        lineIndex,
+        squareIndex,
+        e.metaKey || e.ctrlKey,
+        e.shiftKey,
+        totalLines * SQUARES_PER_LINE,
+      );
+      if (!handled) {
+        setSearchOpen((prev) => !prev);
+      }
+    },
+    [handleSquareClick, lineIndex, squareIndex, totalLines],
+  );
 
   return (
     <div className="relative">
       <button
         type="button"
         onClick={handleClick}
-        className={`flex h-20 w-full items-center justify-center border-3 border-border text-lg font-bold transition-all ${
-          isPlaying
-            ? "bg-primary text-primary-foreground shadow-[var(--shadow-brutal)]"
-            : chord
-              ? "bg-card hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
-              : "bg-background text-muted-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
+        className={`flex h-20 w-full items-center justify-center border-3 text-lg font-bold transition-all ${
+          isSelected
+            ? "border-primary bg-primary/20 ring-2 ring-primary"
+            : isPlaying
+              ? "border-border bg-primary text-primary-foreground shadow-[var(--shadow-brutal)]"
+              : chord
+                ? "border-border bg-card hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
+                : "border-border bg-background text-muted-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
         }`}
       >
         {chord ?? t("accomp.emptySquare")}

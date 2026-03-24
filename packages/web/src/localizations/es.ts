@@ -97,6 +97,12 @@ export default {
     loadError: "Error al cargar la cuadrícula.",
     noResults: "No se encontraron acordes.",
     dragToReorder: "Arrastrar para reordenar",
+    repeatCount: "Repeticiones",
+    mergeGroup: "Fusionar grupos",
+    splitHere: "Separar aquí",
+    splitGroup: "Separar el grupo en esta línea",
+    selectedCount: "{{count}} seleccionado(s)",
+    groupSelection: "Agrupar",
     authRequired: "Cuenta requerida",
     authRequiredDescription:
       "Crea una cuenta para guardar y gestionar tus tablas de acordes.",

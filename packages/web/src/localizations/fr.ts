@@ -98,6 +98,12 @@ export default {
     loadError: "Impossible de charger la grille.",
     noResults: "Aucun accord trouvé.",
     dragToReorder: "Glisser pour réordonner",
+    repeatCount: "Répétitions",
+    mergeGroup: "Fusionner les groupes",
+    splitHere: "Séparer ici",
+    splitGroup: "Séparer le groupe à cette ligne",
+    selectedCount: "{{count}} sélectionné(s)",
+    groupSelection: "Grouper",
     authRequired: "Compte requis",
     authRequiredDescription:
       "Créez un compte pour sauvegarder et gérer vos grilles d'accords.",

@@ -20,6 +20,7 @@ import { GridSquare } from "./grid-square";
 interface GridLineProps {
   line: GridLineType;
   lineIndex: number;
+  totalLines: number;
   playingSquareIndex: number | null;
   canRemove: boolean;
   onSetChord: (squareIndex: number, chord: string) => void;
@@ -32,6 +33,7 @@ interface GridLineProps {
 export function GridLine({
   line,
   lineIndex,
+  totalLines,
   playingSquareIndex,
   canRemove,
   onSetChord,
@@ -91,6 +93,9 @@ export function GridLine({
                 id={squareIds[squareIndex] ?? `sq-${lineIndex}-${squareIndex}`}
                 chord={square.chord}
                 isPlaying={playingSquareIndex === squareIndex}
+                lineIndex={lineIndex}
+                squareIndex={squareIndex}
+                totalLines={totalLines}
                 onSetChord={(chord) => onSetChord(squareIndex, chord)}
                 onClear={() => onClearChord(squareIndex)}
               />
@@ -116,12 +121,18 @@ function SortableSquareWrapper({
   id,
   chord,
   isPlaying,
+  lineIndex,
+  squareIndex,
+  totalLines,
   onSetChord,
   onClear,
 }: {
   id: string;
   chord: string | null;
   isPlaying: boolean;
+  lineIndex: number;
+  squareIndex: number;
+  totalLines: number;
   onSetChord: (chord: string) => void;
   onClear: () => void;
 }) {
@@ -138,6 +149,9 @@ function SortableSquareWrapper({
       <GridSquare
         chord={chord}
         isPlaying={isPlaying}
+        lineIndex={lineIndex}
+        squareIndex={squareIndex}
+        totalLines={totalLines}
         onSetChord={onSetChord}
         onClear={onClear}
       />

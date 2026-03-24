@@ -97,6 +97,12 @@ export default {
     loadError: "Failed to load grid.",
     noResults: "No matching chords.",
     dragToReorder: "Drag to reorder",
+    repeatCount: "Repeat",
+    mergeGroup: "Merge groups",
+    splitHere: "Split here",
+    splitGroup: "Split group at this line",
+    selectedCount: "{{count}} selected",
+    groupSelection: "Group",
     authRequired: "Account Required",
     authRequiredDescription:
       "Create an account to save and manage your chord grids.",
