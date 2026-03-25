@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { signIn, signUp } from "@/lib/auth";
 import { Button } from "./button";
+import { OAuthButtons } from "./oauth-buttons";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -110,6 +111,10 @@ export function AuthForm({ mode }: AuthFormProps) {
                 : t("common.signIn")}
           </Button>
         </form>
+
+        <div className="mt-6">
+          <OAuthButtons />
+        </div>
 
         <p className="mt-6 text-center text-sm">
           {isSignup ? t("auth.alreadyHaveAccount") : t("auth.dontHaveAccount")}
