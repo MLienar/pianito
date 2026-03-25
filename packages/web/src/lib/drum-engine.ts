@@ -1,20 +1,21 @@
 import * as Tone from "tone";
 import { getDrumKit } from "./drum-kit";
-import {
-  type DrumPattern,
-  type DrumPatternId,
-  DRUM_PATTERNS,
-} from "./drum-patterns";
+import type { DrumPattern } from "./drum-patterns";
 
 let sequence: Tone.Sequence | null = null;
 
-export function startDrums(tempo: number, patternId: DrumPatternId): void {
+export function startDrums(
+  tempo: number,
+  pattern: DrumPattern,
+  swing = 0,
+): void {
   stopDrums();
 
-  const pattern: DrumPattern = DRUM_PATTERNS[patternId];
   const kit = getDrumKit();
-
-  Tone.getTransport().bpm.value = tempo;
+  const transport = Tone.getTransport();
+  transport.bpm.value = tempo;
+  transport.swing = swing;
+  transport.swingSubdivision = "8n";
 
   sequence = new Tone.Sequence(
     (time, step) => {

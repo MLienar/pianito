@@ -81,8 +81,10 @@ export default {
     bpm: "BPM",
     loopCount: "Loops",
     metronome: "Metronome",
-    drumsOff: "Drums: Off",
-    drums: {
+    swing: "Swing",
+    style: "Style",
+    styleOff: "Off",
+    styles: {
       rock: "Rock",
       pop: "Pop",
       bossaNova: "Bossa Nova",

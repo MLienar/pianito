@@ -110,3 +110,41 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 }
+
+/* Neobrutalist range slider */
+.brutal-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+}
+
+.brutal-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.brutal-range:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.brutal-range:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.brutal-range:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.brutal-range:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+}

@@ -118,9 +118,11 @@ function GridEditor() {
         isPlaying={playback.isPlaying}
         isSaving={isSaving}
         metronome={playback.metronome}
-        drumPattern={playback.drumPattern}
+        style={playback.style}
+        swing={playback.swing}
         onMetronomeToggle={playback.toggleMetronome}
-        onDrumPatternChange={playback.selectDrumPattern}
+        onStyleChange={playback.selectStyle}
+        onSwingChange={playback.setSwing}
         onPlay={playback.play}
         onStop={playback.stop}
         onSave={save}

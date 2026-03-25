@@ -79,8 +79,10 @@ export default {
     bpm: "BPM",
     loopCount: "循环次数",
     metronome: "节拍器",
-    drumsOff: "鼓：关闭",
-    drums: {
+    swing: "摇摆",
+    style: "风格",
+    styleOff: "关闭",
+    styles: {
       rock: "摇滚",
       pop: "流行",
       bossaNova: "波萨诺瓦",

@@ -1,15 +1,18 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { DrumPatternId } from "@/lib/drum-patterns";
-import { DRUM_PATTERN_IDS, isDrumPatternId } from "@/lib/drum-patterns";
+import type { StyleId } from "@/lib/styles";
+import { STYLE_IDS } from "@/lib/styles";
 import { useGridEditorStore } from "@/stores/grid-editor";
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
   isSaving: boolean;
   metronome: boolean;
-  drumPattern: DrumPatternId | null;
+  style: StyleId | null;
+  swing: number;
   onMetronomeToggle: () => void;
-  onDrumPatternChange: (id: DrumPatternId | null) => void;
+  onStyleChange: (id: StyleId | null) => void;
+  onSwingChange: (value: number) => void;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
@@ -19,9 +22,11 @@ export function PlaybackControls({
   isPlaying,
   isSaving,
   metronome,
-  drumPattern,
+  style,
+  swing,
   onMetronomeToggle,
-  onDrumPatternChange,
+  onStyleChange,
+  onSwingChange,
   onPlay,
   onStop,
   onSave,
@@ -82,22 +87,32 @@ export function PlaybackControls({
         {t("accomp.metronome")}
       </button>
 
-      <select
-        value={drumPattern ?? ""}
-        onChange={(e) => {
-          const value = e.target.value;
-          onDrumPatternChange(isDrumPatternId(value) ? value : null);
-        }}
+      <StyleSelect
+        style={style}
         disabled={isPlaying}
-        className="border-3 border-border bg-background px-2 py-1.5 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-      >
-        <option value="">{t("accomp.drumsOff")}</option>
-        {DRUM_PATTERN_IDS.map((id) => (
-          <option key={id} value={id}>
-            {t(`accomp.drums.${id}`)}
-          </option>
-        ))}
-      </select>
+        onStyleChange={onStyleChange}
+      />
+
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-bold" htmlFor="swing">
+          {t("accomp.swing")}
+        </label>
+        <div className="relative flex items-center">
+          <input
+            id="swing"
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(swing * 100)}
+            onChange={(e) => onSwingChange(Number(e.target.value) / 100)}
+            disabled={isPlaying}
+            className="brutal-range h-2 w-24 cursor-pointer appearance-none border-2 border-border bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+        <span className="min-w-8 border-3 border-border bg-background px-1.5 py-0.5 text-center font-mono text-xs font-bold">
+          {Math.round(swing * 100)}%
+        </span>
+      </div>
 
       <button
         type="button"
@@ -123,6 +138,137 @@ export function PlaybackControls({
             ? t("accomp.save")
             : t("accomp.saved")}
       </button>
+    </div>
+  );
+}
+
+function StyleSelect({
+  style,
+  disabled,
+  onStyleChange,
+}: {
+  style: StyleId | null;
+  disabled: boolean;
+  onStyleChange: (id: StyleId | null) => void;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const options: { value: StyleId | null; label: string }[] = [
+    { value: null, label: t("accomp.styleOff") },
+    ...STYLE_IDS.map((id) => ({ value: id, label: t(`accomp.styles.${id}`) })),
+  ];
+
+  const selectedLabel =
+    options.find((o) => o.value === style)?.label ?? t("accomp.styleOff");
+
+  const select = useCallback(
+    (value: StyleId | null) => {
+      onStyleChange(value);
+      setOpen(false);
+    },
+    [onStyleChange],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpen(true);
+        setFocusedIndex(
+          Math.max(
+            0,
+            options.findIndex((o) => o.value === style),
+          ),
+        );
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setFocusedIndex((i) => Math.min(i + 1, options.length - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setFocusedIndex((i) => Math.max(i - 1, 0));
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (focusedIndex >= 0) {
+          select(options[focusedIndex].value);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-bold">{t("accomp.style")}</span>
+      <div ref={containerRef} className="relative">
+        <button
+          type="button"
+          onClick={() => !disabled && setOpen((v) => !v)}
+          onKeyDown={handleKeyDown}
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="flex items-center gap-2 border-3 border-border bg-background py-1.5 pr-8 pl-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        >
+          {selectedLabel}
+          <span className="pointer-events-none absolute right-2 text-xs font-bold">
+            ▼
+          </span>
+        </button>
+
+        {open && (
+          <ul
+            role="listbox"
+            className="absolute top-full left-0 z-50 mt-1 min-w-full border-3 border-border bg-background shadow-[var(--shadow-brutal)]"
+          >
+            {options.map((option, i) => (
+              <li
+                key={option.value ?? "off"}
+                role="option"
+                aria-selected={option.value === style}
+                onMouseDown={() => select(option.value)}
+                onMouseEnter={() => setFocusedIndex(i)}
+                className={`cursor-pointer px-3 py-1.5 text-sm font-bold whitespace-nowrap ${
+                  option.value === style
+                    ? "bg-accent text-accent-foreground"
+                    : i === focusedIndex
+                      ? "bg-muted"
+                      : "bg-background hover:bg-muted"
+                }`}
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
