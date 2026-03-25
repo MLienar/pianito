@@ -21,6 +21,7 @@ const gridSummaryColumns = {
   key: grid.key,
   tempo: grid.tempo,
   visibility: grid.visibility,
+  timeSignature: grid.timeSignature,
   createdAt: grid.createdAt,
 };
 
@@ -121,6 +122,7 @@ export async function gridRoutes(app: FastifyInstance) {
           tempo: body.tempo,
           loopCount: body.loopCount,
           visibility: body.visibility,
+          timeSignature: body.timeSignature,
           data: body.data,
         })
         .returning();

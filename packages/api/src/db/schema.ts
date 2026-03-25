@@ -116,6 +116,10 @@ export const grid = pgTable("grid", {
     .$type<"private" | "public">()
     .notNull()
     .default("private"),
+  timeSignature: jsonb("time_signature")
+    .$type<{ numerator: number; denominator: number }>()
+    .notNull()
+    .default({ numerator: 4, denominator: 4 }),
   data: jsonb("data").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

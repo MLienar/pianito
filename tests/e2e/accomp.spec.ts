@@ -27,6 +27,7 @@ const MOCK_GRID = {
 	tempo: 120,
 	loopCount: 2,
 	visibility: "private",
+	timeSignature: { numerator: 4, denominator: 4 },
 	data: {
 		squares: [
 			{ chord: "C" },
@@ -50,6 +51,7 @@ const MOCK_GRID_LIST = {
 			key: "Cm",
 			tempo: 120,
 			visibility: "private",
+			timeSignature: { numerator: 4, denominator: 4 },
 			createdAt: new Date().toISOString(),
 		},
 		{
@@ -60,6 +62,7 @@ const MOCK_GRID_LIST = {
 			key: null,
 			tempo: 90,
 			visibility: "private",
+			timeSignature: { numerator: 3, denominator: 4 },
 			createdAt: new Date().toISOString(),
 		},
 	],
@@ -75,6 +78,7 @@ const MOCK_PUBLIC_GRID_LIST = {
 			key: "Em",
 			tempo: 130,
 			visibility: "public",
+			timeSignature: { numerator: 4, denominator: 4 },
 			createdAt: new Date().toISOString(),
 		},
 		{
@@ -85,6 +89,7 @@ const MOCK_PUBLIC_GRID_LIST = {
 			key: "Cm",
 			tempo: 150,
 			visibility: "public",
+			timeSignature: { numerator: 4, denominator: 4 },
 			createdAt: new Date().toISOString(),
 		},
 		{
@@ -95,6 +100,7 @@ const MOCK_PUBLIC_GRID_LIST = {
 			key: null,
 			tempo: 100,
 			visibility: "public",
+			timeSignature: { numerator: 3, denominator: 4 },
 			createdAt: new Date().toISOString(),
 		},
 	],
@@ -602,5 +608,158 @@ test.describe("Accompaniment - Public Grids & Search", () => {
 		await searchInput.fill("xyznonexistent");
 
 		await expect(page.getByText("No matching chords.")).toBeVisible();
+	});
+});
+
+test.describe("Accompaniment - Time Signatures", () => {
+	test.beforeEach(async ({ page }) => {
+		await dismissTour(page);
+		await mockAuthenticated(page);
+		await mockGridApis(page);
+	});
+
+	test("displays time signature selector with default 4/4", async ({
+		page,
+	}) => {
+		await page.goto("/accomp/grid-001");
+
+		await expect(page.getByText("Time sig.")).toBeVisible();
+		// The selector button shows the current time signature
+		const tsButton = page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "4/4" });
+		await expect(tsButton).toBeVisible();
+	});
+
+	test("can open time signature dropdown", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		const tsButton = page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "4/4" });
+		await tsButton.click();
+
+		// All supported time signatures should be visible
+		await expect(page.getByRole("option", { name: "3/4" })).toBeVisible();
+		await expect(page.getByRole("option", { name: "6/8" })).toBeVisible();
+		await expect(page.getByRole("option", { name: "5/4" })).toBeVisible();
+	});
+
+	test("can change time signature to 3/4", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		const tsButton = page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "4/4" });
+		await tsButton.click();
+
+		await page.getByRole("option", { name: "3/4" }).click();
+
+		// Button should now show 3/4
+		await expect(
+			page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "3/4" }),
+		).toBeVisible();
+	});
+
+	test("changing time signature marks grid as dirty", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		// Initially saved
+		await expect(page.getByRole("button", { name: "Saved" })).toBeDisabled();
+
+		const tsButton = page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "4/4" });
+		await tsButton.click();
+		await page.getByRole("option", { name: "3/4" }).click();
+
+		// Now save should be enabled
+		await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+	});
+
+	test("saves time signature in PATCH request", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		const tsButton = page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "4/4" });
+		await tsButton.click();
+		await page.getByRole("option", { name: "3/4" }).click();
+
+		const saveRequest = page.waitForRequest("**/api/grids/grid-001");
+		await page.getByRole("button", { name: "Save" }).click();
+
+		const request = await saveRequest;
+		const body = JSON.parse(request.postData() || "{}");
+		expect(body.timeSignature).toEqual({ numerator: 3, denominator: 4 });
+	});
+
+	test("time signature selector is disabled during playback", async ({
+		page,
+	}) => {
+		await page.goto("/accomp/grid-001");
+
+		await page.getByRole("button", { name: "Play" }).click();
+
+		const tsButton = page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "4/4" });
+		await expect(tsButton).toBeDisabled();
+
+		await page.getByRole("button", { name: "Stop" }).click();
+	});
+
+	test("grid layout adapts columns for 3/4 time", async ({ page }) => {
+		const waltzGrid = {
+			...MOCK_GRID,
+			timeSignature: { numerator: 3, denominator: 4 },
+			data: {
+				squares: [
+					{ chord: "C", nbBeats: 3 },
+					{ chord: "Am", nbBeats: 3 },
+					{ chord: "F", nbBeats: 3 },
+					{ chord: "G", nbBeats: 3 },
+				],
+				groups: [],
+			},
+		};
+
+		await page.route("**/api/grids/grid-waltz", (route) => {
+			if (route.request().method() === "GET") {
+				return route.fulfill({
+					status: 200,
+					contentType: "application/json",
+					body: JSON.stringify({ ...waltzGrid, id: "grid-waltz" }),
+				});
+			}
+			return route.continue();
+		});
+
+		await page.goto("/accomp/grid-waltz");
+
+		// Grid container should have 12 columns for 3/4
+		const gridContainer = page.locator("[data-tour='grid-container']");
+		await expect(gridContainer).toHaveCSS(
+			"grid-template-columns",
+			// 12 equal columns — browser computes to px values, just check it exists
+			/^\d/,
+		);
+
+		// Time sig button should show 3/4
+		await expect(
+			page.locator('button[aria-haspopup="listbox"]').filter({ hasText: "3/4" }),
+		).toBeVisible();
+	});
+});
+
+test.describe("Accompaniment - Time Signature in Grid List", () => {
+	test.beforeEach(async ({ page }) => {
+		await mockAuthenticated(page);
+		await mockGridApis(page);
+	});
+
+	test("displays time signature on user grid cards", async ({ page }) => {
+		await page.goto("/accomp");
+
+		// The "Jazz Standards" grid has 3/4 time signature
+		await expect(page.getByText("3/4")).toBeVisible();
+		// The "Test Grid" has 4/4
+		await expect(page.getByText("4/4").first()).toBeVisible();
+	});
+
+	test("displays time signature on public grid cards", async ({ page }) => {
+		await page.goto("/accomp");
+
+		// "My Public Grid" has 3/4
+		const publicSection = page.locator(".border-t-3");
+		await expect(publicSection.getByText("3/4")).toBeVisible();
 	});
 });

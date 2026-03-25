@@ -78,6 +78,7 @@ export default {
     createNew: "Nouvelle grille",
     untitled: "Sans titre",
     gridName: "Nom de la grille",
+    timeSignature: "Mesure",
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Boucles",

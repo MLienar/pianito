@@ -18,6 +18,7 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     tempo: 120,
     loopCount: 2,
     visibility: "private",
+    timeSignature: { numerator: 4, denominator: 4 },
     data: {
       squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
       groups: [],
@@ -717,5 +718,270 @@ describe("groupSquares", () => {
     store().groupSquares(0, 100);
 
     expect(store().data).toBe(dataBefore);
+  });
+});
+
+// ─── Time Signature ─────────────────────────────────────────────────
+
+function sqBeats(
+  chord: string | null,
+  nbBeats: number,
+): { chord: string | null; nbBeats: number } {
+  return { chord, nbBeats };
+}
+
+describe("initialize with timeSignature", () => {
+  it("sets timeSignature from grid", () => {
+    store().initialize(
+      makeGrid({ timeSignature: { numerator: 3, denominator: 4 } }),
+    );
+
+    expect(store().timeSignature).toEqual({ numerator: 3, denominator: 4 });
+  });
+
+  it("defaults to 4/4 when timeSignature is missing", () => {
+    const grid = makeGrid();
+    // Simulate old grid without timeSignature
+    const gridWithoutTs = { ...grid } as Record<string, unknown>;
+    delete gridWithoutTs.timeSignature;
+
+    store().initialize(gridWithoutTs as Grid);
+
+    expect(store().timeSignature).toEqual({ numerator: 4, denominator: 4 });
+  });
+});
+
+describe("updateTimeSignature", () => {
+  it("converts full-measure squares to new numerator", () => {
+    store().initialize(makeGrid());
+    // All 4 squares have nbBeats=4 (full measures in 4/4)
+
+    store().updateTimeSignature({ numerator: 3, denominator: 4 });
+
+    expect(store().timeSignature).toEqual({ numerator: 3, denominator: 4 });
+    for (const sq of store().data.squares) {
+      expect(sq.nbBeats).toBe(3);
+    }
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("converts partial squares to 1 beat", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sqBeats("C", 4), sqBeats("Am", 2), sqBeats("F", 4)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().updateTimeSignature({ numerator: 3, denominator: 4 });
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3); // was full → new full
+    expect(store().data.squares[1]?.nbBeats).toBe(1); // was partial → 1
+    expect(store().data.squares[2]?.nbBeats).toBe(3); // was full → new full
+  });
+
+  it("skips squares in groups with their own override", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [
+            {
+              start: 0,
+              nbSquares: 2,
+              repeatCount: 1,
+              timeSignature: { numerator: 6, denominator: 8 },
+            },
+          ],
+        },
+      }),
+    );
+
+    store().updateTimeSignature({ numerator: 3, denominator: 4 });
+
+    // Squares in the overridden group stay at 4
+    expect(store().data.squares[0]?.nbBeats).toBe(4);
+    expect(store().data.squares[1]?.nbBeats).toBe(4);
+    // Squares outside the group are converted
+    expect(store().data.squares[2]?.nbBeats).toBe(3);
+    expect(store().data.squares[3]?.nbBeats).toBe(3);
+  });
+
+  it("is a no-op when time signature is the same", () => {
+    store().initialize(makeGrid());
+    const stateBefore = store().data;
+
+    store().updateTimeSignature({ numerator: 4, denominator: 4 });
+
+    expect(store().data).toBe(stateBefore);
+  });
+});
+
+describe("updateGroupTimeSignature", () => {
+  it("converts squares in group to new numerator", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 2 }],
+        },
+      }),
+    );
+
+    store().updateGroupTimeSignature(0, { numerator: 3, denominator: 4 });
+
+    // Group squares converted: 4 (full in 4/4) → 3 (full in 3/4)
+    expect(store().data.squares[0]?.nbBeats).toBe(3);
+    expect(store().data.squares[1]?.nbBeats).toBe(3);
+    // Non-group squares untouched
+    expect(store().data.squares[2]?.nbBeats).toBe(4);
+    expect(store().data.squares[3]?.nbBeats).toBe(4);
+    // Group has timeSignature set
+    expect(store().data.groups[0]?.timeSignature).toEqual({
+      numerator: 3,
+      denominator: 4,
+    });
+  });
+
+  it("clearing override converts group squares back to grid TS", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [
+            sqBeats("C", 3),
+            sqBeats("Am", 3),
+            sq("F"),
+            sq("G"),
+          ],
+          groups: [
+            {
+              start: 0,
+              nbSquares: 2,
+              repeatCount: 2,
+              timeSignature: { numerator: 3, denominator: 4 },
+            },
+          ],
+        },
+      }),
+    );
+
+    store().updateGroupTimeSignature(0, undefined);
+
+    // Squares were full (3 in 3/4) → full (4 in 4/4)
+    expect(store().data.squares[0]?.nbBeats).toBe(4);
+    expect(store().data.squares[1]?.nbBeats).toBe(4);
+    expect(store().data.groups[0]?.timeSignature).toBeUndefined();
+  });
+
+  it("partial squares in group become 1 beat", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sqBeats("C", 4), sqBeats("Am", 2)],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 1 }],
+        },
+      }),
+    );
+
+    store().updateGroupTimeSignature(0, { numerator: 3, denominator: 4 });
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3); // full → full
+    expect(store().data.squares[1]?.nbBeats).toBe(1); // partial → 1
+  });
+
+  it("is a no-op for invalid group index", () => {
+    store().initialize(makeGrid());
+    const dataBefore = store().data;
+
+    store().updateGroupTimeSignature(99, { numerator: 3, denominator: 4 });
+
+    expect(store().data).toBe(dataBefore);
+  });
+});
+
+describe("setSquareBeats with time signature", () => {
+  it("clamps to effective numerator", () => {
+    store().initialize(
+      makeGrid({
+        timeSignature: { numerator: 3, denominator: 4 },
+        data: {
+          squares: [sqBeats("C", 3), sqBeats("Am", 3)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().setSquareBeats(0, 5); // exceeds max of 3
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3);
+  });
+
+  it("clamps to minimum 1", () => {
+    store().initialize(makeGrid());
+
+    store().setSquareBeats(0, 0);
+
+    expect(store().data.squares[0]?.nbBeats).toBe(1);
+  });
+
+  it("uses group override numerator when square is in overridden group", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sqBeats("C", 3), sqBeats("Am", 3)],
+          groups: [
+            {
+              start: 0,
+              nbSquares: 2,
+              repeatCount: 1,
+              timeSignature: { numerator: 3, denominator: 4 },
+            },
+          ],
+        },
+      }),
+    );
+
+    store().setSquareBeats(0, 6); // group limits to 3
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3);
+  });
+});
+
+describe("addSquare with time signature", () => {
+  it("uses current TS numerator as default nbBeats", () => {
+    store().initialize(
+      makeGrid({
+        timeSignature: { numerator: 3, denominator: 4 },
+        data: {
+          squares: [sqBeats("C", 3)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().addSquare();
+
+    const lastSquare = store().data.squares[store().data.squares.length - 1];
+    expect(lastSquare?.nbBeats).toBe(3);
+    expect(lastSquare?.chord).toBeNull();
+  });
+
+  it("uses 6 beats for 6/8", () => {
+    store().initialize(
+      makeGrid({
+        timeSignature: { numerator: 6, denominator: 8 },
+        data: {
+          squares: [sqBeats("C", 6)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().addSquare();
+
+    const lastSquare = store().data.squares[store().data.squares.length - 1];
+    expect(lastSquare?.nbBeats).toBe(6);
   });
 });

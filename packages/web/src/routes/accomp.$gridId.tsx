@@ -32,6 +32,7 @@ function GridEditor() {
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
   const visibility = useGridEditorStore((s) => s.visibility);
+  const timeSignature = useGridEditorStore((s) => s.timeSignature);
   const data = useGridEditorStore((s) => s.data);
   const updateName = useGridEditorStore((s) => s.updateName);
   const updateComposer = useGridEditorStore((s) => s.updateComposer);
@@ -39,7 +40,7 @@ function GridEditor() {
   const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
 
-  const playback = useGridPlayback(data, tempo, loopCount);
+  const playback = useGridPlayback(data, tempo, loopCount, timeSignature);
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);

@@ -170,6 +170,9 @@ function GridCard({
       >
         <h3 className="text-lg font-bold">{grid.name}</h3>
         <div className="mt-1 flex items-center gap-2">
+          <span className="font-mono text-sm text-muted-foreground">
+            {grid.timeSignature.numerator}/{grid.timeSignature.denominator}
+          </span>
           <span className="text-sm text-muted-foreground">
             {grid.tempo} {t("accomp.bpm")}
           </span>
@@ -315,6 +318,9 @@ function PublicGridCard({ grid }: { grid: GridSummary }) {
           <p className="text-sm text-muted-foreground">{grid.composer}</p>
         )}
         <div className="mt-1 flex items-center gap-2">
+          <span className="font-mono text-sm text-muted-foreground">
+            {grid.timeSignature.numerator}/{grid.timeSignature.denominator}
+          </span>
           <span className="text-sm text-muted-foreground">
             {grid.tempo} {t("accomp.bpm")}
           </span>

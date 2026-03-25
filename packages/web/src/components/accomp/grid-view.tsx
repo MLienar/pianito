@@ -14,11 +14,16 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type { TimeSignature } from "@pianito/shared";
 import { X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useGridEditorStore } from "@/stores/grid-editor";
 import { GridSquare, type GridSquareProps } from "./grid-square";
 import { getGroupColor } from "./group-colors";
+
+function getBeatsPerRow(ts: TimeSignature): number {
+  return ts.numerator * 4;
+}
 
 interface GridViewProps {
   playingIndex: number | null;
@@ -26,6 +31,7 @@ interface GridViewProps {
 
 export function GridView({ playingIndex }: GridViewProps) {
   const data = useGridEditorStore((s) => s.data);
+  const timeSignature = useGridEditorStore((s) => s.timeSignature);
   const reorderSquares = useGridEditorStore((s) => s.reorderSquares);
   const setChord = useGridEditorStore((s) => s.setChord);
   const clearChord = useGridEditorStore((s) => s.clearChord);
@@ -35,6 +41,8 @@ export function GridView({ playingIndex }: GridViewProps) {
     (s) => s.updateGroupRepeatCount,
   );
   const deleteGroup = useGridEditorStore((s) => s.deleteGroup);
+
+  const beatsPerRow = getBeatsPerRow(timeSignature);
 
   const [autoFocusIndex, setAutoFocusIndex] = useState<number | null>(null);
 
@@ -75,31 +83,42 @@ export function GridView({ playingIndex }: GridViewProps) {
     setAutoFocusIndex(null);
   }, []);
 
-  const { squareGroupIndex, squareSeparatorInfo } = useMemo(() => {
-    const sgIndex: (number | null)[] = new Array(data.squares.length).fill(
-      null,
-    );
-    const sepInfo = new Map<
-      number,
-      { groupIndex: number; repeatCount: number }
-    >();
+  const { squareGroupIndex, squareSeparatorInfo, tsIndicators } =
+    useMemo(() => {
+      const sgIndex: (number | null)[] = new Array(data.squares.length).fill(
+        null,
+      );
+      const sepInfo = new Map<
+        number,
+        { groupIndex: number; repeatCount: number }
+      >();
+      const tsInd = new Map<number, TimeSignature>();
 
-    for (const [gi, group] of data.groups.entries()) {
-      for (let i = 0; i < group.nbSquares; i++) {
-        const idx = group.start + i;
-        if (idx < data.squares.length) sgIndex[idx] = gi;
+      for (const [gi, group] of data.groups.entries()) {
+        for (let i = 0; i < group.nbSquares; i++) {
+          const idx = group.start + i;
+          if (idx < data.squares.length) sgIndex[idx] = gi;
+        }
+        const lastIdx = group.start + group.nbSquares - 1;
+        if (lastIdx < data.squares.length) {
+          sepInfo.set(lastIdx, {
+            groupIndex: gi,
+            repeatCount: group.repeatCount,
+          });
+        }
+        tsInd.set(group.start, group.timeSignature ?? timeSignature);
       }
-      const lastIdx = group.start + group.nbSquares - 1;
-      if (lastIdx < data.squares.length) {
-        sepInfo.set(lastIdx, {
-          groupIndex: gi,
-          repeatCount: group.repeatCount,
-        });
-      }
-    }
 
-    return { squareGroupIndex: sgIndex, squareSeparatorInfo: sepInfo };
-  }, [data.groups, data.squares.length]);
+      if (data.groups.length === 0 && data.squares.length > 0) {
+        tsInd.set(0, timeSignature);
+      }
+
+      return {
+        squareGroupIndex: sgIndex,
+        squareSeparatorInfo: sepInfo,
+        tsIndicators: tsInd,
+      };
+    }, [data.groups, data.squares.length, timeSignature]);
 
   return (
     <DndContext
@@ -110,13 +129,20 @@ export function GridView({ playingIndex }: GridViewProps) {
       <SortableContext items={squareIds} strategy={rectSortingStrategy}>
         <div
           data-tour="grid-container"
-          className="grid grid-cols-[repeat(8,1fr)] gap-2"
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${beatsPerRow}, 1fr)`,
+          }}
         >
           {data.squares.map((square, globalIndex) => {
             if (!square) return null;
             const sepInfo = squareSeparatorInfo.get(globalIndex);
             const gi = squareGroupIndex[globalIndex];
             const groupColor = gi !== null ? getGroupColor(gi) : undefined;
+            const group = gi !== null ? data.groups[gi] : undefined;
+            const maxBeats =
+              group?.timeSignature?.numerator ?? timeSignature.numerator;
+            const tsInd = tsIndicators.get(globalIndex);
             return (
               <SortableSquareWrapper
                 key={`sq-${globalIndex}`}
@@ -124,6 +150,7 @@ export function GridView({ playingIndex }: GridViewProps) {
                 squareProps={{
                   chord: square.chord,
                   nbBeats: square.nbBeats,
+                  maxBeats,
                   isPlaying: playingIndex === globalIndex,
                   index: globalIndex,
                   totalSquares: data.squares.length,
@@ -137,13 +164,14 @@ export function GridView({ playingIndex }: GridViewProps) {
                 separator={
                   sepInfo
                     ? {
-                        repeatCount: sepInfo.repeatCount,
-                        onRepeatCountChange: (val) =>
-                          updateGroupRepeatCount(sepInfo.groupIndex, val),
-                        onDelete: () => deleteGroup(sepInfo.groupIndex),
-                      }
+                      repeatCount: sepInfo.repeatCount,
+                      onRepeatCountChange: (val) =>
+                        updateGroupRepeatCount(sepInfo.groupIndex, val),
+                      onDelete: () => deleteGroup(sepInfo.groupIndex),
+                    }
                     : undefined
                 }
+                tsIndicator={tsInd}
               />
             );
           })}
@@ -161,6 +189,26 @@ export function GridView({ playingIndex }: GridViewProps) {
   );
 }
 
+function TimeSignatureBadge({
+  ts,
+  groupColor,
+}: {
+  ts: TimeSignature;
+  groupColor?: string;
+}) {
+  return (
+    <div
+      className="absolute left-2 top-1/2 z-10 -translate-y-1/2 pointer-events-none"
+      style={groupColor ? { color: groupColor } : undefined}
+    >
+      <div className="flex flex-col items-center leading-none font-mono font-black text-base opacity-60">
+        <span>{ts.numerator}</span>
+        <span>{ts.denominator}</span>
+      </div>
+    </div>
+  );
+}
+
 interface SeparatorInfo {
   repeatCount: number;
   onRepeatCountChange: (value: number) => void;
@@ -171,19 +219,20 @@ function SortableSquareWrapper({
   id,
   squareProps,
   separator,
+  tsIndicator,
 }: {
   id: string;
   squareProps: GridSquareProps;
   separator?: SeparatorInfo;
+  tsIndicator?: TimeSignature;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
 
-  const colSpan = squareProps.nbBeats === 2 ? 1 : 2;
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    gridColumn: `span ${colSpan}`,
+    gridColumn: `span ${squareProps.nbBeats}`,
   };
 
   return (
@@ -195,6 +244,12 @@ function SortableSquareWrapper({
       className="relative"
     >
       <GridSquare {...squareProps} />
+      {tsIndicator && (
+        <TimeSignatureBadge
+          ts={tsIndicator}
+          groupColor={squareProps.groupColor}
+        />
+      )}
       {separator && (
         <div className="absolute z-10 flex flex-col items-center right-0 top-[50%] translate-x-1/2 -translate-y-1/2 gap-1">
           <div

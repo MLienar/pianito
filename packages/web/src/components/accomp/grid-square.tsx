@@ -15,12 +15,13 @@ const RESIZE_DRAG_THRESHOLD_PX = 30;
 export interface GridSquareProps {
   chord: string | null;
   nbBeats: number;
+  maxBeats: number;
   isPlaying: boolean;
   index: number;
   totalSquares: number;
   onSetChord: (chord: string) => void;
   onClear: () => void;
-  onSetBeats: (nbBeats: 2 | 4) => void;
+  onSetBeats: (nbBeats: number) => void;
   groupColor?: string;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;
@@ -29,6 +30,7 @@ export interface GridSquareProps {
 export function GridSquare({
   chord,
   nbBeats,
+  maxBeats,
   isPlaying,
   index,
   totalSquares,
@@ -70,7 +72,7 @@ export function GridSquare({
 
   const dragStartX = useRef(0);
   const dragStartBeats = useRef(nbBeats);
-  const dragApplied = useRef(false);
+  const lastAppliedBeats = useRef(nbBeats);
 
   const handleResizePointerDown = useCallback(
     (e: ReactPointerEvent) => {
@@ -78,7 +80,7 @@ export function GridSquare({
       e.preventDefault();
       dragStartX.current = e.clientX;
       dragStartBeats.current = nbBeats;
-      dragApplied.current = false;
+      lastAppliedBeats.current = nbBeats;
       const target = e.currentTarget as HTMLElement;
       target.setPointerCapture(e.pointerId);
     },
@@ -87,24 +89,19 @@ export function GridSquare({
 
   const handleResizePointerMove = useCallback(
     (e: ReactPointerEvent) => {
-      if (
-        dragApplied.current ||
-        !e.currentTarget.hasPointerCapture(e.pointerId)
-      )
-        return;
+      if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
       const delta = e.clientX - dragStartX.current;
-      if (dragStartBeats.current === 4 && delta < -RESIZE_DRAG_THRESHOLD_PX) {
-        onSetBeats(2);
-        dragApplied.current = true;
-      } else if (
-        dragStartBeats.current === 2 &&
-        delta > RESIZE_DRAG_THRESHOLD_PX
-      ) {
-        onSetBeats(4);
-        dragApplied.current = true;
+      const beatDelta = Math.round(delta / RESIZE_DRAG_THRESHOLD_PX);
+      const newBeats = Math.max(
+        1,
+        Math.min(maxBeats, dragStartBeats.current + beatDelta),
+      );
+      if (newBeats !== lastAppliedBeats.current) {
+        onSetBeats(newBeats);
+        lastAppliedBeats.current = newBeats;
       }
     },
-    [onSetBeats],
+    [onSetBeats, maxBeats],
   );
 
   const handleResizePointerUp = useCallback((e: ReactPointerEvent) => {

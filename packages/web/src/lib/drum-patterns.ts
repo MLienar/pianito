@@ -1,3 +1,12 @@
+export type TimeSignatureKey = "4/4" | "3/4" | "2/4" | "6/8" | "5/4" | "2/2";
+
+export function toTimeSignatureKey(
+  numerator: number,
+  denominator: number,
+): TimeSignatureKey {
+  return `${numerator}/${denominator}` as TimeSignatureKey;
+}
+
 export interface DrumPattern {
   subdivision: "16n" | "8t";
   kick: number[];

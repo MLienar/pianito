@@ -1,15 +1,19 @@
-import type {
-  Grid,
-  GridData,
-  GridSquare,
-  GridVisibility,
+import {
+  DEFAULT_TIME_SIGNATURE,
+  type Grid,
+  type GridData,
+  type GridSquare,
+  type GridVisibility,
+  type TimeSignature,
 } from "@pianito/shared";
 import { create } from "zustand";
 
-const EMPTY_SQUARE: GridSquare = { chord: null, nbBeats: 4 };
+function makeEmptySquare(numerator: number): GridSquare {
+  return { chord: null, nbBeats: numerator };
+}
 
 const DEFAULT_DATA: GridData = {
-  squares: [EMPTY_SQUARE],
+  squares: [makeEmptySquare(DEFAULT_TIME_SIGNATURE.numerator)],
   groups: [],
 };
 
@@ -20,6 +24,29 @@ function findGroupForSquare(
   return groups.findIndex(
     (g) => squareIndex >= g.start && squareIndex < g.start + g.nbSquares,
   );
+}
+
+function getEffectiveNumerator(
+  squareIndex: number,
+  groups: GridData["groups"],
+  gridTimeSignature: TimeSignature,
+): number {
+  const gi = findGroupForSquare(groups, squareIndex);
+  return groups[gi]?.timeSignature?.numerator ?? gridTimeSignature.numerator;
+}
+
+function convertSquaresForTimeSignatureChange(
+  squares: GridSquare[],
+  oldNumerator: number,
+  newNumerator: number,
+  startIdx: number,
+  endIdx: number,
+): GridSquare[] {
+  return squares.map((sq, i) => {
+    if (i < startIdx || i >= endIdx) return sq;
+    const newBeats = sq.nbBeats === oldNumerator ? newNumerator : 1;
+    return { ...sq, nbBeats: Math.min(newBeats, newNumerator) };
+  });
 }
 
 function migrateOldGroups(
@@ -98,6 +125,7 @@ interface GridEditorState {
   tempo: number;
   loopCount: number;
   visibility: GridVisibility;
+  timeSignature: TimeSignature;
   data: GridData;
   isDirty: boolean;
 }
@@ -112,9 +140,14 @@ interface GridEditorActions {
   clampTempo: () => void;
   updateLoopCount: (count: number) => void;
   updateVisibility: (visibility: GridVisibility) => void;
+  updateTimeSignature: (ts: TimeSignature) => void;
+  updateGroupTimeSignature: (
+    groupIndex: number,
+    ts: TimeSignature | undefined,
+  ) => void;
   setChord: (index: number, chord: string | null) => void;
   clearChord: (index: number) => void;
-  setSquareBeats: (index: number, nbBeats: 2 | 4) => void;
+  setSquareBeats: (index: number, nbBeats: number) => void;
   addSquare: () => void;
   removeSquare: (index: number) => void;
   clearChords: (indices: Set<number>) => void;
@@ -137,6 +170,7 @@ const initialState: GridEditorState = {
   tempo: 90,
   loopCount: 1,
   visibility: "private",
+  timeSignature: DEFAULT_TIME_SIGNATURE,
   data: DEFAULT_DATA,
   isDirty: false,
 };
@@ -153,6 +187,7 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       tempo: grid.tempo,
       loopCount: grid.loopCount,
       visibility: grid.visibility,
+      timeSignature: grid.timeSignature ?? DEFAULT_TIME_SIGNATURE,
       data: migrateGridData(grid.data as unknown as Record<string, unknown>),
       isDirty: false,
     }),
@@ -176,6 +211,64 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   updateVisibility: (visibility) => set({ visibility, isDirty: true }),
 
+  updateTimeSignature: (ts) =>
+    set((state) => {
+      const oldNumerator = state.timeSignature.numerator;
+      const newNumerator = ts.numerator;
+      if (
+        oldNumerator === newNumerator &&
+        state.timeSignature.denominator === ts.denominator
+      )
+        return state;
+
+      // Build set of square indices covered by groups with their own override
+      const overriddenIndices = new Set<number>();
+      for (const g of state.data.groups) {
+        if (!g.timeSignature) continue;
+        for (let i = g.start; i < g.start + g.nbSquares; i++) {
+          overriddenIndices.add(i);
+        }
+      }
+
+      const squares = state.data.squares.map((sq, i) => {
+        if (overriddenIndices.has(i)) return sq;
+        const newBeats = sq.nbBeats === oldNumerator ? newNumerator : 1;
+        return { ...sq, nbBeats: Math.min(newBeats, newNumerator) };
+      });
+
+      return {
+        timeSignature: ts,
+        data: { ...state.data, squares },
+        isDirty: true,
+      };
+    }),
+
+  updateGroupTimeSignature: (groupIndex, ts) =>
+    set((state) => {
+      const group = state.data.groups[groupIndex];
+      if (!group) return state;
+
+      const oldNumerator =
+        group.timeSignature?.numerator ?? state.timeSignature.numerator;
+      const newNumerator = ts?.numerator ?? state.timeSignature.numerator;
+
+      const newGroups = [...state.data.groups];
+      newGroups[groupIndex] = { ...group, timeSignature: ts };
+
+      const squares = convertSquaresForTimeSignatureChange(
+        state.data.squares,
+        oldNumerator,
+        newNumerator,
+        group.start,
+        group.start + group.nbSquares,
+      );
+
+      return {
+        data: { ...state.data, squares, groups: newGroups },
+        isDirty: true,
+      };
+    }),
+
   setChord: (index, chord) =>
     set((state) => {
       if (state.data.squares[index]?.chord === chord) return state;
@@ -195,12 +288,19 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
   setSquareBeats: (index, nbBeats) =>
     set((state) => {
       const sq = state.data.squares[index];
-      if (!sq || sq.nbBeats === nbBeats) return state;
+      if (!sq) return state;
+      const maxBeats = getEffectiveNumerator(
+        index,
+        state.data.groups,
+        state.timeSignature,
+      );
+      const clamped = Math.max(1, Math.min(maxBeats, nbBeats));
+      if (sq.nbBeats === clamped) return state;
       return {
         data: {
           ...state.data,
           squares: state.data.squares.map((s, i) =>
-            i === index ? { ...s, nbBeats } : s,
+            i === index ? { ...s, nbBeats: clamped } : s,
           ),
         },
         isDirty: true,
@@ -211,7 +311,10 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     set((state) => ({
       data: {
         ...state.data,
-        squares: [...state.data.squares, EMPTY_SQUARE],
+        squares: [
+          ...state.data.squares,
+          makeEmptySquare(state.timeSignature.numerator),
+        ],
       },
       isDirty: true,
     })),

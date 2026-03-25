@@ -4,6 +4,7 @@ import { Tooltip } from "@/components/tooltip";
 import type { StyleId } from "@/lib/styles";
 import { STYLE_IDS } from "@/lib/styles";
 import { useGridEditorStore } from "@/stores/grid-editor";
+import { TimeSignatureSelect } from "./time-signature-select";
 
 /* ─── Neobrutalist SVG Icons ─── */
 
@@ -235,13 +236,21 @@ export function PlaybackControls({
   const { t } = useTranslation();
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
+  const timeSignature = useGridEditorStore((s) => s.timeSignature);
   const isDirty = useGridEditorStore((s) => s.isDirty);
   const updateTempo = useGridEditorStore((s) => s.updateTempo);
   const clampTempo = useGridEditorStore((s) => s.clampTempo);
   const updateLoopCount = useGridEditorStore((s) => s.updateLoopCount);
+  const updateTimeSignature = useGridEditorStore((s) => s.updateTimeSignature);
 
   return (
     <div className="flex flex-wrap items-center gap-3">
+      <TimeSignatureSelect
+        value={timeSignature}
+        disabled={isPlaying}
+        onChange={updateTimeSignature}
+      />
+
       <div data-tour="tempo" className="flex items-center gap-2">
         <label className="text-sm font-bold" htmlFor="tempo">
           {t("accomp.tempo")}

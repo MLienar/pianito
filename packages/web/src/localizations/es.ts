@@ -77,6 +77,7 @@ export default {
     createNew: "Nueva cuadrícula",
     untitled: "Sin título",
     gridName: "Nombre de la cuadrícula",
+    timeSignature: "Compás",
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Bucles",

@@ -34,7 +34,7 @@ export function useGridEditor(gridId: string) {
       const name = state.name;
       const composer = state.composer?.trim() || null;
       const key = state.key?.trim() || null;
-      const { tempo, loopCount, visibility, data } = state;
+      const { tempo, loopCount, visibility, timeSignature, data } = state;
       const res = await fetch(`/api/grids/${gridId}`, {
         method: "PATCH",
         credentials: "include",
@@ -46,6 +46,7 @@ export function useGridEditor(gridId: string) {
           tempo,
           loopCount,
           visibility,
+          timeSignature,
           data,
         }),
       });

@@ -1,10 +1,12 @@
-import type { GridData } from "@pianito/shared";
+import type { GridData, TimeSignature } from "@pianito/shared";
+import { DEFAULT_TIME_SIGNATURE } from "@pianito/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Chord } from "tonal";
 import { playBassNote, stopBass } from "@/lib/bass-synth";
 import { startDrums, stopDrums } from "@/lib/drum-engine";
+import { toTimeSignatureKey } from "@/lib/drum-patterns";
 import { playClick } from "@/lib/metronome";
-import type { StyleId } from "@/lib/styles";
+import type { Style, StyleId } from "@/lib/styles";
 import { STYLES } from "@/lib/styles";
 import { useChordPlayer } from "./use-chord-player";
 
@@ -14,9 +16,13 @@ interface PlaybackSquare {
   index: number;
   chord: string | null;
   nbBeats: number;
+  timeSignature: TimeSignature;
 }
 
-function flattenGrid(gridData: GridData): PlaybackSquare[] {
+function flattenGrid(
+  gridData: GridData,
+  gridTimeSignature: TimeSignature,
+): PlaybackSquare[] {
   const result: PlaybackSquare[] = [];
   const { squares, groups } = gridData;
   let i = 0;
@@ -24,6 +30,7 @@ function flattenGrid(gridData: GridData): PlaybackSquare[] {
   while (i < squares.length) {
     const group = groups.find((g) => g.start === i);
     if (group) {
+      const ts = group.timeSignature ?? gridTimeSignature;
       const groupSquares = squares.slice(
         group.start,
         group.start + group.nbSquares,
@@ -34,6 +41,7 @@ function flattenGrid(gridData: GridData): PlaybackSquare[] {
             index: group.start + offset,
             chord: sq.chord,
             nbBeats: sq.nbBeats,
+            timeSignature: ts,
           });
         }
       }
@@ -41,7 +49,12 @@ function flattenGrid(gridData: GridData): PlaybackSquare[] {
     } else {
       const sq = squares[i];
       if (sq) {
-        result.push({ index: i, chord: sq.chord, nbBeats: sq.nbBeats });
+        result.push({
+          index: i,
+          chord: sq.chord,
+          nbBeats: sq.nbBeats,
+          timeSignature: gridTimeSignature,
+        });
       }
       i++;
     }
@@ -72,6 +85,7 @@ export function useGridPlayback(
   data: GridData,
   tempo: number,
   loopCount: number,
+  timeSignature: TimeSignature = DEFAULT_TIME_SIGNATURE,
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
@@ -98,6 +112,8 @@ export function useGridPlayback(
   drumsEnabledRef.current = drumsEnabled;
   const dataRef = useRef(data);
   dataRef.current = data;
+  const timeSignatureRef = useRef(timeSignature);
+  timeSignatureRef.current = timeSignature;
 
   const clearScheduled = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -126,22 +142,30 @@ export function useGridPlayback(
     isPlayingRef.current = true;
     setIsPlaying(true);
 
-    const currentStyle = styleRef.current ? STYLES[styleRef.current] : null;
+    const currentStyle: Style | null = styleRef.current
+      ? STYLES[styleRef.current]
+      : null;
+    const tsKey = toTimeSignatureKey(
+      timeSignatureRef.current.numerator,
+      timeSignatureRef.current.denominator,
+    );
 
-    if (currentStyle && drumsEnabledRef.current) {
-      startDrums(tempo, currentStyle.drums, swingRef.current);
+    const drumPattern = currentStyle?.drums[tsKey] ?? null;
+    if (drumPattern && drumsEnabledRef.current) {
+      startDrums(tempo, drumPattern, swingRef.current);
     }
 
     const beatDurationMs = (60 / tempo) * 1000;
 
-    const bassPattern = currentStyle?.bass ?? null;
-    const subdivision = bassPattern?.subdivision ?? "16n";
+    const bassPattern = currentStyle?.bass[tsKey] ?? null;
+    const subdivision =
+      bassPattern?.subdivision ?? drumPattern?.subdivision ?? "16n";
     const stepsPerBeat = subdivision === "8t" ? 3 : 4;
     const subdivisionMs = beatDurationMs / stepsPerBeat;
     const needsSubdivisionTicks = !!bassPattern;
 
     let cachedData = dataRef.current;
-    let allSquares = flattenGrid(cachedData);
+    let allSquares = flattenGrid(cachedData, timeSignatureRef.current);
     let currentLoop = 0;
     let squareIdx = 0;
     let stepInSquare = 0;
@@ -161,7 +185,7 @@ export function useGridPlayback(
       if (isFirstStepOfSquare) {
         if (dataRef.current !== cachedData) {
           cachedData = dataRef.current;
-          allSquares = flattenGrid(cachedData);
+          allSquares = flattenGrid(cachedData, timeSignatureRef.current);
           squareIdx = Math.min(squareIdx, allSquares.length - 1);
           stepInSquare = 0;
         }
@@ -190,7 +214,9 @@ export function useGridPlayback(
       }
 
       if (isFirstStepOfBeat && metronomeRef.current) {
-        playClick(beatIndex);
+        const sq = allSquares[squareIdx];
+        const ts = sq?.timeSignature ?? timeSignatureRef.current;
+        playClick(beatIndex, ts.numerator, ts.denominator);
       }
 
       if (bassPattern && currentChordData && bassEnabledRef.current) {

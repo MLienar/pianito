@@ -22,6 +22,7 @@ interface GridInput {
   composer: string | null;
   key: string | null;
   tempo: number;
+  timeSignature?: { numerator: number; denominator: number };
   loopCount: number;
   visibility: "public" | "private";
   data: {
@@ -82,6 +83,7 @@ async function main() {
         composer: g.composer,
         key: g.key,
         tempo: g.tempo,
+        timeSignature: g.timeSignature ?? { numerator: 4, denominator: 4 },
         loopCount: g.loopCount,
         visibility: "public" as const,
         data: g.data,

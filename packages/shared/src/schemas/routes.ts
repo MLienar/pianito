@@ -104,15 +104,37 @@ export const errorResponseSchema = z.object({
 
 export const gridVisibilitySchema = z.enum(["private", "public"]);
 
+export const timeSignatureSchema = z.object({
+  numerator: z.number().int().min(2).max(6),
+  denominator: z
+    .number()
+    .int()
+    .refine((v) => [2, 4, 8].includes(v), {
+      message: "Denominator must be 2, 4, or 8",
+    }),
+});
+
+export const SUPPORTED_TIME_SIGNATURES = [
+  { numerator: 4, denominator: 4 },
+  { numerator: 3, denominator: 4 },
+  { numerator: 2, denominator: 4 },
+  { numerator: 6, denominator: 8 },
+  { numerator: 5, denominator: 4 },
+  { numerator: 2, denominator: 2 },
+] as const;
+
+export const DEFAULT_TIME_SIGNATURE = { numerator: 4, denominator: 4 };
+
 export const gridSquareSchema = z.object({
   chord: chordSchema.nullable(),
-  nbBeats: z.number().int().min(2).max(4).default(4),
+  nbBeats: z.number().int().min(1).max(6).default(4),
 });
 
 export const gridGroupSchema = z.object({
   start: z.number().int().min(0),
   nbSquares: z.number().int().min(1).max(200),
   repeatCount: z.number().int().min(1).max(50).default(1),
+  timeSignature: timeSignatureSchema.optional(),
 });
 
 export const gridDataSchema = z
@@ -147,6 +169,7 @@ const gridFieldsSchema = z.object({
   tempo: z.number().int().min(30).max(300),
   loopCount: z.number().int().min(1).max(50),
   visibility: gridVisibilitySchema,
+  timeSignature: timeSignatureSchema,
   data: gridDataSchema,
 });
 
@@ -164,6 +187,7 @@ export const gridSummarySchema = gridFieldsSchema
     key: true,
     tempo: true,
     visibility: true,
+    timeSignature: true,
   })
   .extend({
     id: z.string().uuid(),
@@ -177,6 +201,7 @@ export const createGridBodySchema = gridFieldsSchema.extend({
   tempo: z.number().int().min(30).max(300).default(90),
   loopCount: z.number().int().min(1).max(50).default(1),
   visibility: gridVisibilitySchema.default("private"),
+  timeSignature: timeSignatureSchema.default(DEFAULT_TIME_SIGNATURE),
   data: gridDataSchema.default({
     squares: [{ chord: null }],
     groups: [],

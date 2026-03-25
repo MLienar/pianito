@@ -174,6 +174,7 @@ function extractFromFile(content) {
 	);
 	const styleMatch = content.match(/attributes\['style'\]\s*=\s*'([^']+)'/);
 	const tempoMatch = content.match(/\\tempo\s+"[^"]*"\s+\d+\s*=\s*(\d+)/);
+	const timeMatch = content.match(/\\time\s+(\d+)\/(\d+)/);
 	const keyMatch = content.match(
 		/\\key\s+([a-g](?:es|is)?)\s+\\(major|minor)/,
 	);
@@ -208,11 +209,22 @@ function extractFromFile(content) {
 	const result = parseChordsStructurally(chordsSection);
 	if (result.chords.length === 0) return null;
 
+	// Parse time signature — default to 4/4
+	let timeSignature = { numerator: 4, denominator: 4 };
+	if (timeMatch) {
+		const num = parseInt(timeMatch[1], 10);
+		const den = parseInt(timeMatch[2], 10);
+		if (num >= 2 && num <= 6 && [2, 4, 8].includes(den)) {
+			timeSignature = { numerator: num, denominator: den };
+		}
+	}
+
 	return {
 		title: (titleMatch[1] ?? "Untitled").replace(/\\'/g, "'"),
 		composer: composerMatch?.[1]?.replace(/\\'/g, "'") ?? null,
 		key: keyMatch ? lilyKeyToString(keyMatch[1], keyMatch[2]) : null,
 		tempo: tempoMatch ? Math.min(300, Math.max(30, parseInt(tempoMatch[1], 10))) : null,
+		timeSignature,
 		style: styleMatch?.[1] ?? null,
 		chords: result.chords,
 		groups: result.groups,
@@ -374,12 +386,17 @@ function songToGrid(song) {
 	// Track which square index each chord index maps to
 	const chordToSquareStart = [];
 	let accumulator = null;
+	const ts = song.timeSignature ?? { numerator: 4, denominator: 4 };
+	const beatsPerMeasure = ts.numerator;
 
 	function flush() {
 		if (!accumulator) return;
 		let remaining = accumulator.beats;
 		while (remaining > 0) {
-			const nb = remaining >= 4 ? 4 : 2;
+			// Fill full measures first, then use what's left (min 1)
+			const nb = remaining >= beatsPerMeasure
+				? beatsPerMeasure
+				: Math.max(1, Math.min(remaining, beatsPerMeasure));
 			squares.push({ chord: accumulator.chord, nbBeats: nb });
 			remaining -= nb;
 		}
@@ -423,6 +440,7 @@ function songToGrid(song) {
 		composer: song.composer,
 		key: song.key,
 		tempo: song.tempo ?? 120,
+		timeSignature: ts,
 		loopCount: 1,
 		visibility: "public",
 		data: {

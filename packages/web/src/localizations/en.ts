@@ -77,6 +77,7 @@ export default {
     createNew: "Create New Grid",
     untitled: "Untitled",
     gridName: "Grid name",
+    timeSignature: "Time sig.",
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Loops",

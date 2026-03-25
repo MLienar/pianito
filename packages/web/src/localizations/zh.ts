@@ -75,6 +75,7 @@ export default {
     createNew: "新建网格",
     untitled: "未命名",
     gridName: "网格名称",
+    timeSignature: "拍号",
     tempo: "速度",
     bpm: "BPM",
     loopCount: "循环次数",
