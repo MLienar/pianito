@@ -113,6 +113,7 @@ export default {
     dragToReorder: "拖动以重新排序",
     repeatCount: "重复次数",
     mergeGroup: "合并组",
+    deleteGroup: "删除分组",
     splitHere: "在此分割",
     splitGroup: "在此行分割组",
     selectedCount: "已选择 {{count}} 个",

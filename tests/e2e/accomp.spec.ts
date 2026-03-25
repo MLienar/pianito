@@ -31,7 +31,7 @@ const MOCK_GRID = {
 			{ chord: "F" },
 			{ chord: "G" },
 		],
-		groups: [{ squareCount: 4, repeatCount: 1 }],
+		groups: [],
 	},
 	createdAt: new Date().toISOString(),
 	updatedAt: new Date().toISOString(),
@@ -314,8 +314,8 @@ test.describe("Accompaniment - Grid Editor with Groups", () => {
 				{ chord: "E7" },
 			],
 			groups: [
-				{ squareCount: 4, repeatCount: 2 },
-				{ squareCount: 2, repeatCount: 1 },
+				{ start: 0, nbSquares: 4, repeatCount: 2 },
+				{ start: 4, nbSquares: 2, repeatCount: 3 },
 			],
 		},
 	};

@@ -14,6 +14,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useGridEditorStore } from "@/stores/grid-editor";
 import { GridSquare, type GridSquareProps } from "./grid-square";
@@ -33,6 +34,7 @@ export function GridView({ playingIndex }: GridViewProps) {
   const updateGroupRepeatCount = useGridEditorStore(
     (s) => s.updateGroupRepeatCount,
   );
+  const deleteGroup = useGridEditorStore((s) => s.deleteGroup);
 
   const [autoFocusIndex, setAutoFocusIndex] = useState<number | null>(null);
 
@@ -74,28 +76,28 @@ export function GridView({ playingIndex }: GridViewProps) {
   }, []);
 
   const { squareGroupIndex, squareSeparatorInfo } = useMemo(() => {
-    const sgIndex: number[] = [];
+    const sgIndex: (number | null)[] = new Array(data.squares.length).fill(
+      null,
+    );
     const sepInfo = new Map<
       number,
       { groupIndex: number; repeatCount: number }
     >();
-    let offset = 0;
+
     for (const [gi, group] of data.groups.entries()) {
-      for (let i = 0; i < group.squareCount; i++) {
-        const idx = offset + i;
+      for (let i = 0; i < group.nbSquares; i++) {
+        const idx = group.start + i;
         if (idx < data.squares.length) sgIndex[idx] = gi;
       }
-      if (data.groups.length > 1) {
-        const lastIdx = offset + group.squareCount - 1;
-        if (lastIdx < data.squares.length) {
-          sepInfo.set(lastIdx, {
-            groupIndex: gi,
-            repeatCount: group.repeatCount,
-          });
-        }
+      const lastIdx = group.start + group.nbSquares - 1;
+      if (lastIdx < data.squares.length) {
+        sepInfo.set(lastIdx, {
+          groupIndex: gi,
+          repeatCount: group.repeatCount,
+        });
       }
-      offset += group.squareCount;
     }
+
     return { squareGroupIndex: sgIndex, squareSeparatorInfo: sepInfo };
   }, [data.groups, data.squares.length]);
 
@@ -113,9 +115,8 @@ export function GridView({ playingIndex }: GridViewProps) {
           {data.squares.map((square, globalIndex) => {
             if (!square) return null;
             const sepInfo = squareSeparatorInfo.get(globalIndex);
-            const gi = squareGroupIndex[globalIndex] ?? 0;
-            const groupColor =
-              data.groups.length > 1 ? getGroupColor(gi) : undefined;
+            const gi = squareGroupIndex[globalIndex];
+            const groupColor = gi !== null ? getGroupColor(gi) : undefined;
             return (
               <SortableSquareWrapper
                 key={`sq-${globalIndex}`}
@@ -139,6 +140,7 @@ export function GridView({ playingIndex }: GridViewProps) {
                         repeatCount: sepInfo.repeatCount,
                         onRepeatCountChange: (val) =>
                           updateGroupRepeatCount(sepInfo.groupIndex, val),
+                        onDelete: () => deleteGroup(sepInfo.groupIndex),
                       }
                     : undefined
                 }
@@ -162,6 +164,7 @@ export function GridView({ playingIndex }: GridViewProps) {
 interface SeparatorInfo {
   repeatCount: number;
   onRepeatCountChange: (value: number) => void;
+  onDelete: () => void;
 }
 
 function SortableSquareWrapper({
@@ -193,27 +196,35 @@ function SortableSquareWrapper({
     >
       <GridSquare {...squareProps} />
       {separator && (
-        <div className="absolute z-10 flex flex-col items-start right-0 top-[50%] translate-x-1/2 -translate-y-1/2">
-          {/* Middle section with repeat count */}
-          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-            <div
-              className="bg-card border-3 px-1 py-0.5 shadow-[var(--shadow-brutal-sm)]"
-              style={{ borderColor: squareProps.groupColor }}
-            >
-              <input
-                type="number"
-                min={1}
-                max={50}
-                value={separator.repeatCount}
-                onChange={(e) =>
-                  separator.onRepeatCountChange(Number(e.target.value))
-                }
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="w-8 bg-transparent text-center font-mono text-xs font-bold focus:outline-none focus:bg-background"
-              />
-            </div>
+        <div className="absolute z-10 flex flex-col items-center right-0 top-[50%] translate-x-1/2 -translate-y-1/2 gap-1">
+          <div
+            className="bg-card border-3 px-1 py-0.5 shadow-[var(--shadow-brutal-sm)]"
+            style={{ borderColor: squareProps.groupColor }}
+          >
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={separator.repeatCount}
+              onChange={(e) =>
+                separator.onRepeatCountChange(Number(e.target.value))
+              }
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="w-8 bg-transparent text-center font-mono text-xs font-bold focus:outline-none focus:bg-background"
+            />
           </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              separator.onDelete();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex h-5 w-5 items-center justify-center border-2 border-destructive bg-card text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          >
+            <X className="h-3 w-3" />
+          </button>
         </div>
       )}
     </div>

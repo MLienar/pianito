@@ -18,23 +18,35 @@ interface PlaybackSquare {
 
 function flattenGrid(gridData: GridData): PlaybackSquare[] {
   const result: PlaybackSquare[] = [];
-  let offset = 0;
-  for (const group of gridData.groups) {
-    const groupSquares = gridData.squares.slice(
-      offset,
-      offset + group.squareCount,
-    );
-    for (let repeat = 0; repeat < group.repeatCount; repeat++) {
-      for (const [i, sq] of groupSquares.entries()) {
-        result.push({
-          index: offset + i,
-          chord: sq.chord,
-          nbBeats: sq.nbBeats,
-        });
+  const { squares, groups } = gridData;
+  let i = 0;
+
+  while (i < squares.length) {
+    const group = groups.find((g) => g.start === i);
+    if (group) {
+      const groupSquares = squares.slice(
+        group.start,
+        group.start + group.nbSquares,
+      );
+      for (let repeat = 0; repeat < group.repeatCount; repeat++) {
+        for (const [offset, sq] of groupSquares.entries()) {
+          result.push({
+            index: group.start + offset,
+            chord: sq.chord,
+            nbBeats: sq.nbBeats,
+          });
+        }
       }
+      i = group.start + group.nbSquares;
+    } else {
+      const sq = squares[i];
+      if (sq) {
+        result.push({ index: i, chord: sq.chord, nbBeats: sq.nbBeats });
+      }
+      i++;
     }
-    offset += group.squareCount;
   }
+
   return result;
 }
 

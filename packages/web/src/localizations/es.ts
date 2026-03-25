@@ -115,6 +115,7 @@ export default {
     dragToReorder: "Arrastrar para reordenar",
     repeatCount: "Repeticiones",
     mergeGroup: "Fusionar grupos",
+    deleteGroup: "Eliminar grupo",
     splitHere: "Separar aquí",
     splitGroup: "Separar el grupo en esta línea",
     selectedCount: "{{count}} seleccionado(s)",

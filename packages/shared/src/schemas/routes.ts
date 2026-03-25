@@ -113,14 +113,34 @@ export const gridSquareSchema = z.object({
 });
 
 export const gridGroupSchema = z.object({
-  squareCount: z.number().int().min(1).max(200),
+  start: z.number().int().min(0),
+  nbSquares: z.number().int().min(1).max(200),
   repeatCount: z.number().int().min(1).max(50).default(1),
 });
 
-export const gridDataSchema = z.object({
-  squares: z.array(gridSquareSchema).min(1).max(200),
-  groups: z.array(gridGroupSchema).min(1).max(50),
-});
+export const gridDataSchema = z
+  .object({
+    squares: z.array(gridSquareSchema).min(1).max(200),
+    groups: z.array(gridGroupSchema).max(50).default([]),
+  })
+  .refine(
+    (data) => {
+      for (let i = 0; i < data.groups.length; i++) {
+        const g = data.groups[i];
+        if (!g) continue;
+        if (g.start + g.nbSquares > data.squares.length) return false;
+        if (i > 0) {
+          const prev = data.groups[i - 1];
+          if (prev && g.start < prev.start + prev.nbSquares) return false;
+        }
+      }
+      return true;
+    },
+    {
+      message:
+        "Groups must be sorted by start, non-overlapping, and within bounds",
+    },
+  );
 
 export const gridSchema = z.object({
   id: z.string().uuid(),
@@ -149,7 +169,7 @@ export const createGridBodySchema = z.object({
   visibility: gridVisibilitySchema.default("private"),
   data: gridDataSchema.default({
     squares: [{ chord: null }],
-    groups: [{ squareCount: 1, repeatCount: 1 }],
+    groups: [],
   }),
 });
 

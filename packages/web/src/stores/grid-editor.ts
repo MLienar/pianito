@@ -10,8 +10,35 @@ const EMPTY_SQUARE: GridSquare = { chord: null, nbBeats: 4 };
 
 const DEFAULT_DATA: GridData = {
   squares: [EMPTY_SQUARE],
-  groups: [{ squareCount: 1, repeatCount: 1 }],
+  groups: [],
 };
+
+function findGroupForSquare(
+  groups: GridData["groups"],
+  squareIndex: number,
+): number {
+  return groups.findIndex(
+    (g) => squareIndex >= g.start && squareIndex < g.start + g.nbSquares,
+  );
+}
+
+function migrateOldGroups(
+  oldGroups: { squareCount: number; repeatCount: number }[],
+): GridData["groups"] {
+  const newGroups: GridData["groups"] = [];
+  let offset = 0;
+  for (const g of oldGroups) {
+    if (g.repeatCount > 1) {
+      newGroups.push({
+        start: offset,
+        nbSquares: g.squareCount,
+        repeatCount: g.repeatCount,
+      });
+    }
+    offset += g.squareCount;
+  }
+  return newGroups;
+}
 
 function migrateGridData(data: Record<string, unknown>): GridData {
   if (
@@ -23,14 +50,32 @@ function migrateGridData(data: Record<string, unknown>): GridData {
     const squares = (
       data.squares as { chord: string | null; nbBeats?: number }[]
     ).map((sq) => ({ chord: sq.chord, nbBeats: sq.nbBeats ?? 4 }));
-    return { squares, groups: data.groups } as unknown as GridData;
+
+    const rawGroups = data.groups as Record<string, unknown>[];
+    const isNewFormat =
+      rawGroups.length === 0 || (rawGroups[0] && "start" in rawGroups[0]);
+
+    if (isNewFormat) {
+      return {
+        squares,
+        groups: rawGroups as unknown as GridData["groups"],
+      };
+    }
+
+    // Old format: { squareCount, repeatCount }[]
+    const oldGroups = rawGroups as unknown as {
+      squareCount: number;
+      repeatCount: number;
+    }[];
+    return { squares, groups: migrateOldGroups(oldGroups) };
   }
+
   if ("lines" in data && Array.isArray(data.lines)) {
     const lines = data.lines as { chord: string | null }[][];
     const squares = lines
       .flat()
       .map((sq) => ({ chord: sq.chord, nbBeats: 4 as const }));
-    const groups =
+    const oldGroups =
       "groups" in data && Array.isArray(data.groups)
         ? (data.groups as { lineCount: number; repeatCount: number }[]).map(
             (g) => ({
@@ -39,25 +84,10 @@ function migrateGridData(data: Record<string, unknown>): GridData {
             }),
           )
         : [{ squareCount: squares.length, repeatCount: 1 }];
-    return { squares, groups };
+    return { squares, groups: migrateOldGroups(oldGroups) };
   }
-  return { ...DEFAULT_DATA };
-}
 
-function findGroupForSquare(
-  groups: GridData["groups"],
-  squareIndex: number,
-): { groupIndex: number; offsetInGroup: number } {
-  let offset = 0;
-  for (let gi = 0; gi < groups.length; gi++) {
-    const group = groups[gi];
-    if (!group) continue;
-    if (squareIndex < offset + group.squareCount) {
-      return { groupIndex: gi, offsetInGroup: squareIndex - offset };
-    }
-    offset += group.squareCount;
-  }
-  return { groupIndex: groups.length - 1, offsetInGroup: 0 };
+  return { ...DEFAULT_DATA };
 }
 
 interface GridEditorState {
@@ -89,6 +119,7 @@ interface GridEditorActions {
   updateGroupRepeatCount: (groupIndex: number, repeatCount: number) => void;
   splitGroup: (squareIndex: number) => void;
   mergeWithPreviousGroup: (groupIndex: number) => void;
+  deleteGroup: (groupIndex: number) => void;
   groupSquares: (startIndex: number, endIndex: number) => void;
 }
 
@@ -164,41 +195,33 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     }),
 
   addSquare: () =>
-    set((state) => {
-      return {
-        data: {
-          squares: [...state.data.squares, EMPTY_SQUARE],
-          groups: [...state.data.groups, { squareCount: 1, repeatCount: 1 }],
-        },
-        isDirty: true,
-      };
-    }),
+    set((state) => ({
+      data: {
+        ...state.data,
+        squares: [...state.data.squares, EMPTY_SQUARE],
+      },
+      isDirty: true,
+    })),
 
   removeSquare: (index) =>
     set((state) => {
       if (state.data.squares.length <= 1) return state;
 
-      const { groupIndex } = findGroupForSquare(state.data.groups, index);
-      const group = state.data.groups[groupIndex];
-      if (!group) return state;
-
-      const newGroups = [...state.data.groups];
-      if (group.squareCount <= 1) {
-        newGroups.splice(groupIndex, 1);
-      } else {
-        newGroups[groupIndex] = {
-          ...group,
-          squareCount: group.squareCount - 1,
-        };
-      }
-
-      if (newGroups.length === 0) return state;
+      const newSquares = state.data.squares.filter((_, i) => i !== index);
+      const newGroups = state.data.groups
+        .map((g) => {
+          if (index >= g.start && index < g.start + g.nbSquares) {
+            return { ...g, nbSquares: g.nbSquares - 1 };
+          }
+          if (index < g.start) {
+            return { ...g, start: g.start - 1 };
+          }
+          return g;
+        })
+        .filter((g) => g.nbSquares > 0);
 
       return {
-        data: {
-          squares: state.data.squares.filter((_, i) => i !== index),
-          groups: newGroups,
-        },
+        data: { squares: newSquares, groups: newGroups },
         isDirty: true,
       };
     }),
@@ -224,20 +247,24 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       if (remaining < 1) return state;
 
       const newSquares = state.data.squares.filter((_, i) => !indices.has(i));
-      const newGroups: GridData["groups"] = [];
-      let offset = 0;
-      for (const group of state.data.groups) {
-        let kept = 0;
-        for (let i = 0; i < group.squareCount; i++) {
-          if (!indices.has(offset + i)) kept++;
-        }
-        offset += group.squareCount;
-        if (kept > 0) {
-          newGroups.push({ squareCount: kept, repeatCount: group.repeatCount });
-        }
-      }
+      const sortedIndices = [...indices].sort((a, b) => a - b);
 
-      if (newGroups.length === 0) return state;
+      const newGroups = state.data.groups
+        .map((g) => {
+          const gEnd = g.start + g.nbSquares;
+          let removedInside = 0;
+          let removedBefore = 0;
+          for (const idx of sortedIndices) {
+            if (idx < g.start) removedBefore++;
+            else if (idx < gEnd) removedInside++;
+          }
+          return {
+            start: g.start - removedBefore,
+            nbSquares: g.nbSquares - removedInside,
+            repeatCount: g.repeatCount,
+          };
+        })
+        .filter((g) => g.nbSquares > 0);
 
       return {
         data: { squares: newSquares, groups: newGroups },
@@ -247,11 +274,43 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   reorderSquares: (fromIndex, toIndex) =>
     set((state) => {
+      if (fromIndex === toIndex) return state;
       const newSquares = [...state.data.squares];
       const [moved] = newSquares.splice(fromIndex, 1);
-      if (moved) newSquares.splice(toIndex, 0, moved);
+      if (!moved) return state;
+      newSquares.splice(toIndex, 0, moved);
+
+      const newGroups = state.data.groups
+        .map((g) => {
+          let { start, nbSquares } = g;
+          const gEnd = start + nbSquares;
+
+          const fromInGroup = fromIndex >= start && fromIndex < gEnd;
+
+          // Phase 1: removal at fromIndex
+          if (fromInGroup) {
+            nbSquares--;
+          } else if (fromIndex < start) {
+            start--;
+          }
+
+          // Phase 2: insertion at toIndex (relative to post-removal array)
+          const newGEnd = start + nbSquares;
+          if (toIndex > start && toIndex < newGEnd) {
+            // Inserted strictly inside this group
+            nbSquares++;
+          } else if (toIndex <= start) {
+            // Inserted before or at group start
+            start++;
+          }
+          // toIndex >= newGEnd: inserted at end or after — no change
+
+          return { start, nbSquares, repeatCount: g.repeatCount };
+        })
+        .filter((g) => g.nbSquares > 0);
+
       return {
-        data: { ...state.data, squares: newSquares },
+        data: { squares: newSquares, groups: newGroups },
         isDirty: true,
       };
     }),
@@ -271,20 +330,25 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   splitGroup: (squareIndex) =>
     set((state) => {
-      const { groupIndex, offsetInGroup } = findGroupForSquare(
-        state.data.groups,
-        squareIndex,
-      );
-      const group = state.data.groups[groupIndex];
-      if (!group || group.squareCount <= 1 || offsetInGroup === 0) return state;
+      const gi = findGroupForSquare(state.data.groups, squareIndex);
+      if (gi === -1) return state;
+      const group = state.data.groups[gi];
+      if (!group) return state;
+      const splitOffset = squareIndex - group.start;
+      if (splitOffset <= 0 || splitOffset >= group.nbSquares) return state;
 
       const newGroups = [...state.data.groups];
       newGroups.splice(
-        groupIndex,
+        gi,
         1,
-        { squareCount: offsetInGroup, repeatCount: group.repeatCount },
         {
-          squareCount: group.squareCount - offsetInGroup,
+          start: group.start,
+          nbSquares: splitOffset,
+          repeatCount: group.repeatCount,
+        },
+        {
+          start: group.start + splitOffset,
+          nbSquares: group.nbSquares - splitOffset,
           repeatCount: group.repeatCount,
         },
       );
@@ -298,15 +362,30 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     set((state) => {
       if (groupIndex <= 0 || groupIndex >= state.data.groups.length)
         return state;
-      const prevGroup = state.data.groups[groupIndex - 1];
-      const currGroup = state.data.groups[groupIndex];
-      if (!prevGroup || !currGroup) return state;
+      const prev = state.data.groups[groupIndex - 1];
+      const curr = state.data.groups[groupIndex];
+      if (!prev || !curr) return state;
+
+      const mergedStart = prev.start;
+      const mergedEnd = curr.start + curr.nbSquares;
 
       const newGroups = [...state.data.groups];
       newGroups.splice(groupIndex - 1, 2, {
-        squareCount: prevGroup.squareCount + currGroup.squareCount,
-        repeatCount: prevGroup.repeatCount,
+        start: mergedStart,
+        nbSquares: mergedEnd - mergedStart,
+        repeatCount: prev.repeatCount,
       });
+      return {
+        data: { ...state.data, groups: newGroups },
+        isDirty: true,
+      };
+    }),
+
+  deleteGroup: (groupIndex) =>
+    set((state) => {
+      if (groupIndex < 0 || groupIndex >= state.data.groups.length)
+        return state;
+      const newGroups = state.data.groups.filter((_, i) => i !== groupIndex);
       return {
         data: { ...state.data, groups: newGroups },
         isDirty: true,
@@ -322,51 +401,44 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       )
         return state;
 
-      const newGroups: GridData["groups"] = [];
-      let offset = 0;
-      let rangeInsertIndex = -1;
-      let rangeSquareCount = 0;
+      const rangeStart = startIndex;
+      const rangeEnd = endIndex + 1; // exclusive
 
-      for (const group of state.data.groups) {
-        const groupStart = offset;
-        const groupEnd = offset + group.squareCount - 1;
-        offset += group.squareCount;
+      // Adjust existing groups that overlap the new range
+      const adjusted: GridData["groups"] = [];
+      for (const g of state.data.groups) {
+        const gEnd = g.start + g.nbSquares;
 
-        const overlapStart = Math.max(groupStart, startIndex);
-        const overlapEnd = Math.min(groupEnd, endIndex);
-
-        if (overlapStart > groupEnd || overlapEnd < groupStart) {
-          newGroups.push(group);
+        if (gEnd <= rangeStart || g.start >= rangeEnd) {
+          adjusted.push(g);
           continue;
         }
 
-        if (groupStart < overlapStart) {
-          newGroups.push({
-            squareCount: overlapStart - groupStart,
-            repeatCount: group.repeatCount,
+        if (g.start < rangeStart) {
+          adjusted.push({
+            start: g.start,
+            nbSquares: rangeStart - g.start,
+            repeatCount: g.repeatCount,
           });
         }
-
-        if (rangeInsertIndex === -1) rangeInsertIndex = newGroups.length;
-        rangeSquareCount += overlapEnd - overlapStart + 1;
-
-        if (groupEnd > overlapEnd) {
-          newGroups.push({
-            squareCount: groupEnd - overlapEnd,
-            repeatCount: group.repeatCount,
+        if (gEnd > rangeEnd) {
+          adjusted.push({
+            start: rangeEnd,
+            nbSquares: gEnd - rangeEnd,
+            repeatCount: g.repeatCount,
           });
         }
       }
 
-      if (rangeInsertIndex !== -1 && rangeSquareCount > 0) {
-        newGroups.splice(rangeInsertIndex, 0, {
-          squareCount: rangeSquareCount,
-          repeatCount: 1,
-        });
-      }
+      adjusted.push({
+        start: rangeStart,
+        nbSquares: rangeEnd - rangeStart,
+        repeatCount: 1,
+      });
+      adjusted.sort((a, b) => a.start - b.start);
 
       return {
-        data: { ...state.data, groups: newGroups },
+        data: { ...state.data, groups: adjusted },
         isDirty: true,
       };
     }),
