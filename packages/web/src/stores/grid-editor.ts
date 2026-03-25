@@ -154,17 +154,10 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   addSquare: () =>
     set((state) => {
-      const lastGroup = state.data.groups[state.data.groups.length - 1];
-      if (!lastGroup) return state;
-      const newGroups = [...state.data.groups];
-      newGroups[newGroups.length - 1] = {
-        ...lastGroup,
-        squareCount: lastGroup.squareCount + 1,
-      };
       return {
         data: {
           squares: [...state.data.squares, EMPTY_SQUARE],
-          groups: newGroups,
+          groups: [...state.data.groups, { squareCount: 1, repeatCount: 1 }],
         },
         isDirty: true,
       };
