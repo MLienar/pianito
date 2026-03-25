@@ -106,7 +106,7 @@ export function GridView({ playingIndex }: GridViewProps) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={squareIds} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-[repeat(8,1fr)] gap-2">
+        <div className="grid grid-cols-[repeat(8,1fr)] gap-2 pr-8">
           {data.squares.map((square, globalIndex) => {
             if (!square) return null;
             const sepInfo = squareSeparatorInfo.get(globalIndex);
@@ -189,27 +189,44 @@ function SortableSquareWrapper({
     >
       <GridSquare {...squareProps} />
       {separator && (
-        <div className="absolute right-0 top-0 bottom-0 z-10 flex translate-x-1/2 flex-col items-center">
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex translate-x-full flex-col items-start pl-1">
+          {/* Top connector */}
           <div
-            className="w-0.5 flex-1"
-            style={{ backgroundColor: squareProps.groupColor }}
-          />
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={separator.repeatCount}
-            onChange={(e) =>
-              separator.onRepeatCountChange(Number(e.target.value))
-            }
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="w-10 border-2 bg-background px-1 py-0.5 text-center font-mono text-xs font-bold focus:outline-none focus:ring-2 focus:ring-ring"
+            className="h-4 w-3 border-t-3 border-r-3"
             style={{ borderColor: squareProps.groupColor }}
           />
+          {/* Middle section with repeat count */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div
+              className="w-3 h-8 border-r-3 mb-1"
+              style={{ borderColor: squareProps.groupColor }}
+            />
+            <div
+              className="bg-card border-3 px-1 py-0.5 shadow-[var(--shadow-brutal-sm)]"
+              style={{ borderColor: squareProps.groupColor }}
+            >
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={separator.repeatCount}
+                onChange={(e) =>
+                  separator.onRepeatCountChange(Number(e.target.value))
+                }
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-8 bg-transparent text-center font-mono text-xs font-bold focus:outline-none focus:bg-background"
+              />
+            </div>
+            <div
+              className="w-3 h-8 border-r-3 mt-1"
+              style={{ borderColor: squareProps.groupColor }}
+            />
+          </div>
+          {/* Bottom connector */}
           <div
-            className="w-0.5 flex-1"
-            style={{ backgroundColor: squareProps.groupColor }}
+            className="h-4 w-3 border-b-3 border-r-3"
+            style={{ borderColor: squareProps.groupColor }}
           />
         </div>
       )}
