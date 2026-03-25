@@ -125,6 +125,13 @@ export default {
     authRequired: "Compte requis",
     authRequiredDescription:
       "Créez un compte pour sauvegarder et gérer vos grilles d'accords.",
+    visibility: "Visibilité",
+    private: "Privé",
+    public: "Public",
+    publicGrids: "Grilles publiques",
+    publicGridsDescription:
+      "Parcourez et jouez les grilles partagées par d'autres utilisateurs.",
+    noPublicGrids: "Aucune grille publique pour le moment.",
   },
   tour: {
     helpButton: "Visite",

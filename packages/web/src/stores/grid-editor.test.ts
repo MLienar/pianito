@@ -15,6 +15,7 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     name: "Test Grid",
     tempo: 120,
     loopCount: 2,
+    visibility: "private",
     data: {
       squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
       groups: [{ squareCount: 4, repeatCount: 1 }],

@@ -7,7 +7,7 @@ import {
   type UpdateGridBody,
   updateGridBodySchema,
 } from "@pianito/shared";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { db } from "../db/index.js";
 import { grid } from "../db/schema.js";
@@ -27,6 +27,7 @@ export async function gridRoutes(app: FastifyInstance) {
           id: grid.id,
           name: grid.name,
           tempo: grid.tempo,
+          visibility: grid.visibility,
           createdAt: grid.createdAt,
         })
         .from(grid)
@@ -42,18 +43,47 @@ export async function gridRoutes(app: FastifyInstance) {
     },
   );
 
+  app.get<{ Reply: GridListResponse | ErrorResponse }>(
+    "/api/grids/public",
+    async (_request, _reply) => {
+      const rows = await db
+        .select({
+          id: grid.id,
+          name: grid.name,
+          tempo: grid.tempo,
+          visibility: grid.visibility,
+          createdAt: grid.createdAt,
+        })
+        .from(grid)
+        .where(eq(grid.visibility, "public"))
+        .orderBy(desc(grid.createdAt));
+
+      return {
+        grids: rows.map((r) => ({
+          ...r,
+          createdAt: r.createdAt.toISOString(),
+        })),
+      };
+    },
+  );
+
   app.get<{ Params: { id: string }; Reply: Grid | ErrorResponse }>(
     "/api/grids/:id",
     async (request, reply) => {
       const user = await getSessionUser(request);
-      if (!user) {
-        return reply.status(401).send({ error: "Unauthorized" });
-      }
 
       const rows = await db
         .select()
         .from(grid)
-        .where(and(eq(grid.id, request.params.id), eq(grid.userId, user.id)))
+        .where(
+          and(
+            eq(grid.id, request.params.id),
+            or(
+              eq(grid.visibility, "public"),
+              user ? eq(grid.userId, user.id) : sql`false`,
+            ),
+          ),
+        )
         .limit(1);
 
       const row = rows[0];
@@ -87,6 +117,7 @@ export async function gridRoutes(app: FastifyInstance) {
           name: body.name,
           tempo: body.tempo,
           loopCount: body.loopCount,
+          visibility: body.visibility,
           data: body.data,
         })
         .returning();

@@ -121,6 +121,12 @@ export default {
     deleteSelection: "删除",
     authRequired: "需要账户",
     authRequiredDescription: "创建账户以保存和管理你的和弦表。",
+    visibility: "可见性",
+    private: "私有",
+    public: "公开",
+    publicGrids: "公开表格",
+    publicGridsDescription: "浏览和播放其他用户分享的表格。",
+    noPublicGrids: "暂无公开表格。",
   },
   tour: {
     helpButton: "导览",

@@ -112,6 +112,10 @@ export const grid = pgTable("grid", {
   name: text("name").notNull(),
   tempo: integer("tempo").notNull().default(90),
   loopCount: integer("loop_count").notNull().default(1),
+  visibility: text("visibility")
+    .$type<"private" | "public">()
+    .notNull()
+    .default("private"),
   data: jsonb("data").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

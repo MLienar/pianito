@@ -105,6 +105,8 @@ export const errorResponseSchema = z.object({
 
 // ─── Grid (Accompaniment) ───────────────────────────────────────────
 
+export const gridVisibilitySchema = z.enum(["private", "public"]);
+
 export const gridSquareSchema = z.object({
   chord: chordSchema.nullable(),
   nbBeats: z.number().int().min(2).max(4).default(4),
@@ -126,6 +128,7 @@ export const gridSchema = z.object({
   name: z.string().min(1).max(100),
   tempo: z.number().int().min(30).max(300),
   loopCount: z.number().int().min(1).max(50),
+  visibility: gridVisibilitySchema,
   data: gridDataSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -135,6 +138,7 @@ export const gridSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   tempo: z.number().int(),
+  visibility: gridVisibilitySchema,
   createdAt: z.string(),
 });
 
@@ -142,6 +146,7 @@ export const createGridBodySchema = z.object({
   name: z.string().min(1).max(100),
   tempo: z.number().int().min(30).max(300).default(90),
   loopCount: z.number().int().min(1).max(50).default(1),
+  visibility: gridVisibilitySchema.default("private"),
   data: gridDataSchema.default({
     squares: [{ chord: null }],
     groups: [{ squareCount: 1, repeatCount: 1 }],
@@ -153,6 +158,7 @@ export const updateGridBodySchema = z
     name: z.string().min(1).max(100).optional(),
     tempo: z.number().int().min(30).max(300).optional(),
     loopCount: z.number().int().min(1).max(50).optional(),
+    visibility: gridVisibilitySchema.optional(),
     data: gridDataSchema.optional(),
   })
   .refine((obj) => Object.keys(obj).length > 0, {

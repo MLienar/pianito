@@ -1,4 +1,9 @@
-import type { Grid, GridData, GridSquare } from "@pianito/shared";
+import type {
+  Grid,
+  GridData,
+  GridSquare,
+  GridVisibility,
+} from "@pianito/shared";
 import { create } from "zustand";
 
 const EMPTY_SQUARE: GridSquare = { chord: null, nbBeats: 4 };
@@ -60,6 +65,7 @@ interface GridEditorState {
   name: string;
   tempo: number;
   loopCount: number;
+  visibility: GridVisibility;
   data: GridData;
   isDirty: boolean;
 }
@@ -71,6 +77,7 @@ interface GridEditorActions {
   updateTempo: (tempo: number) => void;
   clampTempo: () => void;
   updateLoopCount: (count: number) => void;
+  updateVisibility: (visibility: GridVisibility) => void;
   setChord: (index: number, chord: string | null) => void;
   clearChord: (index: number) => void;
   setSquareBeats: (index: number, nbBeats: 2 | 4) => void;
@@ -92,6 +99,7 @@ const initialState: GridEditorState = {
   name: "",
   tempo: 90,
   loopCount: 1,
+  visibility: "private",
   data: DEFAULT_DATA,
   isDirty: false,
 };
@@ -105,6 +113,7 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       name: grid.name,
       tempo: grid.tempo,
       loopCount: grid.loopCount,
+      visibility: grid.visibility,
       data: migrateGridData(grid.data as unknown as Record<string, unknown>),
       isDirty: false,
     }),
@@ -120,6 +129,8 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   updateLoopCount: (count) =>
     set({ loopCount: Math.max(1, Math.min(50, count)), isDirty: true }),
+
+  updateVisibility: (visibility) => set({ visibility, isDirty: true }),
 
   setChord: (index, chord) =>
     set((state) => {
