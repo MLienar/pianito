@@ -93,6 +93,8 @@ function migrateGridData(data: Record<string, unknown>): GridData {
 interface GridEditorState {
   gridId: string | null;
   name: string;
+  composer: string | null;
+  key: string | null;
   tempo: number;
   loopCount: number;
   visibility: GridVisibility;
@@ -104,6 +106,8 @@ interface GridEditorActions {
   initialize: (grid: Grid) => void;
   reset: () => void;
   updateName: (name: string) => void;
+  updateComposer: (composer: string | null) => void;
+  updateKey: (key: string | null) => void;
   updateTempo: (tempo: number) => void;
   clampTempo: () => void;
   updateLoopCount: (count: number) => void;
@@ -128,6 +132,8 @@ export type GridEditorStore = GridEditorState & GridEditorActions;
 const initialState: GridEditorState = {
   gridId: null,
   name: "",
+  composer: null,
+  key: null,
   tempo: 90,
   loopCount: 1,
   visibility: "private",
@@ -142,6 +148,8 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     set({
       gridId: grid.id,
       name: grid.name,
+      composer: grid.composer,
+      key: grid.key,
       tempo: grid.tempo,
       loopCount: grid.loopCount,
       visibility: grid.visibility,
@@ -152,6 +160,11 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
   reset: () => set({ ...initialState }),
 
   updateName: (name) => set({ name, isDirty: true }),
+
+  updateComposer: (composer) =>
+    set({ composer: composer || null, isDirty: true }),
+
+  updateKey: (key) => set({ key: key || null, isDirty: true }),
 
   updateTempo: (tempo) => set({ tempo, isDirty: true }),
 

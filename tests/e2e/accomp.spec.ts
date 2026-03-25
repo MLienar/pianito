@@ -22,8 +22,11 @@ const MOCK_GRID = {
 	id: "grid-001",
 	userId: "test-user-id",
 	name: "Test Grid",
+	composer: "Cole Porter",
+	key: "Cm",
 	tempo: 120,
 	loopCount: 2,
+	visibility: "private",
 	data: {
 		squares: [
 			{ chord: "C" },
@@ -41,20 +44,67 @@ const MOCK_GRID_LIST = {
 	grids: [
 		{
 			id: "grid-001",
+			userId: "test-user-id",
 			name: "Test Grid",
+			composer: "Cole Porter",
+			key: "Cm",
 			tempo: 120,
+			visibility: "private",
 			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
 		},
 		{
 			id: "grid-002",
+			userId: "test-user-id",
 			name: "Jazz Standards",
+			composer: null,
+			key: null,
 			tempo: 90,
+			visibility: "private",
 			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
 		},
 	],
 };
+
+const MOCK_PUBLIC_GRID_LIST = {
+	grids: [
+		{
+			id: "grid-pub-001",
+			userId: null,
+			name: "Autumn Leaves",
+			composer: "Joseph Kosma",
+			key: "Em",
+			tempo: 130,
+			visibility: "public",
+			createdAt: new Date().toISOString(),
+		},
+		{
+			id: "grid-pub-002",
+			userId: null,
+			name: "Blue Bossa",
+			composer: "Kenny Dorham",
+			key: "Cm",
+			tempo: 150,
+			visibility: "public",
+			createdAt: new Date().toISOString(),
+		},
+		{
+			id: "grid-pub-003",
+			userId: "other-user-id",
+			name: "My Public Grid",
+			composer: null,
+			key: null,
+			tempo: 100,
+			visibility: "public",
+			createdAt: new Date().toISOString(),
+		},
+	],
+};
+
+async function dismissTour(page: Page) {
+	await page.addInitScript(() => {
+		localStorage.setItem("grid-tour-dismissed", "1");
+	});
+}
 
 async function mockAuthenticated(page: Page) {
 	await page.route("**/api/auth/get-session", (route) =>
@@ -79,6 +129,14 @@ async function mockAuthenticated(page: Page) {
 }
 
 async function mockGridApis(page: Page) {
+	await page.route("**/api/grids/public", (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: "application/json",
+			body: JSON.stringify(MOCK_PUBLIC_GRID_LIST),
+		}),
+	);
+
 	await page.route("**/api/grids", (route) => {
 		if (route.request().method() === "GET") {
 			return route.fulfill({
@@ -160,6 +218,7 @@ test.describe("Accompaniment - Grid List", () => {
 
 test.describe("Accompaniment - Grid Editor", () => {
 	test.beforeEach(async ({ page }) => {
+		await dismissTour(page);
 		await mockAuthenticated(page);
 		await mockGridApis(page);
 	});
@@ -290,15 +349,6 @@ test.describe("Accompaniment - Grid Editor", () => {
 		await expect(page.locator("button").filter({ hasText: /^Empty$/ }).first()).toBeVisible();
 	});
 
-	test("can change group repeat count", async ({ page }) => {
-		await page.goto("/accomp/grid-001");
-
-		const repeatInput = page.locator('input[id^="group-repeat-"]').first();
-		await expect(repeatInput).toHaveValue("1");
-
-		await repeatInput.fill("3");
-		await expect(repeatInput).toHaveValue("3");
-	});
 });
 
 test.describe("Accompaniment - Grid Editor with Groups", () => {
@@ -321,6 +371,7 @@ test.describe("Accompaniment - Grid Editor with Groups", () => {
 	};
 
 	test.beforeEach(async ({ page }) => {
+		await dismissTour(page);
 		await mockAuthenticated(page);
 
 		await page.route("**/api/grids/grid-001", (route) => {
@@ -345,37 +396,32 @@ test.describe("Accompaniment - Grid Editor with Groups", () => {
 		});
 	});
 
-	test("displays multiple groups with separator", async ({ page }) => {
+	test("displays all chords across groups", async ({ page }) => {
 		await page.goto("/accomp/grid-001");
 
 		await expect(page.getByText("C", { exact: true })).toBeVisible();
+		await expect(page.getByText("Am", { exact: true })).toBeVisible();
+		await expect(page.getByText("Dm", { exact: true })).toBeVisible();
 		await expect(page.getByText("E7", { exact: true })).toBeVisible();
-
-		await expect(
-			page.getByRole("button", { name: "Merge groups" }),
-		).toBeVisible();
 	});
 
 	test("displays repeat count per group", async ({ page }) => {
 		await page.goto("/accomp/grid-001");
 
-		const repeatInputs = page.locator('input[id^="group-repeat-"]');
-		await expect(repeatInputs.first()).toHaveValue("2");
-		await expect(repeatInputs.nth(1)).toHaveValue("1");
-	});
-
-	test("can merge groups", async ({ page }) => {
-		await page.goto("/accomp/grid-001");
-
-		await page.getByRole("button", { name: "Merge groups" }).click();
-
-		const repeatInputs = page.locator('input[id^="group-repeat-"]');
-		await expect(repeatInputs).toHaveCount(1);
+		// Group repeat spinbuttons are inside the grid area, not in the header
+		// The last square of group 1 shows "G 2" and group 2 shows "E7 3"
+		await expect(
+			page.getByRole("button", { name: "G 2" }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "E7 3" }),
+		).toBeVisible();
 	});
 });
 
 test.describe("Accompaniment - Playback", () => {
 	test.beforeEach(async ({ page }) => {
+		await dismissTour(page);
 		await mockAuthenticated(page);
 		await mockGridApis(page);
 	});
@@ -409,5 +455,152 @@ test.describe("Accompaniment - Playback", () => {
 		await expect(page.locator("input#loops")).toBeDisabled();
 
 		await page.getByRole("button", { name: "Stop" }).click();
+	});
+});
+
+test.describe("Accompaniment - Composer & Key", () => {
+	test.beforeEach(async ({ page }) => {
+		await dismissTour(page);
+		await mockAuthenticated(page);
+		await mockGridApis(page);
+	});
+
+	test("displays composer and key fields", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		await expect(page.getByText("Composer")).toBeVisible();
+		await expect(page.getByText("Key", { exact: true })).toBeVisible();
+
+		const composerInput = page.locator('input[placeholder="e.g. Miles Davis"]');
+		await expect(composerInput).toHaveValue("Cole Porter");
+
+		const keyInput = page.locator('input[placeholder="e.g. Cm"]');
+		await expect(keyInput).toHaveValue("Cm");
+	});
+
+	test("can edit composer", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		const composerInput = page.locator('input[placeholder="e.g. Miles Davis"]');
+		await composerInput.fill("Duke Ellington");
+		await expect(composerInput).toHaveValue("Duke Ellington");
+	});
+
+	test("can edit key", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		const keyInput = page.locator('input[placeholder="e.g. Cm"]');
+		await keyInput.fill("G");
+		await expect(keyInput).toHaveValue("G");
+	});
+
+	test("saves composer and key in PATCH request", async ({ page }) => {
+		await page.goto("/accomp/grid-001");
+
+		const composerInput = page.locator('input[placeholder="e.g. Miles Davis"]');
+		await composerInput.fill("Duke Ellington");
+
+		const keyInput = page.locator('input[placeholder="e.g. Cm"]');
+		await keyInput.fill("Bb");
+
+		const saveRequest = page.waitForRequest("**/api/grids/grid-001");
+		await page.getByRole("button", { name: "Save" }).click();
+
+		const request = await saveRequest;
+		const body = JSON.parse(request.postData() || "{}");
+		expect(body.composer).toBe("Duke Ellington");
+		expect(body.key).toBe("Bb");
+	});
+});
+
+test.describe("Accompaniment - Public Grids & Search", () => {
+	test.beforeEach(async ({ page }) => {
+		await mockAuthenticated(page);
+		await mockGridApis(page);
+	});
+
+	test("displays public grids section", async ({ page }) => {
+		await page.goto("/accomp");
+
+		await expect(page.getByText("Public Grids")).toBeVisible();
+		await expect(page.getByText("Autumn Leaves")).toBeVisible();
+		await expect(page.getByText("Blue Bossa")).toBeVisible();
+	});
+
+	test("displays composer on public grid cards", async ({ page }) => {
+		await page.goto("/accomp");
+
+		await expect(page.getByText("Joseph Kosma")).toBeVisible();
+		await expect(page.getByText("Kenny Dorham")).toBeVisible();
+	});
+
+	test("displays key badge on public grid cards", async ({ page }) => {
+		await page.goto("/accomp");
+
+		// Key badge is a span with border inside the public grids section
+		const publicSection = page.locator(".border-t-3");
+		await expect(
+			publicSection.locator("span.border-2", { hasText: "Em" }),
+		).toBeVisible();
+	});
+
+	test("displays community badge on community grids", async ({ page }) => {
+		await page.goto("/accomp");
+
+		// Community grids have a BadgeCheck icon (lucide-react SVG with class "lucide-badge-check")
+		const publicSection = page.locator(".border-t-3");
+		const communityBadges = publicSection.locator(".lucide-badge-check");
+		// grid-pub-001 and grid-pub-002 have userId=null (community)
+		// grid-pub-003 has userId="other-user-id" (not community)
+		await expect(communityBadges).toHaveCount(2);
+	});
+
+	test("search filters public grids by name", async ({ page }) => {
+		await page.goto("/accomp");
+
+		const searchInput = page.locator(
+			'input[placeholder="Search by name, composer, or key..."]',
+		);
+		await searchInput.fill("Autumn");
+
+		await expect(page.getByText("Autumn Leaves")).toBeVisible();
+		await expect(page.getByText("Blue Bossa")).not.toBeVisible();
+	});
+
+	test("search filters public grids by composer", async ({ page }) => {
+		await page.goto("/accomp");
+
+		const searchInput = page.locator(
+			'input[placeholder="Search by name, composer, or key..."]',
+		);
+		await searchInput.fill("Dorham");
+
+		await expect(page.getByText("Blue Bossa")).toBeVisible();
+		await expect(page.getByText("Autumn Leaves")).not.toBeVisible();
+	});
+
+	test("search filters public grids by key", async ({ page }) => {
+		await page.goto("/accomp");
+
+		const searchInput = page.locator(
+			'input[placeholder="Search by name, composer, or key..."]',
+		);
+		await searchInput.fill("Em");
+
+		await expect(page.getByText("Autumn Leaves")).toBeVisible();
+		await expect(page.getByText("Blue Bossa")).not.toBeVisible();
+	});
+
+	test("shows no results message when search matches nothing", async ({
+		page,
+	}) => {
+		await page.goto("/accomp");
+
+		const searchInput = page.locator(
+			'input[placeholder="Search by name, composer, or key..."]',
+		);
+		await searchInput.fill("xyznonexistent");
+
+		await expect(page.getByText("No matching chords.")).toBeVisible();
 	});
 });

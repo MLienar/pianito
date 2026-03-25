@@ -7,11 +7,33 @@ import {
   type UpdateGridBody,
   updateGridBodySchema,
 } from "@pianito/shared";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { db } from "../db/index.js";
 import { grid } from "../db/schema.js";
 import { getSessionUser } from "../lib/session.js";
+
+const gridSummaryColumns = {
+  id: grid.id,
+  userId: grid.userId,
+  name: grid.name,
+  composer: grid.composer,
+  key: grid.key,
+  tempo: grid.tempo,
+  visibility: grid.visibility,
+  createdAt: grid.createdAt,
+};
+
+function toGridListResponse(
+  rows: { createdAt: Date; [k: string]: unknown }[],
+): GridListResponse {
+  return {
+    grids: rows.map((r) => ({
+      ...(r as Record<string, unknown>),
+      createdAt: r.createdAt.toISOString(),
+    })) as GridListResponse["grids"],
+  };
+}
 
 export async function gridRoutes(app: FastifyInstance) {
   app.get<{ Reply: GridListResponse | ErrorResponse }>(
@@ -23,23 +45,12 @@ export async function gridRoutes(app: FastifyInstance) {
       }
 
       const rows = await db
-        .select({
-          id: grid.id,
-          name: grid.name,
-          tempo: grid.tempo,
-          visibility: grid.visibility,
-          createdAt: grid.createdAt,
-        })
+        .select(gridSummaryColumns)
         .from(grid)
         .where(eq(grid.userId, user.id))
         .orderBy(desc(grid.createdAt));
 
-      return {
-        grids: rows.map((r) => ({
-          ...r,
-          createdAt: r.createdAt.toISOString(),
-        })),
-      };
+      return toGridListResponse(rows);
     },
   );
 
@@ -47,23 +58,12 @@ export async function gridRoutes(app: FastifyInstance) {
     "/api/grids/public",
     async (_request, _reply) => {
       const rows = await db
-        .select({
-          id: grid.id,
-          name: grid.name,
-          tempo: grid.tempo,
-          visibility: grid.visibility,
-          createdAt: grid.createdAt,
-        })
+        .select(gridSummaryColumns)
         .from(grid)
-        .where(eq(grid.visibility, "public"))
+        .where(or(eq(grid.visibility, "public"), isNull(grid.userId)))
         .orderBy(desc(grid.createdAt));
 
-      return {
-        grids: rows.map((r) => ({
-          ...r,
-          createdAt: r.createdAt.toISOString(),
-        })),
-      };
+      return toGridListResponse(rows);
     },
   );
 
@@ -80,6 +80,7 @@ export async function gridRoutes(app: FastifyInstance) {
             eq(grid.id, request.params.id),
             or(
               eq(grid.visibility, "public"),
+              isNull(grid.userId),
               user ? eq(grid.userId, user.id) : sql`false`,
             ),
           ),
@@ -115,6 +116,8 @@ export async function gridRoutes(app: FastifyInstance) {
         .values({
           userId: user.id,
           name: body.name,
+          composer: body.composer,
+          key: body.key,
           tempo: body.tempo,
           loopCount: body.loopCount,
           visibility: body.visibility,

@@ -126,9 +126,15 @@ export default {
     authRequired: "Compte requis",
     authRequiredDescription:
       "Créez un compte pour sauvegarder et gérer vos grilles d'accords.",
+    composer: "Compositeur",
+    composerPlaceholder: "ex. Miles Davis",
+    key: "Tonalité",
+    keyPlaceholder: "ex. Dom",
     visibility: "Visibilité",
     private: "Privé",
     public: "Public",
+    community: "Communauté",
+    searchPublicGrids: "Rechercher par nom, compositeur ou tonalité...",
     publicGrids: "Grilles publiques",
     publicGridsDescription:
       "Parcourez et jouez les grilles partagées par d'autres utilisateurs.",

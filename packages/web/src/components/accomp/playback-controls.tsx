@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Tooltip } from "@/components/tooltip";
 import type { StyleId } from "@/lib/styles";
 import { STYLE_IDS } from "@/lib/styles";
 import { useGridEditorStore } from "@/stores/grid-editor";
@@ -103,21 +104,22 @@ function InstrumentToggle({
   label: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      className={`border-3 border-border p-1.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none ${
-        active
-          ? "bg-accent text-accent-foreground"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      {icon}
-    </button>
+    <Tooltip content={label}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        aria-pressed={active}
+        className={`border-3 border-border p-1.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none ${
+          active
+            ? "bg-accent text-accent-foreground"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        {icon}
+      </button>
+    </Tooltip>
   );
 }
 

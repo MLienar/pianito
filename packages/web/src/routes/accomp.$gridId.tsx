@@ -27,11 +27,15 @@ function GridEditor() {
   const { isLoading, isSaving, error, save } = useGridEditor(gridId);
 
   const name = useGridEditorStore((s) => s.name);
+  const composer = useGridEditorStore((s) => s.composer);
+  const gridKey = useGridEditorStore((s) => s.key);
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
   const visibility = useGridEditorStore((s) => s.visibility);
   const data = useGridEditorStore((s) => s.data);
   const updateName = useGridEditorStore((s) => s.updateName);
+  const updateComposer = useGridEditorStore((s) => s.updateComposer);
+  const updateKey = useGridEditorStore((s) => s.updateKey);
   const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
 
@@ -160,6 +164,33 @@ function GridEditor() {
             </button>
           </div>
           <TourHelpButton onClick={startTour} />
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <label className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-muted-foreground">
+              {t("accomp.composer")}
+            </span>
+            <input
+              type="text"
+              value={composer ?? ""}
+              onChange={(e) => updateComposer(e.target.value)}
+              placeholder={t("accomp.composerPlaceholder")}
+              className="border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-muted-foreground">
+              {t("accomp.key")}
+            </span>
+            <input
+              type="text"
+              value={gridKey ?? ""}
+              onChange={(e) => updateKey(e.target.value)}
+              placeholder={t("accomp.keyPlaceholder")}
+              className="w-20 border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
+            />
+          </label>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

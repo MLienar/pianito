@@ -58,12 +58,8 @@ export const userPreferenceSchema = z.object({
 
 // ─── PATCH /api/preferences ─────────────────────────────────────────
 
-export const updatePreferenceBodySchema = z
-  .object({
-    notation: notationSchema.optional(),
-    theme: themeSchema.optional(),
-    language: languageSchema.optional(),
-  })
+export const updatePreferenceBodySchema = userPreferenceSchema
+  .partial()
   .refine((obj) => Object.keys(obj).length > 0, {
     message: "At least one preference field is required",
   });
@@ -91,8 +87,9 @@ export const userProfileSchema = z.object({
 
 export const updateUserProfileBodySchema = z
   .object({
-    username: usernameSchema.nullable().optional(),
+    username: usernameSchema.nullable(),
   })
+  .partial()
   .refine((obj) => Object.keys(obj).length > 0, {
     message: "At least one field is required",
   });
@@ -142,28 +139,41 @@ export const gridDataSchema = z
     },
   );
 
-export const gridSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string(),
+/** Base shape for grid-editable fields (no id, userId, timestamps). */
+const gridFieldsSchema = z.object({
   name: z.string().min(1).max(100),
+  composer: z.string().max(200).nullable(),
+  key: z.string().max(20).nullable(),
   tempo: z.number().int().min(30).max(300),
   loopCount: z.number().int().min(1).max(50),
   visibility: gridVisibilitySchema,
   data: gridDataSchema,
+});
+
+export const gridSchema = gridFieldsSchema.extend({
+  id: z.string().uuid(),
+  userId: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export const gridSummarySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  tempo: z.number().int(),
-  visibility: gridVisibilitySchema,
-  createdAt: z.string(),
-});
+export const gridSummarySchema = gridFieldsSchema
+  .pick({
+    name: true,
+    composer: true,
+    key: true,
+    tempo: true,
+    visibility: true,
+  })
+  .extend({
+    id: z.string().uuid(),
+    userId: z.string().nullable(),
+    createdAt: z.string(),
+  });
 
-export const createGridBodySchema = z.object({
-  name: z.string().min(1).max(100),
+export const createGridBodySchema = gridFieldsSchema.extend({
+  composer: z.string().max(200).nullable().default(null),
+  key: z.string().max(20).nullable().default(null),
   tempo: z.number().int().min(30).max(300).default(90),
   loopCount: z.number().int().min(1).max(50).default(1),
   visibility: gridVisibilitySchema.default("private"),
@@ -173,14 +183,8 @@ export const createGridBodySchema = z.object({
   }),
 });
 
-export const updateGridBodySchema = z
-  .object({
-    name: z.string().min(1).max(100).optional(),
-    tempo: z.number().int().min(30).max(300).optional(),
-    loopCount: z.number().int().min(1).max(50).optional(),
-    visibility: gridVisibilitySchema.optional(),
-    data: gridDataSchema.optional(),
-  })
+export const updateGridBodySchema = gridFieldsSchema
+  .partial()
   .refine((obj) => Object.keys(obj).length > 0, {
     message: "At least one field is required",
   });

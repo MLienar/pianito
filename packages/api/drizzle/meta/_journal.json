@@ -50,6 +50,20 @@
       "when": 1774455995541,
       "tag": "0008_true_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774466757987,
+      "tag": "0009_chief_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774469611275,
+      "tag": "0010_opposite_juggernaut",
+      "breakpoints": true
     }
   ]
 }

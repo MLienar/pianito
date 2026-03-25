@@ -125,9 +125,15 @@ export default {
     authRequired: "Cuenta requerida",
     authRequiredDescription:
       "Crea una cuenta para guardar y gestionar tus tablas de acordes.",
+    composer: "Compositor",
+    composerPlaceholder: "ej. Miles Davis",
+    key: "Tonalidad",
+    keyPlaceholder: "ej. Dom",
     visibility: "Visibilidad",
     private: "Privado",
     public: "Público",
+    community: "Comunidad",
+    searchPublicGrids: "Buscar por nombre, compositor o tonalidad...",
     publicGrids: "Tablas públicas",
     publicGridsDescription:
       "Navega y toca tablas compartidas por otros usuarios.",

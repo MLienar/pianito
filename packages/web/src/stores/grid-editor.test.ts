@@ -13,6 +13,8 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     id: "grid-1",
     userId: "user-1",
     name: "Test Grid",
+    composer: null,
+    key: null,
     tempo: 120,
     loopCount: 2,
     visibility: "private",
