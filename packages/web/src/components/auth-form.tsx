@@ -35,7 +35,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       );
       setLoading(false);
     } else {
-      navigate({ to: "/" });
+      navigate({ to: isSignup ? "/settings" : "/" });
     }
   }
 
