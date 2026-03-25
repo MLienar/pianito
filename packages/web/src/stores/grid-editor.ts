@@ -1,7 +1,7 @@
 import type { Grid, GridData, GridSquare } from "@pianito/shared";
 import { create } from "zustand";
 
-const EMPTY_SQUARE: GridSquare = { chord: null };
+const EMPTY_SQUARE: GridSquare = { chord: null, nbBeats: 4 };
 
 const DEFAULT_DATA: GridData = {
   squares: [EMPTY_SQUARE],
@@ -15,11 +15,16 @@ function migrateGridData(data: Record<string, unknown>): GridData {
     "groups" in data &&
     Array.isArray(data.groups)
   ) {
-    return data as unknown as GridData;
+    const squares = (
+      data.squares as { chord: string | null; nbBeats?: number }[]
+    ).map((sq) => ({ chord: sq.chord, nbBeats: sq.nbBeats ?? 4 }));
+    return { squares, groups: data.groups } as unknown as GridData;
   }
   if ("lines" in data && Array.isArray(data.lines)) {
     const lines = data.lines as { chord: string | null }[][];
-    const squares = lines.flat();
+    const squares = lines
+      .flat()
+      .map((sq) => ({ chord: sq.chord, nbBeats: 4 as const }));
     const groups =
       "groups" in data && Array.isArray(data.groups)
         ? (data.groups as { lineCount: number; repeatCount: number }[]).map(
@@ -68,6 +73,7 @@ interface GridEditorActions {
   updateLoopCount: (count: number) => void;
   setChord: (index: number, chord: string | null) => void;
   clearChord: (index: number) => void;
+  setSquareBeats: (index: number, nbBeats: 2 | 4) => void;
   addSquare: () => void;
   removeSquare: (index: number) => void;
   clearChords: (indices: Set<number>) => void;
@@ -122,7 +128,7 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
         data: {
           ...state.data,
           squares: state.data.squares.map((sq, i) =>
-            i === index ? { chord } : sq,
+            i === index ? { ...sq, chord } : sq,
           ),
         },
         isDirty: true,
@@ -130,6 +136,21 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     }),
 
   clearChord: (index) => get().setChord(index, null),
+
+  setSquareBeats: (index, nbBeats) =>
+    set((state) => {
+      const sq = state.data.squares[index];
+      if (!sq || sq.nbBeats === nbBeats) return state;
+      return {
+        data: {
+          ...state.data,
+          squares: state.data.squares.map((s, i) =>
+            i === index ? { ...s, nbBeats } : s,
+          ),
+        },
+        isDirty: true,
+      };
+    }),
 
   addSquare: () =>
     set((state) => {
@@ -185,7 +206,7 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
         data: {
           ...state.data,
           squares: state.data.squares.map((sq, i) =>
-            indices.has(i) ? { chord: null } : sq,
+            indices.has(i) ? { ...sq, chord: null } : sq,
           ),
         },
         isDirty: true,

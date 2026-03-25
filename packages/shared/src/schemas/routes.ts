@@ -78,6 +78,7 @@ export const errorResponseSchema = z.object({
 
 export const gridSquareSchema = z.object({
   chord: chordSchema.nullable(),
+  nbBeats: z.number().int().min(2).max(4).default(4),
 });
 
 export const gridGroupSchema = z.object({

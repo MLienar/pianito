@@ -14,9 +14,9 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useGridEditorStore } from "@/stores/grid-editor";
-import { GridSquare } from "./grid-square";
+import { GridSquare, type GridSquareProps } from "./grid-square";
 import { getGroupColor } from "./group-colors";
 
 interface GridViewProps {
@@ -28,10 +28,13 @@ export function GridView({ playingIndex }: GridViewProps) {
   const reorderSquares = useGridEditorStore((s) => s.reorderSquares);
   const setChord = useGridEditorStore((s) => s.setChord);
   const clearChord = useGridEditorStore((s) => s.clearChord);
+  const setSquareBeats = useGridEditorStore((s) => s.setSquareBeats);
   const addSquare = useGridEditorStore((s) => s.addSquare);
   const updateGroupRepeatCount = useGridEditorStore(
     (s) => s.updateGroupRepeatCount,
   );
+
+  const [autoFocusIndex, setAutoFocusIndex] = useState<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -59,6 +62,16 @@ export function GridView({ playingIndex }: GridViewProps) {
     },
     [squareIds, reorderSquares],
   );
+
+  const handleAddSquare = useCallback(() => {
+    const newIndex = useGridEditorStore.getState().data.squares.length;
+    addSquare();
+    setAutoFocusIndex(newIndex);
+  }, [addSquare]);
+
+  const handleAutoFocusConsumed = useCallback(() => {
+    setAutoFocusIndex(null);
+  }, []);
 
   const { squareGroupIndex, squareSeparatorInfo } = useMemo(() => {
     const sgIndex: number[] = [];
@@ -93,7 +106,7 @@ export function GridView({ playingIndex }: GridViewProps) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={squareIds} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-[repeat(4,1fr)] gap-2">
+        <div className="grid grid-cols-[repeat(8,1fr)] gap-2">
           {data.squares.map((square, globalIndex) => {
             if (!square) return null;
             const sepInfo = squareSeparatorInfo.get(globalIndex);
@@ -104,13 +117,19 @@ export function GridView({ playingIndex }: GridViewProps) {
               <SortableSquareWrapper
                 key={`sq-${globalIndex}`}
                 id={`sq-${globalIndex}`}
-                chord={square.chord}
-                isPlaying={playingIndex === globalIndex}
-                index={globalIndex}
-                totalSquares={data.squares.length}
-                onSetChord={(chord) => setChord(globalIndex, chord)}
-                onClear={() => clearChord(globalIndex)}
-                groupColor={groupColor}
+                squareProps={{
+                  chord: square.chord,
+                  nbBeats: square.nbBeats,
+                  isPlaying: playingIndex === globalIndex,
+                  index: globalIndex,
+                  totalSquares: data.squares.length,
+                  onSetChord: (chord) => setChord(globalIndex, chord),
+                  onClear: () => clearChord(globalIndex),
+                  onSetBeats: (nb) => setSquareBeats(globalIndex, nb),
+                  groupColor,
+                  autoFocus: autoFocusIndex === globalIndex,
+                  onAutoFocusConsumed: handleAutoFocusConsumed,
+                }}
                 separator={
                   sepInfo
                     ? {
@@ -125,8 +144,8 @@ export function GridView({ playingIndex }: GridViewProps) {
           })}
           <button
             type="button"
-            onClick={addSquare}
-            className="flex h-20 w-full items-center justify-center border-3 border-dashed border-border bg-background text-2xl text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-brutal)]"
+            onClick={handleAddSquare}
+            className="col-span-1 flex h-20 w-full items-center justify-center border-3 border-dashed border-border bg-background text-2xl text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-brutal)]"
           >
             +
           </button>
@@ -143,31 +162,21 @@ interface SeparatorInfo {
 
 function SortableSquareWrapper({
   id,
-  chord,
-  isPlaying,
-  index,
-  totalSquares,
-  onSetChord,
-  onClear,
+  squareProps,
   separator,
-  groupColor,
 }: {
   id: string;
-  chord: string | null;
-  isPlaying: boolean;
-  index: number;
-  totalSquares: number;
-  onSetChord: (chord: string) => void;
-  onClear: () => void;
+  squareProps: GridSquareProps;
   separator?: SeparatorInfo;
-  groupColor?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
 
+  const colSpan = squareProps.nbBeats === 2 ? 1 : 2;
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    gridColumn: `span ${colSpan}`,
   };
 
   return (
@@ -178,20 +187,12 @@ function SortableSquareWrapper({
       {...listeners}
       className="relative"
     >
-      <GridSquare
-        chord={chord}
-        isPlaying={isPlaying}
-        index={index}
-        totalSquares={totalSquares}
-        onSetChord={onSetChord}
-        onClear={onClear}
-        groupColor={groupColor}
-      />
+      <GridSquare {...squareProps} />
       {separator && (
         <div className="absolute right-0 top-0 bottom-0 z-10 flex translate-x-1/2 flex-col items-center">
           <div
             className="w-0.5 flex-1"
-            style={{ backgroundColor: groupColor }}
+            style={{ backgroundColor: squareProps.groupColor }}
           />
           <input
             type="number"
@@ -204,11 +205,11 @@ function SortableSquareWrapper({
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
             className="w-10 border-2 bg-background px-1 py-0.5 text-center font-mono text-xs font-bold focus:outline-none focus:ring-2 focus:ring-ring"
-            style={{ borderColor: groupColor }}
+            style={{ borderColor: squareProps.groupColor }}
           />
           <div
             className="w-0.5 flex-1"
-            style={{ backgroundColor: groupColor }}
+            style={{ backgroundColor: squareProps.groupColor }}
           />
         </div>
       )}

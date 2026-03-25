@@ -8,11 +8,12 @@ import type { StyleId } from "@/lib/styles";
 import { STYLES } from "@/lib/styles";
 import { useChordPlayer } from "./use-chord-player";
 
-const BEATS_PER_SQUARE = 4;
+const DEFAULT_BEATS_PER_SQUARE = 4;
 
 interface PlaybackSquare {
   index: number;
   chord: string | null;
+  nbBeats: number;
 }
 
 function flattenGrid(gridData: GridData): PlaybackSquare[] {
@@ -25,7 +26,11 @@ function flattenGrid(gridData: GridData): PlaybackSquare[] {
     );
     for (let repeat = 0; repeat < group.repeatCount; repeat++) {
       for (const [i, sq] of groupSquares.entries()) {
-        result.push({ index: offset + i, chord: sq.chord });
+        result.push({
+          index: offset + i,
+          chord: sq.chord,
+          nbBeats: sq.nbBeats,
+        });
       }
     }
     offset += group.squareCount;
@@ -116,12 +121,10 @@ export function useGridPlayback(
     }
 
     const beatDurationMs = (60 / tempo) * 1000;
-    const squareDurationSec = (60 / tempo) * BEATS_PER_SQUARE;
 
     const bassPattern = currentStyle?.bass ?? null;
     const subdivision = bassPattern?.subdivision ?? "16n";
     const stepsPerBeat = subdivision === "8t" ? 3 : 4;
-    const stepsPerSquare = stepsPerBeat * BEATS_PER_SQUARE;
     const subdivisionMs = beatDurationMs / stepsPerBeat;
     const needsSubdivisionTicks = !!bassPattern;
 
@@ -132,6 +135,8 @@ export function useGridPlayback(
     let stepInSquare = 0;
     let totalSteps = 0;
     let currentChord: string | null = null;
+    let currentChordData: ReturnType<typeof Chord.get> | null = null;
+    let currentStepsPerSquare = stepsPerBeat * DEFAULT_BEATS_PER_SQUARE;
     const startTime = performance.now();
 
     const playNext = () => {
@@ -146,6 +151,7 @@ export function useGridPlayback(
           cachedData = dataRef.current;
           allSquares = flattenGrid(cachedData);
           squareIdx = Math.min(squareIdx, allSquares.length - 1);
+          stepInSquare = 0;
         }
 
         if (squareIdx >= allSquares.length) {
@@ -160,8 +166,12 @@ export function useGridPlayback(
         const sq = allSquares[squareIdx];
         if (!sq) return;
 
+        currentStepsPerSquare = stepsPerBeat * sq.nbBeats;
+        const squareDurationSec = (60 / tempo) * sq.nbBeats;
+
         setCurrentIndex(sq.index);
         currentChord = sq.chord;
+        currentChordData = currentChord ? Chord.get(currentChord) : null;
         if (sq.chord && chordsEnabledRef.current) {
           playChord(sq.chord, squareDurationSec);
         }
@@ -171,12 +181,12 @@ export function useGridPlayback(
         playClick(beatIndex);
       }
 
-      if (bassPattern && currentChord && bassEnabledRef.current) {
-        const chordData = Chord.get(currentChord);
-        if (!chordData.empty && chordData.tonic) {
-          const offset = bassPattern.notes[stepInSquare];
+      if (bassPattern && currentChordData && bassEnabledRef.current) {
+        if (!currentChordData.empty && currentChordData.tonic) {
+          const noteIdx = stepInSquare % bassPattern.notes.length;
+          const offset = bassPattern.notes[noteIdx];
           if (offset !== null && offset !== undefined) {
-            playBassNote(chordData.tonic, offset, subdivision);
+            playBassNote(currentChordData.tonic, offset, subdivision);
           }
         }
       }
@@ -185,7 +195,7 @@ export function useGridPlayback(
       totalSteps++;
 
       if (!metronomeRef.current && !needsSubdivisionTicks) {
-        const remaining = stepsPerSquare - stepInSquare;
+        const remaining = currentStepsPerSquare - stepInSquare;
         totalSteps += remaining;
         stepInSquare = 0;
         squareIdx++;
@@ -196,11 +206,11 @@ export function useGridPlayback(
           totalSteps += stepsToSkip;
           stepInSquare += stepsToSkip;
         }
-        if (stepInSquare >= stepsPerSquare) {
+        if (stepInSquare >= currentStepsPerSquare) {
           stepInSquare = 0;
           squareIdx++;
         }
-      } else if (stepInSquare >= stepsPerSquare) {
+      } else if (stepInSquare >= currentStepsPerSquare) {
         stepInSquare = 0;
         squareIdx++;
       }

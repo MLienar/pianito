@@ -4,6 +4,10 @@ import { useGridEditorStore } from "./grid-editor";
 
 const store = () => useGridEditorStore.getState();
 
+function sq(chord: string | null): { chord: string | null; nbBeats: number } {
+  return { chord, nbBeats: 4 };
+}
+
 function makeGrid(overrides?: Partial<Grid>): Grid {
   return {
     id: "grid-1",
@@ -12,12 +16,7 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     tempo: 120,
     loopCount: 2,
     data: {
-      squares: [
-        { chord: "C" },
-        { chord: "Am" },
-        { chord: "F" },
-        { chord: "G" },
-      ],
+      squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
       groups: [{ squareCount: 4, repeatCount: 1 }],
     },
     createdAt: "2024-01-01T00:00:00Z",
@@ -28,14 +27,7 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
 
 function multiGroupData(): GridData {
   return {
-    squares: [
-      { chord: "C" },
-      { chord: "Am" },
-      { chord: "F" },
-      { chord: "G" },
-      { chord: "Dm" },
-      { chord: "E7" },
-    ],
+    squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm"), sq("E7")],
     groups: [
       { squareCount: 4, repeatCount: 2 },
       { squareCount: 2, repeatCount: 1 },
@@ -71,10 +63,10 @@ describe("initialize", () => {
     store().initialize(grid);
 
     expect(store().data.squares).toEqual([
-      { chord: "C" },
-      { chord: "G" },
-      { chord: "Am" },
-      { chord: "F" },
+      sq("C"),
+      sq("G"),
+      sq("Am"),
+      sq("F"),
     ]);
     expect(store().data.groups).toEqual([
       { squareCount: 4, repeatCount: 1 },
@@ -88,7 +80,7 @@ describe("initialize", () => {
 
     store().initialize(grid);
 
-    expect(store().data.squares).toEqual([{ chord: null }]);
+    expect(store().data.squares).toEqual([sq(null)]);
     expect(store().data.groups).toEqual([
       { squareCount: 1, repeatCount: 1 },
     ]);
@@ -202,7 +194,7 @@ describe("clearChord", () => {
     store().initialize(
       makeGrid({
         data: {
-          squares: [{ chord: null }],
+          squares: [sq(null)],
           groups: [{ squareCount: 1, repeatCount: 1 }],
         },
       }),
@@ -246,7 +238,7 @@ describe("removeSquare", () => {
     store().initialize(
       makeGrid({
         data: {
-          squares: [{ chord: "C" }],
+          squares: [sq("C")],
           groups: [{ squareCount: 1, repeatCount: 1 }],
         },
       }),
@@ -338,12 +330,7 @@ describe("splitGroup", () => {
     store().initialize(
       makeGrid({
         data: {
-          squares: [
-            { chord: "C" },
-            { chord: "Am" },
-            { chord: "F" },
-            { chord: "G" },
-          ],
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
           groups: [{ squareCount: 4, repeatCount: 3 }],
         },
       }),
@@ -369,7 +356,7 @@ describe("splitGroup", () => {
     store().initialize(
       makeGrid({
         data: {
-          squares: [{ chord: "C" }],
+          squares: [sq("C")],
           groups: [{ squareCount: 1, repeatCount: 1 }],
         },
       }),
