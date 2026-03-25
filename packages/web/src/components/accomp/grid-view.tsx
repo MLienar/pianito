@@ -193,28 +193,27 @@ function SortableSquareWrapper({
     >
       <GridSquare {...squareProps} />
       {separator && (
-        <div className="absolute right-0 top-0 bottom-0 z-10 flex translate-x-1/2 flex-col items-center">
-          <div
-            className="w-0.5 flex-1"
-            style={{ backgroundColor: squareProps.groupColor }}
-          />
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={separator.repeatCount}
-            onChange={(e) =>
-              separator.onRepeatCountChange(Number(e.target.value))
-            }
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="w-10 border-2 bg-background px-1 py-0.5 text-center font-mono text-xs font-bold focus:outline-none focus:ring-2 focus:ring-ring"
-            style={{ borderColor: squareProps.groupColor }}
-          />
-          <div
-            className="w-0.5 flex-1"
-            style={{ backgroundColor: squareProps.groupColor }}
-          />
+        <div className="absolute z-10 flex flex-col items-start right-0 top-[50%] translate-x-1/2 -translate-y-1/2">
+          {/* Middle section with repeat count */}
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+            <div
+              className="bg-card border-3 px-1 py-0.5 shadow-[var(--shadow-brutal-sm)]"
+              style={{ borderColor: squareProps.groupColor }}
+            >
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={separator.repeatCount}
+                onChange={(e) =>
+                  separator.onRepeatCountChange(Number(e.target.value))
+                }
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-8 bg-transparent text-center font-mono text-xs font-bold focus:outline-none focus:bg-background"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
