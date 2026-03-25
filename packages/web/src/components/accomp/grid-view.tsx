@@ -193,18 +193,9 @@ function SortableSquareWrapper({
     >
       <GridSquare {...squareProps} />
       {separator && (
-        <div className="absolute right-0 top-0 bottom-0 z-10 flex translate-x-full flex-col items-start pl-1">
-          {/* Top connector */}
-          <div
-            className="h-4 w-3 border-t-3 border-r-3"
-            style={{ borderColor: squareProps.groupColor }}
-          />
+        <div className="absolute z-10 flex flex-col items-start right-0 top-[50%] translate-x-1/2 -translate-y-1/2">
           {/* Middle section with repeat count */}
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div
-              className="w-3 h-8 border-r-3 mb-1"
-              style={{ borderColor: squareProps.groupColor }}
-            />
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
             <div
               className="bg-card border-3 px-1 py-0.5 shadow-[var(--shadow-brutal-sm)]"
               style={{ borderColor: squareProps.groupColor }}
@@ -222,16 +213,7 @@ function SortableSquareWrapper({
                 className="w-8 bg-transparent text-center font-mono text-xs font-bold focus:outline-none focus:bg-background"
               />
             </div>
-            <div
-              className="w-3 h-8 border-r-3 mt-1"
-              style={{ borderColor: squareProps.groupColor }}
-            />
           </div>
-          {/* Bottom connector */}
-          <div
-            className="h-4 w-3 border-b-3 border-r-3"
-            style={{ borderColor: squareProps.groupColor }}
-          />
         </div>
       )}
     </div>

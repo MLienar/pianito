@@ -121,7 +121,7 @@ export const STYLES = {
     bass: {
       subdivision: "8t",
       //          1  &  a   2  &  a   3  &  a   4  &  a
-      notes: [0, null, null, 7, null, null, 4, null, null, 0, null, 2],
+      notes: [1, null, null, 3, null, null, 7, null, null, 5, null, null],
     },
   },
   funk: {

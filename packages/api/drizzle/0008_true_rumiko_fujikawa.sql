@@ -1,1 +1,1 @@
-ALTER TABLE "grid" ADD COLUMN "visibility" text DEFAULT 'private' NOT NULL;
+ALTER TABLE "grid" ADD COLUMN IF NOT EXISTS "visibility" text DEFAULT 'private' NOT NULL;
