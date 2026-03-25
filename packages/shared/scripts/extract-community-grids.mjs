@@ -1,12 +1,12 @@
 /**
- * Extracts chord progressions from the veltzer/openbook repo (.ly.mako files)
+ * Extracts chord progressions from a LilyPond song collection (.ly.mako files)
  * and outputs JSON compatible with Pianito's grid format.
  *
  * Usage:
- *   node scripts/extract-openbook.mjs <openbook-dir> [output-file]
+ *   node scripts/extract-community-grids.mjs <source-dir> [output-file]
  *
  * Example:
- *   node scripts/extract-openbook.mjs ../openbook openbook-grids.json
+ *   node scripts/extract-community-grids.mjs ../openbook community-grids.json
  */
 
 import { Chord } from "tonal";
@@ -454,17 +454,17 @@ function songToGrid(song) {
 
 // ── Main ────────────────────────────────────────────────────────────────
 
-const openbookDir = process.argv[2];
-const outputFile = process.argv[3] ?? "openbook-grids.json";
+const sourceDir = process.argv[2];
+const outputFile = process.argv[3] ?? "community-grids.json";
 
-if (!openbookDir) {
+if (!sourceDir) {
 	console.error(
-		"Usage: node scripts/extract-openbook.mjs <openbook-dir> [output-file]",
+		"Usage: node scripts/extract-community-grids.mjs <source-dir> [output-file]",
 	);
 	process.exit(1);
 }
 
-const songsDir = join(openbookDir, "src", "openbook");
+const songsDir = join(sourceDir, "src", "openbook");
 const files = readdirSync(songsDir).filter((f) => f.endsWith(".ly.mako"));
 
 console.log(`Found ${files.length} song files in ${songsDir}`);

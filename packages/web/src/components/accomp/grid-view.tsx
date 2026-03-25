@@ -164,11 +164,11 @@ export function GridView({ playingIndex }: GridViewProps) {
                 separator={
                   sepInfo
                     ? {
-                      repeatCount: sepInfo.repeatCount,
-                      onRepeatCountChange: (val) =>
-                        updateGroupRepeatCount(sepInfo.groupIndex, val),
-                      onDelete: () => deleteGroup(sepInfo.groupIndex),
-                    }
+                        repeatCount: sepInfo.repeatCount,
+                        onRepeatCountChange: (val) =>
+                          updateGroupRepeatCount(sepInfo.groupIndex, val),
+                        onDelete: () => deleteGroup(sepInfo.groupIndex),
+                      }
                     : undefined
                 }
                 tsIndicator={tsInd}

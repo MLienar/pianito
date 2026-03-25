@@ -1,11 +1,11 @@
 /**
- * Seeds the database with community grids extracted from the openbook repo.
+ * Seeds the database with community grids from a JSON file.
  *
  * Usage:
- *   pnpm tsx scripts/seed-openbook.ts <path-to-openbook-grids.json>
+ *   pnpm tsx scripts/seed-community-grids.ts <path-to-community-grids.json>
  *
  * Example:
- *   pnpm tsx scripts/seed-openbook.ts ../shared/scripts/openbook-grids.json
+ *   pnpm tsx scripts/seed-community-grids.ts ../shared/scripts/community-grids.json
  *
  * Idempotent: skips grids whose name already exists as a community grid (userId IS NULL).
  * Pass --replace to delete all existing community grids and re-insert.
@@ -35,7 +35,7 @@ async function main() {
   const jsonPath = process.argv[2];
   if (!jsonPath) {
     console.error(
-      "Usage: pnpm tsx scripts/seed-openbook.ts <openbook-grids.json>",
+      "Usage: pnpm tsx scripts/seed-community-grids.ts <community-grids.json>",
     );
     process.exit(1);
   }
