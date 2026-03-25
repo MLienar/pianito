@@ -124,6 +124,12 @@ export default {
     authRequired: "Account Required",
     authRequiredDescription:
       "Create an account to save and manage your chord grids.",
+    visibility: "Visibility",
+    private: "Private",
+    public: "Public",
+    publicGrids: "Public Grids",
+    publicGridsDescription: "Browse and play grids shared by other users.",
+    noPublicGrids: "No public grids yet.",
   },
   tour: {
     helpButton: "Tour",

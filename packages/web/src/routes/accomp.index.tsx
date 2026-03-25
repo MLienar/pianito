@@ -29,6 +29,16 @@ function AccompIndex() {
     enabled: isAuthenticated,
   });
 
+  const { data: publicData, isLoading: isLoadingPublic } =
+    useQuery<GridListResponse>({
+      queryKey: ["public-grids"],
+      queryFn: async () => {
+        const res = await fetch("/api/grids/public");
+        if (!res.ok) throw new Error("Failed to fetch public grids");
+        return res.json();
+      },
+    });
+
   const createMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch("/api/grids", {
@@ -127,6 +137,32 @@ function AccompIndex() {
           {t("accomp.noGrids")}
         </p>
       )}
+
+      <div className="border-t-3 border-border pt-8">
+        <h2 className="text-2xl font-bold tracking-tight">
+          {t("accomp.publicGrids")}
+        </h2>
+        <p className="mt-1 text-muted-foreground">
+          {t("accomp.publicGridsDescription")}
+        </p>
+
+        {isLoadingPublic ? (
+          <p className="mt-4 text-muted-foreground">{t("common.loading")}</p>
+        ) : (
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            {publicData?.grids?.map((grid) => (
+              <PublicGridCard key={grid.id} grid={grid} />
+            ))}
+          </div>
+        )}
+
+        {!isLoadingPublic &&
+          (!publicData?.grids || publicData.grids.length === 0) && (
+            <p className="mt-4 text-center text-muted-foreground">
+              {t("accomp.noPublicGrids")}
+            </p>
+          )}
+      </div>
     </div>
   );
 }
@@ -153,9 +189,20 @@ function GridCard({
         className="flex flex-1 flex-col"
       >
         <h3 className="text-lg font-bold">{grid.name}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {grid.tempo} {t("accomp.bpm")}
-        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {grid.tempo} {t("accomp.bpm")}
+          </span>
+          <span
+            className={`text-xs font-bold px-1.5 py-0.5 border-2 border-border ${
+              grid.visibility === "public"
+                ? "bg-accent text-accent-foreground"
+                : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {t(`accomp.${grid.visibility}`)}
+          </span>
+        </div>
         <p className="mt-auto pt-3 text-xs text-muted-foreground">
           {t("accomp.createdAt", {
             date: new Date(grid.createdAt).toLocaleDateString(),
@@ -199,6 +246,35 @@ function GridCard({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function PublicGridCard({ grid }: { grid: GridSummary }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="relative flex min-h-[140px] flex-col border-3 border-border bg-card p-6 shadow-[var(--shadow-brutal)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-hover)]">
+      <Link
+        to="/accomp/$gridId"
+        params={{ gridId: grid.id }}
+        className="flex flex-1 flex-col"
+      >
+        <h3 className="text-lg font-bold">{grid.name}</h3>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {grid.tempo} {t("accomp.bpm")}
+          </span>
+          <span className="text-xs font-bold px-1.5 py-0.5 border-2 border-border bg-accent text-accent-foreground">
+            {t("accomp.public")}
+          </span>
+        </div>
+        <p className="mt-auto pt-3 text-xs text-muted-foreground">
+          {t("accomp.createdAt", {
+            date: new Date(grid.createdAt).toLocaleDateString(),
+          })}
+        </p>
+      </Link>
     </div>
   );
 }

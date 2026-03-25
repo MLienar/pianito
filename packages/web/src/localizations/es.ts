@@ -124,6 +124,13 @@ export default {
     authRequired: "Cuenta requerida",
     authRequiredDescription:
       "Crea una cuenta para guardar y gestionar tus tablas de acordes.",
+    visibility: "Visibilidad",
+    private: "Privado",
+    public: "Público",
+    publicGrids: "Tablas públicas",
+    publicGridsDescription:
+      "Navega y toca tablas compartidas por otros usuarios.",
+    noPublicGrids: "No hay tablas públicas aún.",
   },
   tour: {
     helpButton: "Tour",

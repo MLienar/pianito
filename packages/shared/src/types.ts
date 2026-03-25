@@ -14,6 +14,7 @@ import type {
   gridSchema,
   gridSquareSchema,
   gridSummarySchema,
+  gridVisibilitySchema,
   notationExerciseSchema,
   notationQuerySchema,
   noteSchema,
@@ -45,6 +46,7 @@ export type UpdateUserProfileBody = z.infer<typeof updateUserProfileBodySchema>;
 export type Username = z.infer<typeof usernameSchema>;
 
 // Grid types
+export type GridVisibility = z.infer<typeof gridVisibilitySchema>;
 export type GridSquare = z.infer<typeof gridSquareSchema>;
 export type GridGroup = z.infer<typeof gridGroupSchema>;
 export type GridData = z.infer<typeof gridDataSchema>;

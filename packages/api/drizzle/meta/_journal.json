@@ -43,6 +43,13 @@
       "when": 1774434914846,
       "tag": "0005_magical_la_nuit",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774433632682,
+      "tag": "0006_bent_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }

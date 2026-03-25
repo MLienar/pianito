@@ -29,8 +29,10 @@ function GridEditor() {
   const name = useGridEditorStore((s) => s.name);
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
+  const visibility = useGridEditorStore((s) => s.visibility);
   const data = useGridEditorStore((s) => s.data);
   const updateName = useGridEditorStore((s) => s.updateName);
+  const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
 
   const playback = useGridPlayback(data, tempo, loopCount);
@@ -137,6 +139,25 @@ function GridEditor() {
                 {name}
               </button>
             )}
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs font-bold">{t("accomp.visibility")}</span>
+            <button
+              type="button"
+              onClick={() =>
+                updateVisibility(
+                  visibility === "private" ? "public" : "private",
+                )
+              }
+              className={`border-2 border-border px-2 py-1 text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] ${
+                visibility === "public"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {t(`accomp.${visibility}`)}
+            </button>
           </div>
           <TourHelpButton onClick={startTour} />
         </div>
