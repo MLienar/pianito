@@ -1,0 +1,98 @@
+/* Shepherd.js neobrutalist overrides */
+
+.shepherd-element {
+  border: 3px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-card);
+  box-shadow: var(--shadow-brutal);
+  font-family: var(--font-sans);
+  max-width: 360px;
+  z-index: 9999;
+}
+
+.shepherd-arrow::before {
+  background: var(--color-card);
+  border: 3px solid var(--color-border);
+  border-radius: 0;
+}
+
+.shepherd-header {
+  background: var(--color-muted);
+  border-bottom: 3px solid var(--color-border);
+  padding: 12px 16px;
+  border-radius: 0;
+}
+
+.shepherd-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-foreground);
+}
+
+.shepherd-text {
+  padding: 16px;
+  font-size: 0.875rem;
+  color: var(--color-foreground);
+  line-height: 1.5;
+}
+
+.shepherd-cancel-icon {
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.shepherd-cancel-icon:hover {
+  color: var(--color-destructive);
+}
+
+.shepherd-button {
+  border: 3px solid var(--color-border);
+  border-radius: 0;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  padding: 6px 16px;
+  transition: all 0.15s;
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.shepherd-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-brutal-sm);
+}
+
+.shepherd-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.shepherd-button.shepherd-button-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+.shepherd-footer {
+  padding: 0 16px 16px;
+  border-top: none;
+}
+
+.shepherd-modal-overlay-container {
+  fill: rgba(0, 0, 0, 0.4);
+}
+
+.shepherd-has-title .shepherd-content .shepherd-cancel-icon {
+  color: var(--color-foreground);
+}
+
+.shepherd-element .shepherd-content {
+  border-radius: 0;
+}
+
+/* Progress indicator in footer */
+.shepherd-progress {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-muted-foreground);
+  font-family: var(--font-mono);
+}

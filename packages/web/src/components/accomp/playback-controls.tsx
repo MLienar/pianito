@@ -158,7 +158,7 @@ export function SettingsControls({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-1">
+      <div data-tour="instrument-toggles" className="flex items-center gap-1">
         <InstrumentToggle
           active={metronome}
           onClick={onMetronomeToggle}
@@ -191,7 +191,7 @@ export function SettingsControls({
         onStyleChange={onStyleChange}
       />
 
-      <div className="flex items-center gap-1.5">
+      <div data-tour="swing" className="flex items-center gap-1.5">
         <label className="text-xs font-bold" htmlFor="swing">
           {t("accomp.swing")}
         </label>
@@ -240,7 +240,7 @@ export function PlaybackControls({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-2">
+      <div data-tour="tempo" className="flex items-center gap-2">
         <label className="text-sm font-bold" htmlFor="tempo">
           {t("accomp.tempo")}
         </label>
@@ -258,7 +258,7 @@ export function PlaybackControls({
         <span className="text-xs text-muted-foreground">{t("accomp.bpm")}</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div data-tour="loops" className="flex items-center gap-2">
         <label className="text-sm font-bold" htmlFor="loops">
           {t("accomp.loopCount")}
         </label>
@@ -276,6 +276,7 @@ export function PlaybackControls({
 
       <button
         type="button"
+        data-tour="play-button"
         onClick={isPlaying ? onStop : onPlay}
         className={`border-3 border-border px-4 py-1.5 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none ${
           isPlaying
@@ -288,6 +289,7 @@ export function PlaybackControls({
 
       <button
         type="button"
+        data-tour="save-button"
         onClick={onSave}
         disabled={!isDirty || isSaving}
         className="border-3 border-border bg-primary px-4 py-1.5 font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
@@ -387,7 +389,7 @@ function StyleSelect({
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div data-tour="style-select" className="flex items-center gap-1.5">
       <span className="text-xs font-bold">{t("accomp.style")}</span>
       <div ref={containerRef} className="relative">
         <button

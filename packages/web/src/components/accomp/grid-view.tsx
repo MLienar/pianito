@@ -106,7 +106,10 @@ export function GridView({ playingIndex }: GridViewProps) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={squareIds} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-[repeat(8,1fr)] gap-2">
+        <div
+          data-tour="grid-container"
+          className="grid grid-cols-[repeat(8,1fr)] gap-2"
+        >
           {data.squares.map((square, globalIndex) => {
             if (!square) return null;
             const sepInfo = squareSeparatorInfo.get(globalIndex);
@@ -144,6 +147,7 @@ export function GridView({ playingIndex }: GridViewProps) {
           })}
           <button
             type="button"
+            data-tour="add-square"
             onClick={handleAddSquare}
             className="col-span-1 flex h-20 w-full items-center justify-center border-3 border-dashed border-border bg-background text-2xl text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-brutal)]"
           >

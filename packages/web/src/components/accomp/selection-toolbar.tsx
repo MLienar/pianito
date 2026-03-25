@@ -18,7 +18,10 @@ export function SelectionToolbar({
   const { t } = useTranslation();
 
   return (
-    <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 border-3 border-border bg-card px-5 py-3 shadow-[var(--shadow-brutal)]">
+    <div
+      data-tour="selection-toolbar"
+      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 border-3 border-border bg-card px-5 py-3 shadow-[var(--shadow-brutal)]"
+    >
       <span className="text-sm font-bold text-muted-foreground">
         {t("accomp.selectedCount", { count: selectionCount })}
       </span>

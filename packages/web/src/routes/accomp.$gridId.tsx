@@ -7,6 +7,8 @@ import {
   SettingsControls,
 } from "@/components/accomp/playback-controls";
 import { SelectionToolbar } from "@/components/accomp/selection-toolbar";
+import { TourHelpButton } from "@/components/accomp/tour/tour-help-button";
+import { useGridTour } from "@/components/accomp/tour/use-grid-tour";
 import { useGridEditor } from "@/hooks/use-grid-editor";
 import { useGridPlayback } from "@/hooks/use-grid-playback";
 import { useGridEditorStore } from "@/stores/grid-editor";
@@ -35,6 +37,8 @@ function GridEditor() {
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);
+
+  const { startTour } = useGridTour();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -111,27 +115,30 @@ function GridEditor() {
           >
             ←
           </Link>
-          {editingName ? (
-            <input
-              ref={nameInputRef}
-              type="text"
-              value={name}
-              onChange={(e) => updateName(e.target.value)}
-              onBlur={handleNameBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleNameBlur();
-              }}
-              className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setEditingName(true)}
-              className="text-2xl font-bold tracking-tight hover:text-primary"
-            >
-              {name}
-            </button>
-          )}
+          <div data-tour="grid-name" className="flex-1">
+            {editingName ? (
+              <input
+                ref={nameInputRef}
+                type="text"
+                value={name}
+                onChange={(e) => updateName(e.target.value)}
+                onBlur={handleNameBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleNameBlur();
+                }}
+                className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingName(true)}
+                className="text-2xl font-bold tracking-tight hover:text-primary"
+              >
+                {name}
+              </button>
+            )}
+          </div>
+          <TourHelpButton onClick={startTour} />
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
