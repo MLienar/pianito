@@ -128,12 +128,13 @@ let lastDuration = "1";
 
 function parseChordToken(token) {
 	// Duration is optional in LilyPond — inherited from previous note
+	// Slash chords: e.g. f2:dim7/c → Fdim7/C (bass note after /)
 	const match = token.match(
-		/^([a-g](?:es|is|eses|isis)?)(\d+\.?)?(?:\*(\d+))?(?::([a-z0-9.+\-]+))?$/,
+		/^([a-g](?:es|is|eses|isis)?)(\d+\.?)?(?:\*(\d+))?(?::([a-z0-9.+\-]+))?(?:\/([a-g](?:es|is)?))?$/,
 	);
 	if (!match) return null;
 
-	const [, lilyNote, duration, multiplier, quality] = match;
+	const [, lilyNote, duration, multiplier, quality, bassNote] = match;
 	if (!lilyNote) return null;
 
 	const root = LILY_NOTE_MAP[lilyNote];
@@ -147,7 +148,8 @@ function parseChordToken(token) {
 
 	const beats = parseLilyDuration(duration || lastDuration, multiplier);
 	const qualitySuffix = quality ? (LILY_QUALITY_MAP[quality] ?? quality) : "";
-	const symbol = `${root}${qualitySuffix}`;
+	const bassSuffix = bassNote && LILY_NOTE_MAP[bassNote] ? `/${LILY_NOTE_MAP[bassNote]}` : "";
+	const symbol = `${root}${qualitySuffix}${bassSuffix}`;
 
 	return { symbol, beats };
 }
