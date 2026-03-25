@@ -30,12 +30,34 @@ export function useGridEditor(gridId: string) {
   const saveMutation = useMutation({
     mutationFn: async () => {
       useGridEditorStore.getState().clampTempo();
-      const { name, tempo, loopCount, data } = useGridEditorStore.getState();
+      const {
+        name,
+        tempo,
+        loopCount,
+        data,
+        metronome,
+        style,
+        swing,
+        chordsEnabled,
+        bassEnabled,
+        drumsEnabled,
+      } = useGridEditorStore.getState();
       const res = await fetch(`/api/grids/${gridId}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, tempo, loopCount, data }),
+        body: JSON.stringify({
+          name,
+          tempo,
+          loopCount,
+          data,
+          metronome,
+          style,
+          swing,
+          chordsEnabled,
+          bassEnabled,
+          drumsEnabled,
+        }),
       });
       if (!res.ok) throw new Error("Failed to save grid");
       return res.json();

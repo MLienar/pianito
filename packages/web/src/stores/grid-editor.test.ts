@@ -19,6 +19,13 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
       squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
       groups: [{ squareCount: 4, repeatCount: 1 }],
     },
+    // Default playback settings
+    metronome: false,
+    style: null,
+    swing: 0,
+    chordsEnabled: true,
+    bassEnabled: true,
+    drumsEnabled: true,
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:00Z",
     ...overrides,

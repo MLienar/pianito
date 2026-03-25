@@ -4,8 +4,8 @@ import { Chord } from "tonal";
 import { playBassNote, stopBass } from "@/lib/bass-synth";
 import { startDrums, stopDrums } from "@/lib/drum-engine";
 import { playClick } from "@/lib/metronome";
-import type { StyleId } from "@/lib/styles";
 import { STYLES } from "@/lib/styles";
+import { useGridEditorStore } from "@/stores/grid-editor";
 import { useChordPlayer } from "./use-chord-player";
 
 const DEFAULT_BEATS_PER_SQUARE = 4;
@@ -63,12 +63,21 @@ export function useGridPlayback(
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  const [metronome, setMetronome] = useState(false);
-  const [style, setStyle] = useState<StyleId | null>(null);
-  const [swing, setSwing] = useState(0);
-  const [chordsEnabled, setChordsEnabled] = useState(true);
-  const [bassEnabled, setBassEnabled] = useState(true);
-  const [drumsEnabled, setDrumsEnabled] = useState(true);
+
+  // Use settings from the grid editor store
+  const metronome = useGridEditorStore((s) => s.metronome);
+  const style = useGridEditorStore((s) => s.style);
+  const swing = useGridEditorStore((s) => s.swing);
+  const chordsEnabled = useGridEditorStore((s) => s.chordsEnabled);
+  const bassEnabled = useGridEditorStore((s) => s.bassEnabled);
+  const drumsEnabled = useGridEditorStore((s) => s.drumsEnabled);
+
+  const updateMetronome = useGridEditorStore((s) => s.updateMetronome);
+  const updateStyle = useGridEditorStore((s) => s.updateStyle);
+  const updateSwing = useGridEditorStore((s) => s.updateSwing);
+  const updateChordsEnabled = useGridEditorStore((s) => s.updateChordsEnabled);
+  const updateBassEnabled = useGridEditorStore((s) => s.updateBassEnabled);
+  const updateDrumsEnabled = useGridEditorStore((s) => s.updateDrumsEnabled);
   const { playChord, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
@@ -104,10 +113,22 @@ export function useGridPlayback(
     setCurrentIndex(null);
   }, [clearScheduled, stopAll]);
 
-  const toggleMetronome = useCallback(() => setMetronome((v) => !v), []);
-  const toggleChords = useCallback(() => setChordsEnabled((v) => !v), []);
-  const toggleBass = useCallback(() => setBassEnabled((v) => !v), []);
-  const toggleDrums = useCallback(() => setDrumsEnabled((v) => !v), []);
+  const toggleMetronome = useCallback(
+    () => updateMetronome(!metronome),
+    [updateMetronome, metronome],
+  );
+  const toggleChords = useCallback(
+    () => updateChordsEnabled(!chordsEnabled),
+    [updateChordsEnabled, chordsEnabled],
+  );
+  const toggleBass = useCallback(
+    () => updateBassEnabled(!bassEnabled),
+    [updateBassEnabled, bassEnabled],
+  );
+  const toggleDrums = useCallback(
+    () => updateDrumsEnabled(!drumsEnabled),
+    [updateDrumsEnabled, drumsEnabled],
+  );
 
   const play = useCallback(async () => {
     await ensureReady();
@@ -249,9 +270,9 @@ export function useGridPlayback(
     drumsEnabled,
     toggleDrums,
     style,
-    selectStyle: setStyle,
+    selectStyle: updateStyle,
     swing,
-    setSwing,
+    setSwing: updateSwing,
     play,
     stop,
   };

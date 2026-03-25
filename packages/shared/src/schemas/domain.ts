@@ -32,3 +32,16 @@ export const clefSchema = z.enum(["treble", "bass"]);
 
 /** Parses a clef value, defaulting to "treble" for invalid/missing input. */
 export const defaultClefSchema = clefSchema.catch("treble");
+
+/**
+ * A musical style for grid playback.
+ * Defines the rhythm, bass patterns, and overall feel.
+ */
+export const styleSchema = z.enum([
+  "rock",
+  "pop",
+  "bossaNova",
+  "jazz",
+  "funk",
+  "reggae",
+]);

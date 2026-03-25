@@ -1,4 +1,4 @@
-import type { Grid, GridData, GridSquare } from "@pianito/shared";
+import type { Grid, GridData, GridSquare, StyleId } from "@pianito/shared";
 import { create } from "zustand";
 
 const EMPTY_SQUARE: GridSquare = { chord: null, nbBeats: 4 };
@@ -61,6 +61,13 @@ interface GridEditorState {
   tempo: number;
   loopCount: number;
   data: GridData;
+  // Playback settings
+  metronome: boolean;
+  style: StyleId | null;
+  swing: number;
+  chordsEnabled: boolean;
+  bassEnabled: boolean;
+  drumsEnabled: boolean;
   isDirty: boolean;
 }
 
@@ -71,6 +78,13 @@ interface GridEditorActions {
   updateTempo: (tempo: number) => void;
   clampTempo: () => void;
   updateLoopCount: (count: number) => void;
+  // Playback settings actions
+  updateMetronome: (metronome: boolean) => void;
+  updateStyle: (style: StyleId | null) => void;
+  updateSwing: (swing: number) => void;
+  updateChordsEnabled: (enabled: boolean) => void;
+  updateBassEnabled: (enabled: boolean) => void;
+  updateDrumsEnabled: (enabled: boolean) => void;
   setChord: (index: number, chord: string | null) => void;
   clearChord: (index: number) => void;
   setSquareBeats: (index: number, nbBeats: 2 | 4) => void;
@@ -93,6 +107,13 @@ const initialState: GridEditorState = {
   tempo: 90,
   loopCount: 1,
   data: DEFAULT_DATA,
+  // Playback settings with defaults
+  metronome: false,
+  style: null,
+  swing: 0,
+  chordsEnabled: true,
+  bassEnabled: true,
+  drumsEnabled: true,
   isDirty: false,
 };
 
@@ -106,6 +127,13 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       tempo: grid.tempo,
       loopCount: grid.loopCount,
       data: migrateGridData(grid.data as unknown as Record<string, unknown>),
+      // Initialize playback settings from server data
+      metronome: grid.metronome,
+      style: grid.style,
+      swing: grid.swing,
+      chordsEnabled: grid.chordsEnabled,
+      bassEnabled: grid.bassEnabled,
+      drumsEnabled: grid.drumsEnabled,
       isDirty: false,
     }),
 
@@ -120,6 +148,15 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   updateLoopCount: (count) =>
     set({ loopCount: Math.max(1, Math.min(50, count)), isDirty: true }),
+
+  // Playback settings actions
+  updateMetronome: (metronome) => set({ metronome, isDirty: true }),
+  updateStyle: (style) => set({ style, isDirty: true }),
+  updateSwing: (swing) =>
+    set({ swing: Math.max(0, Math.min(1, swing)), isDirty: true }),
+  updateChordsEnabled: (chordsEnabled) => set({ chordsEnabled, isDirty: true }),
+  updateBassEnabled: (bassEnabled) => set({ bassEnabled, isDirty: true }),
+  updateDrumsEnabled: (drumsEnabled) => set({ drumsEnabled, isDirty: true }),
 
   setChord: (index, chord) =>
     set((state) => {

@@ -1,5 +1,6 @@
 import {
   boolean,
+  decimal,
   integer,
   jsonb,
   pgTable,
@@ -112,6 +113,15 @@ export const grid = pgTable("grid", {
   tempo: integer("tempo").notNull().default(90),
   loopCount: integer("loop_count").notNull().default(1),
   data: jsonb("data").notNull(),
+  // Playback settings
+  metronome: boolean("metronome").notNull().default(false),
+  style: text("style").$type<
+    "rock" | "pop" | "bossaNova" | "jazz" | "funk" | "reggae"
+  >(),
+  swing: decimal("swing", { precision: 3, scale: 2 }).notNull().default("0.00"),
+  chordsEnabled: boolean("chords_enabled").notNull().default(true),
+  bassEnabled: boolean("bass_enabled").notNull().default(true),
+  drumsEnabled: boolean("drums_enabled").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

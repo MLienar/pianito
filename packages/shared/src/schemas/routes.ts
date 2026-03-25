@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { chordSchema, clefSchema, noteSchema } from "./domain.ts";
+import { chordSchema, clefSchema, noteSchema, styleSchema } from "./domain.ts";
 
 // ─── GET /api/exercises/notation ─────────────────────────────────────
 
@@ -98,6 +98,13 @@ export const gridSchema = z.object({
   tempo: z.number().int().min(30).max(300),
   loopCount: z.number().int().min(1).max(50),
   data: gridDataSchema,
+  // Playback settings
+  metronome: z.boolean().default(false),
+  style: styleSchema.nullable().default(null),
+  swing: z.number().min(0).max(1).default(0),
+  chordsEnabled: z.boolean().default(true),
+  bassEnabled: z.boolean().default(true),
+  drumsEnabled: z.boolean().default(true),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -117,6 +124,13 @@ export const createGridBodySchema = z.object({
     squares: [{ chord: null }],
     groups: [{ squareCount: 1, repeatCount: 1 }],
   }),
+  // Playback settings - all optional for creating
+  metronome: z.boolean().default(false),
+  style: styleSchema.nullable().default(null),
+  swing: z.number().min(0).max(1).default(0),
+  chordsEnabled: z.boolean().default(true),
+  bassEnabled: z.boolean().default(true),
+  drumsEnabled: z.boolean().default(true),
 });
 
 export const updateGridBodySchema = z
@@ -125,6 +139,13 @@ export const updateGridBodySchema = z
     tempo: z.number().int().min(30).max(300).optional(),
     loopCount: z.number().int().min(1).max(50).optional(),
     data: gridDataSchema.optional(),
+    // Playback settings - all optional for updating
+    metronome: z.boolean().optional(),
+    style: styleSchema.nullable().optional(),
+    swing: z.number().min(0).max(1).optional(),
+    chordsEnabled: z.boolean().optional(),
+    bassEnabled: z.boolean().optional(),
+    drumsEnabled: z.boolean().optional(),
   })
   .refine((obj) => Object.keys(obj).length > 0, {
     message: "At least one field is required",

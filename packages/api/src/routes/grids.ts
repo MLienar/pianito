@@ -64,6 +64,7 @@ export async function gridRoutes(app: FastifyInstance) {
       return {
         ...row,
         data: row.data as Grid["data"],
+        swing: Number(row.swing),
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       };
@@ -88,6 +89,12 @@ export async function gridRoutes(app: FastifyInstance) {
           tempo: body.tempo,
           loopCount: body.loopCount,
           data: body.data,
+          metronome: body.metronome,
+          style: body.style,
+          swing: body.swing.toString(),
+          chordsEnabled: body.chordsEnabled,
+          bassEnabled: body.bassEnabled,
+          drumsEnabled: body.drumsEnabled,
         })
         .returning();
 
@@ -98,6 +105,7 @@ export async function gridRoutes(app: FastifyInstance) {
       return reply.status(201).send({
         ...row,
         data: row.data as Grid["data"],
+        swing: Number(row.swing),
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       });
@@ -116,9 +124,28 @@ export async function gridRoutes(app: FastifyInstance) {
 
     const body = updateGridBodySchema.parse(request.body);
 
+    // Convert swing to string for database storage and handle other fields
+    const updateData: Record<string, unknown> = {
+      updatedAt: sql`now()`,
+    };
+
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.tempo !== undefined) updateData.tempo = body.tempo;
+    if (body.loopCount !== undefined) updateData.loopCount = body.loopCount;
+    if (body.data !== undefined) updateData.data = body.data;
+    if (body.metronome !== undefined) updateData.metronome = body.metronome;
+    if (body.style !== undefined) updateData.style = body.style;
+    if (body.swing !== undefined) updateData.swing = body.swing.toString();
+    if (body.chordsEnabled !== undefined)
+      updateData.chordsEnabled = body.chordsEnabled;
+    if (body.bassEnabled !== undefined)
+      updateData.bassEnabled = body.bassEnabled;
+    if (body.drumsEnabled !== undefined)
+      updateData.drumsEnabled = body.drumsEnabled;
+
     const rows = await db
       .update(grid)
-      .set({ ...body, updatedAt: sql`now()` })
+      .set(updateData)
       .where(and(eq(grid.id, request.params.id), eq(grid.userId, user.id)))
       .returning();
 
@@ -130,6 +157,7 @@ export async function gridRoutes(app: FastifyInstance) {
     return {
       ...row,
       data: row.data as Grid["data"],
+      swing: Number(row.swing),
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };
