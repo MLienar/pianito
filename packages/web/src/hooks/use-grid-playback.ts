@@ -61,6 +61,9 @@ export function useGridPlayback(
   const [metronome, setMetronome] = useState(false);
   const [style, setStyle] = useState<StyleId | null>(null);
   const [swing, setSwing] = useState(0);
+  const [chordsEnabled, setChordsEnabled] = useState(true);
+  const [bassEnabled, setBassEnabled] = useState(true);
+  const [drumsEnabled, setDrumsEnabled] = useState(true);
   const { playChord, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
@@ -70,6 +73,12 @@ export function useGridPlayback(
   styleRef.current = style;
   const swingRef = useRef(swing);
   swingRef.current = swing;
+  const chordsEnabledRef = useRef(chordsEnabled);
+  chordsEnabledRef.current = chordsEnabled;
+  const bassEnabledRef = useRef(bassEnabled);
+  bassEnabledRef.current = bassEnabled;
+  const drumsEnabledRef = useRef(drumsEnabled);
+  drumsEnabledRef.current = drumsEnabled;
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -90,9 +99,10 @@ export function useGridPlayback(
     setCurrentIndex(null);
   }, [clearScheduled, stopAll]);
 
-  const toggleMetronome = useCallback(() => {
-    setMetronome((v) => !v);
-  }, []);
+  const toggleMetronome = useCallback(() => setMetronome((v) => !v), []);
+  const toggleChords = useCallback(() => setChordsEnabled((v) => !v), []);
+  const toggleBass = useCallback(() => setBassEnabled((v) => !v), []);
+  const toggleDrums = useCallback(() => setDrumsEnabled((v) => !v), []);
 
   const play = useCallback(async () => {
     await ensureReady();
@@ -103,7 +113,7 @@ export function useGridPlayback(
       ? STYLES[styleRef.current]
       : null;
 
-    if (currentStyle) {
+    if (currentStyle && drumsEnabledRef.current) {
       startDrums(tempo, currentStyle.drums, swingRef.current);
     }
 
@@ -154,7 +164,7 @@ export function useGridPlayback(
 
         setCurrentIndex(sq.index);
         currentChord = sq.chord;
-        if (sq.chord) {
+        if (sq.chord && chordsEnabledRef.current) {
           playChord(sq.chord, squareDurationSec);
         }
       }
@@ -163,7 +173,7 @@ export function useGridPlayback(
         playClick(beatIndex);
       }
 
-      if (bassPattern && currentChord) {
+      if (bassPattern && currentChord && bassEnabledRef.current) {
         const chordData = Chord.get(currentChord);
         if (!chordData.empty && chordData.tonic) {
           const offset = bassPattern.notes[stepInSquare];
@@ -224,6 +234,12 @@ export function useGridPlayback(
     currentIndex,
     metronome,
     toggleMetronome,
+    chordsEnabled,
+    toggleChords,
+    bassEnabled,
+    toggleBass,
+    drumsEnabled,
+    toggleDrums,
     style,
     selectStyle: setStyle,
     swing,

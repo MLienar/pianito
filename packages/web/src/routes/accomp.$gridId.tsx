@@ -2,7 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GridView } from "@/components/accomp/grid-view";
-import { PlaybackControls } from "@/components/accomp/playback-controls";
+import {
+  PlaybackControls,
+  SettingsControls,
+} from "@/components/accomp/playback-controls";
 import { SelectionToolbar } from "@/components/accomp/selection-toolbar";
 import { useGridEditor } from "@/hooks/use-grid-editor";
 import { useGridPlayback } from "@/hooks/use-grid-playback";
@@ -84,49 +87,63 @@ function GridEditor() {
 
   return (
     <div className="flex flex-col gap-6 py-8">
-      <div className="flex items-center gap-4">
-        <Link
-          to="/accomp"
-          className="border-3 border-border bg-card px-3 py-1 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
-        >
-          ←
-        </Link>
-        {editingName ? (
-          <input
-            ref={nameInputRef}
-            type="text"
-            value={name}
-            onChange={(e) => updateName(e.target.value)}
-            onBlur={handleNameBlur}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleNameBlur();
-            }}
-            className="border-b-3 border-border bg-transparent text-3xl font-bold tracking-tight focus:outline-none"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setEditingName(true)}
-            className="text-3xl font-bold tracking-tight hover:text-primary"
+      <div className="-mx-4 border-3 border-border bg-card px-4 py-4 shadow-[var(--shadow-brutal-sm)] sm:-mx-6 sm:px-6">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/accomp"
+            className="border-3 border-border bg-background px-3 py-1 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
           >
-            {name}
-          </button>
-        )}
-      </div>
+            ←
+          </Link>
+          {editingName ? (
+            <input
+              ref={nameInputRef}
+              type="text"
+              value={name}
+              onChange={(e) => updateName(e.target.value)}
+              onBlur={handleNameBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNameBlur();
+              }}
+              className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditingName(true)}
+              className="text-2xl font-bold tracking-tight hover:text-primary"
+            >
+              {name}
+            </button>
+          )}
+        </div>
 
-      <PlaybackControls
-        isPlaying={playback.isPlaying}
-        isSaving={isSaving}
-        metronome={playback.metronome}
-        style={playback.style}
-        swing={playback.swing}
-        onMetronomeToggle={playback.toggleMetronome}
-        onStyleChange={playback.selectStyle}
-        onSwingChange={playback.setSwing}
-        onPlay={playback.play}
-        onStop={playback.stop}
-        onSave={save}
-      />
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <PlaybackControls
+            isPlaying={playback.isPlaying}
+            isSaving={isSaving}
+            onPlay={playback.play}
+            onStop={playback.stop}
+            onSave={save}
+          />
+
+          <SettingsControls
+            isPlaying={playback.isPlaying}
+            metronome={playback.metronome}
+            chordsEnabled={playback.chordsEnabled}
+            bassEnabled={playback.bassEnabled}
+            drumsEnabled={playback.drumsEnabled}
+            style={playback.style}
+            swing={playback.swing}
+            onMetronomeToggle={playback.toggleMetronome}
+            onChordsToggle={playback.toggleChords}
+            onBassToggle={playback.toggleBass}
+            onDrumsToggle={playback.toggleDrums}
+            onStyleChange={playback.selectStyle}
+            onSwingChange={playback.setSwing}
+          />
+        </div>
+      </div>
 
       <GridView playingIndex={playback.currentIndex} />
 

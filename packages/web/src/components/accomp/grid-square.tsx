@@ -10,6 +10,7 @@ interface GridSquareProps {
   totalSquares: number;
   onSetChord: (chord: string) => void;
   onClear: () => void;
+  groupColor?: string;
 }
 
 export function GridSquare({
@@ -19,6 +20,7 @@ export function GridSquare({
   totalSquares,
   onSetChord,
   onClear,
+  groupColor,
 }: GridSquareProps) {
   const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -51,11 +53,16 @@ export function GridSquare({
           isSelected
             ? "border-primary bg-primary/20 ring-2 ring-primary"
             : isPlaying
-              ? "border-border bg-primary text-primary-foreground shadow-[var(--shadow-brutal)]"
+              ? "bg-primary text-primary-foreground shadow-[var(--shadow-brutal)] border-border"
               : chord
-                ? "border-border bg-card hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
-                : "border-border bg-background text-muted-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)]"
+                ? "bg-card hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] border-border"
+                : "bg-background text-muted-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] border-border"
         }`}
+        style={
+          groupColor && !isSelected
+            ? { borderColor: groupColor }
+            : undefined
+        }
       >
         {chord ?? t("accomp.emptySquare")}
       </button>
