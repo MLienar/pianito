@@ -9,7 +9,10 @@ import {
   noteSchema,
   themeSchema,
   updatePreferenceBodySchema,
+  updateUserProfileBodySchema,
   userPreferenceSchema,
+  userProfileSchema,
+  usernameSchema,
 } from "./schemas/index.ts";
 
 describe("noteSchema", () => {
@@ -185,5 +188,75 @@ describe("updatePreferenceBodySchema", () => {
     if (result.success) {
       expect(result.data).not.toHaveProperty("foo");
     }
+  });
+});
+
+describe("usernameSchema", () => {
+  it.each(["user123", "test_user", "abc-def", "user", "a1b2c3"])(
+    "accepts valid username %s",
+    (username) => {
+      expect(usernameSchema.safeParse(username).success).toBe(true);
+    },
+  );
+
+  it.each(["ab", "a-very-long-username-that-exceeds-limit", "user@name", "user name", ""])(
+    "rejects invalid username %s",
+    (username) => {
+      expect(usernameSchema.safeParse(username).success).toBe(false);
+    },
+  );
+});
+
+describe("userProfileSchema", () => {
+  const validProfile = {
+    id: "123",
+    name: "John Doe",
+    email: "john@example.com",
+    username: "johndoe",
+    image: "https://example.com/avatar.jpg",
+    createdAt: "2023-01-01T00:00:00Z",
+    updatedAt: "2023-01-01T00:00:00Z",
+  };
+
+  it("accepts a complete valid profile", () => {
+    expect(userProfileSchema.safeParse(validProfile).success).toBe(true);
+  });
+
+  it("accepts profile with null username and image", () => {
+    const profileWithNulls = {
+      ...validProfile,
+      username: null,
+      image: null,
+    };
+    expect(userProfileSchema.safeParse(profileWithNulls).success).toBe(true);
+  });
+
+  it("rejects when required fields are missing", () => {
+    const { name, ...incompleteProfile } = validProfile;
+    expect(userProfileSchema.safeParse(incompleteProfile).success).toBe(false);
+  });
+});
+
+describe("updateUserProfileBodySchema", () => {
+  it("accepts valid username update", () => {
+    expect(
+      updateUserProfileBodySchema.safeParse({ username: "newuser" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts setting username to null", () => {
+    expect(
+      updateUserProfileBodySchema.safeParse({ username: null }).success,
+    ).toBe(true);
+  });
+
+  it("rejects an empty object", () => {
+    expect(updateUserProfileBodySchema.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects invalid username", () => {
+    expect(
+      updateUserProfileBodySchema.safeParse({ username: "ab" }).success,
+    ).toBe(false);
   });
 });
