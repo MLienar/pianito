@@ -1,12 +1,16 @@
-import * as Tone from "tone";
 import { Note } from "tonal";
+import * as Tone from "tone";
 
 let synth: Tone.MonoSynth | null = null;
 
 function getSynth(): Tone.MonoSynth {
   if (!synth) {
     synth = new Tone.MonoSynth({
-      oscillator: { type: "fmsawtooth", modulationType: "sine", modulationIndex: 0.8 },
+      oscillator: {
+        type: "fmsawtooth",
+        modulationType: "sine",
+        modulationIndex: 0.8,
+      },
       envelope: { attack: 0.03, decay: 0.4, sustain: 0.5, release: 0.2 },
       filterEnvelope: {
         attack: 0.01,

@@ -119,6 +119,8 @@ export default {
     splitGroup: "Split group at this line",
     selectedCount: "{{count}} selected",
     groupSelection: "Group",
+    clearChords: "Clear chords",
+    deleteSelection: "Delete",
     authRequired: "Account Required",
     authRequiredDescription:
       "Create an account to save and manage your chord grids.",

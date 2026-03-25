@@ -120,6 +120,8 @@ export default {
     splitGroup: "Séparer le groupe à cette ligne",
     selectedCount: "{{count}} sélectionné(s)",
     groupSelection: "Grouper",
+    clearChords: "Effacer les accords",
+    deleteSelection: "Supprimer",
     authRequired: "Compte requis",
     authRequiredDescription:
       "Créez un compte pour sauvegarder et gérer vos grilles d'accords.",

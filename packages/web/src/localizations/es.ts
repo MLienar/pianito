@@ -119,6 +119,8 @@ export default {
     splitGroup: "Separar el grupo en esta línea",
     selectedCount: "{{count}} seleccionado(s)",
     groupSelection: "Agrupar",
+    clearChords: "Borrar acordes",
+    deleteSelection: "Eliminar",
     authRequired: "Cuenta requerida",
     authRequiredDescription:
       "Crea una cuenta para guardar y gestionar tus tablas de acordes.",

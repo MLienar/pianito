@@ -109,9 +109,7 @@ export function useGridPlayback(
     isPlayingRef.current = true;
     setIsPlaying(true);
 
-    const currentStyle = styleRef.current
-      ? STYLES[styleRef.current]
-      : null;
+    const currentStyle = styleRef.current ? STYLES[styleRef.current] : null;
 
     if (currentStyle && drumsEnabledRef.current) {
       startDrums(tempo, currentStyle.drums, swingRef.current);

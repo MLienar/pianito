@@ -59,9 +59,7 @@ export function GridSquare({
                 : "bg-background text-muted-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] border-border"
         }`}
         style={
-          groupColor && !isSelected
-            ? { borderColor: groupColor }
-            : undefined
+          groupColor && !isSelected ? { borderColor: groupColor } : undefined
         }
       >
         {chord ?? t("accomp.emptySquare")}

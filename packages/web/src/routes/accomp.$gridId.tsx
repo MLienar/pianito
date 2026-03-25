@@ -66,6 +66,22 @@ function GridEditor() {
     clearSelection();
   }, [groupSquares, clearSelection]);
 
+  const clearChordsAction = useGridEditorStore((s) => s.clearChords);
+  const handleClearChords = useCallback(() => {
+    const { selected } = useSquareSelectionStore.getState();
+    if (selected.size === 0) return;
+    clearChordsAction(selected);
+    clearSelection();
+  }, [clearChordsAction, clearSelection]);
+
+  const removeSquares = useGridEditorStore((s) => s.removeSquares);
+  const handleDelete = useCallback(() => {
+    const { selected } = useSquareSelectionStore.getState();
+    if (selected.size === 0) return;
+    removeSquares(selected);
+    clearSelection();
+  }, [removeSquares, clearSelection]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-8 py-8">
@@ -151,6 +167,8 @@ function GridEditor() {
         <SelectionToolbar
           selectionCount={selectedSize}
           onGroup={handleGroup}
+          onClearChords={handleClearChords}
+          onDelete={handleDelete}
           onClearSelection={clearSelection}
         />
       )}

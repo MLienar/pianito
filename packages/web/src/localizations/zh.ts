@@ -117,6 +117,8 @@ export default {
     splitGroup: "在此行分割组",
     selectedCount: "已选择 {{count}} 个",
     groupSelection: "分组",
+    clearChords: "清除和弦",
+    deleteSelection: "删除",
     authRequired: "需要账户",
     authRequiredDescription: "创建账户以保存和管理你的和弦表。",
   },

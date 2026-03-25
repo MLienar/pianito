@@ -70,6 +70,8 @@ interface GridEditorActions {
   clearChord: (index: number) => void;
   addSquare: () => void;
   removeSquare: (index: number) => void;
+  clearChords: (indices: Set<number>) => void;
+  removeSquares: (indices: Set<number>) => void;
   reorderSquares: (fromIndex: number, toIndex: number) => void;
   updateGroupRepeatCount: (groupIndex: number, repeatCount: number) => void;
   splitGroup: (squareIndex: number) => void;
@@ -172,6 +174,48 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
           squares: state.data.squares.filter((_, i) => i !== index),
           groups: newGroups,
         },
+        isDirty: true,
+      };
+    }),
+
+  clearChords: (indices) =>
+    set((state) => {
+      if (indices.size === 0) return state;
+      return {
+        data: {
+          ...state.data,
+          squares: state.data.squares.map((sq, i) =>
+            indices.has(i) ? { chord: null } : sq,
+          ),
+        },
+        isDirty: true,
+      };
+    }),
+
+  removeSquares: (indices) =>
+    set((state) => {
+      if (indices.size === 0) return state;
+      const remaining = state.data.squares.length - indices.size;
+      if (remaining < 1) return state;
+
+      const newSquares = state.data.squares.filter((_, i) => !indices.has(i));
+      const newGroups: GridData["groups"] = [];
+      let offset = 0;
+      for (const group of state.data.groups) {
+        let kept = 0;
+        for (let i = 0; i < group.squareCount; i++) {
+          if (!indices.has(offset + i)) kept++;
+        }
+        offset += group.squareCount;
+        if (kept > 0) {
+          newGroups.push({ squareCount: kept, repeatCount: group.repeatCount });
+        }
+      }
+
+      if (newGroups.length === 0) return state;
+
+      return {
+        data: { squares: newSquares, groups: newGroups },
         isDirty: true,
       };
     }),

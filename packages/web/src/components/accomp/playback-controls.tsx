@@ -406,14 +406,15 @@ function StyleSelect({
         </button>
 
         {open && (
-          <ul
+          <div
             role="listbox"
             className="absolute top-full left-0 z-50 mt-1 min-w-full border-3 border-border bg-background shadow-[var(--shadow-brutal)]"
           >
             {options.map((option, i) => (
-              <li
+              <div
                 key={option.value ?? "off"}
                 role="option"
+                tabIndex={0}
                 aria-selected={option.value === style}
                 onMouseDown={() => select(option.value)}
                 onMouseEnter={() => setFocusedIndex(i)}
@@ -426,9 +427,9 @@ function StyleSelect({
                 }`}
               >
                 {option.label}
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

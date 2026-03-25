@@ -16,8 +16,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useCallback, useMemo } from "react";
 import { useGridEditorStore } from "@/stores/grid-editor";
-import { getGroupColor } from "./group-colors";
 import { GridSquare } from "./grid-square";
+import { getGroupColor } from "./group-colors";
 
 interface GridViewProps {
   playingIndex: number | null;
@@ -171,7 +171,13 @@ function SortableSquareWrapper({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="relative"
+    >
       <GridSquare
         chord={chord}
         isPlaying={isPlaying}
