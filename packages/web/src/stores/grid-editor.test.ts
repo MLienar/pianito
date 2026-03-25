@@ -15,6 +15,7 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     name: "Test Grid",
     tempo: 120,
     loopCount: 2,
+    visibility: "private",
     data: {
       squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
       groups: [{ squareCount: 4, repeatCount: 1 }],
@@ -208,13 +209,16 @@ describe("clearChord", () => {
 });
 
 describe("addSquare", () => {
-  it("adds an empty square to the last group", () => {
+  it("adds an empty square as a new group", () => {
     store().initialize(makeGrid());
     store().addSquare();
 
     expect(store().data.squares).toHaveLength(5);
     expect(store().data.squares[4]?.chord).toBeNull();
-    expect(store().data.groups[0]?.squareCount).toBe(5);
+    expect(store().data.groups).toHaveLength(2);
+    expect(store().data.groups[0]?.squareCount).toBe(4);
+    expect(store().data.groups[1]?.squareCount).toBe(1);
+    expect(store().data.groups[1]?.repeatCount).toBe(1);
     expect(store().isDirty).toBe(true);
   });
 });

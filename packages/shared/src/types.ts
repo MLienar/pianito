@@ -14,12 +14,16 @@ import type {
   gridSchema,
   gridSquareSchema,
   gridSummarySchema,
+  gridVisibilitySchema,
   notationExerciseSchema,
   notationQuerySchema,
   noteSchema,
   updateGridBodySchema,
   updatePreferenceBodySchema,
+  updateUserProfileBodySchema,
+  usernameSchema,
   userPreferenceSchema,
+  userProfileSchema,
 } from "./schemas/index.ts";
 
 // Domain types
@@ -37,8 +41,12 @@ export type CompleteResponse = z.infer<typeof completeResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
 export type UserPreference = z.infer<typeof userPreferenceSchema>;
 export type UpdatePreferenceBody = z.infer<typeof updatePreferenceBodySchema>;
+export type UserProfile = z.infer<typeof userProfileSchema>;
+export type UpdateUserProfileBody = z.infer<typeof updateUserProfileBodySchema>;
+export type Username = z.infer<typeof usernameSchema>;
 
 // Grid types
+export type GridVisibility = z.infer<typeof gridVisibilitySchema>;
 export type GridSquare = z.infer<typeof gridSquareSchema>;
 export type GridGroup = z.infer<typeof gridGroupSchema>;
 export type GridData = z.infer<typeof gridDataSchema>;

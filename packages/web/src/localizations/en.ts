@@ -124,6 +124,78 @@ export default {
     authRequired: "Account Required",
     authRequiredDescription:
       "Create an account to save and manage your chord grids.",
+    visibility: "Visibility",
+    private: "Private",
+    public: "Public",
+    publicGrids: "Public Grids",
+    publicGridsDescription: "Browse and play grids shared by other users.",
+    noPublicGrids: "No public grids yet.",
+  },
+  tour: {
+    helpButton: "Tour",
+    back: "Back",
+    next: "Next",
+    done: "Done",
+    gridName: {
+      title: "Grid Name",
+      text: "Click the name to rename your chord progression.",
+    },
+    gridOverview: {
+      title: "The Grid",
+      text: "This is your chord grid. Each square represents a chord in your progression. Drag squares to reorder them.",
+    },
+    gridSquare: {
+      title: "Chord Squares",
+      text: "Click any square to open the chord search and assign a chord.",
+    },
+    chordSearch: {
+      title: "Chord Search",
+      text: "Type to search through chords. Press Enter to select the first match, or click any chord in the list.",
+    },
+    resizeHandle: {
+      title: "Beat Count",
+      text: "Drag the right edge of a square to change its beat count between 2 and 4 beats.",
+    },
+    addSquare: {
+      title: "Add Squares",
+      text: "Click the + button to add a new square to your grid.",
+    },
+    multiSelect: {
+      title: "Multi-Select",
+      text: "Hold Ctrl (or Cmd on Mac) and click to select multiple squares. Use Shift+Click to select a range.",
+    },
+    selectionToolbar: {
+      title: "Selection Actions",
+      text: "When squares are selected, use this toolbar to group them, clear their chords, or delete them.",
+    },
+    playButton: {
+      title: "Playback",
+      text: "Press Play to hear your chord progression. Press Stop to pause.",
+    },
+    tempo: {
+      title: "Tempo",
+      text: "Set the playback speed in beats per minute (30-300 BPM).",
+    },
+    loops: {
+      title: "Loops",
+      text: "Set how many times the grid repeats during playback.",
+    },
+    instruments: {
+      title: "Instruments",
+      text: "Toggle which instruments play: metronome, chords, bass, and drums.",
+    },
+    styleSelect: {
+      title: "Musical Style",
+      text: "Choose a musical style like Rock, Jazz, or Bossa Nova to change the accompaniment pattern.",
+    },
+    swing: {
+      title: "Swing",
+      text: "Adjust the swing feel from straight (0%) to full swing (100%).",
+    },
+    saveButton: {
+      title: "Save",
+      text: "Save your grid. The button is enabled when you have unsaved changes.",
+    },
   },
   settings: {
     title: "Settings",

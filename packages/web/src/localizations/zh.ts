@@ -121,6 +121,78 @@ export default {
     deleteSelection: "删除",
     authRequired: "需要账户",
     authRequiredDescription: "创建账户以保存和管理你的和弦表。",
+    visibility: "可见性",
+    private: "私有",
+    public: "公开",
+    publicGrids: "公开表格",
+    publicGridsDescription: "浏览和播放其他用户分享的表格。",
+    noPublicGrids: "暂无公开表格。",
+  },
+  tour: {
+    helpButton: "导览",
+    back: "上一步",
+    next: "下一步",
+    done: "完成",
+    gridName: {
+      title: "网格名称",
+      text: "点击名称来重命名你的和弦进行。",
+    },
+    gridOverview: {
+      title: "网格",
+      text: "这是你的和弦网格。每个格子代表一个和弦。拖动格子可以重新排序。",
+    },
+    gridSquare: {
+      title: "和弦格子",
+      text: "点击任意格子打开和弦搜索并分配一个和弦。",
+    },
+    chordSearch: {
+      title: "和弦搜索",
+      text: "输入以搜索和弦。按 Enter 选择第一个匹配项，或点击列表中的任意和弦。",
+    },
+    resizeHandle: {
+      title: "拍数",
+      text: "拖动格子右边缘可以在 2 拍和 4 拍之间切换。",
+    },
+    addSquare: {
+      title: "添加格子",
+      text: "点击 + 按钮向网格中添加新格子。",
+    },
+    multiSelect: {
+      title: "多选",
+      text: "按住 Ctrl（Mac 上为 Cmd）并点击可选择多个格子。使用 Shift+点击选择一个范围。",
+    },
+    selectionToolbar: {
+      title: "选择操作",
+      text: "选中格子后，使用此工具栏来分组、清除和弦或删除它们。",
+    },
+    playButton: {
+      title: "播放",
+      text: "按下播放来聆听你的和弦进行。按下停止来暂停。",
+    },
+    tempo: {
+      title: "速度",
+      text: "设置每分钟拍数来调节播放速度（30-300 BPM）。",
+    },
+    loops: {
+      title: "循环",
+      text: "设置播放时网格重复的次数。",
+    },
+    instruments: {
+      title: "乐器",
+      text: "切换演奏的乐器：节拍器、和弦、贝斯和鼓。",
+    },
+    styleSelect: {
+      title: "音乐风格",
+      text: "选择摇滚、爵士或波萨诺瓦等音乐风格来改变伴奏模式。",
+    },
+    swing: {
+      title: "摇摆",
+      text: "调整摇摆感，从直拍（0%）到完全摇摆（100%）。",
+    },
+    saveButton: {
+      title: "保存",
+      text: "保存你的网格。有未保存的更改时按钮会激活。",
+    },
   },
   settings: {
     title: "设置",

@@ -124,6 +124,79 @@ export default {
     authRequired: "Cuenta requerida",
     authRequiredDescription:
       "Crea una cuenta para guardar y gestionar tus tablas de acordes.",
+    visibility: "Visibilidad",
+    private: "Privado",
+    public: "Público",
+    publicGrids: "Tablas públicas",
+    publicGridsDescription:
+      "Navega y toca tablas compartidas por otros usuarios.",
+    noPublicGrids: "No hay tablas públicas aún.",
+  },
+  tour: {
+    helpButton: "Tour",
+    back: "Atrás",
+    next: "Siguiente",
+    done: "Listo",
+    gridName: {
+      title: "Nombre de la cuadrícula",
+      text: "Haz clic en el nombre para renombrar tu progresión de acordes.",
+    },
+    gridOverview: {
+      title: "La cuadrícula",
+      text: "Esta es tu cuadrícula de acordes. Cada casilla representa un acorde. Arrastra las casillas para reordenarlas.",
+    },
+    gridSquare: {
+      title: "Casillas de acordes",
+      text: "Haz clic en cualquier casilla para abrir la búsqueda y asignar un acorde.",
+    },
+    chordSearch: {
+      title: "Búsqueda de acordes",
+      text: "Escribe para buscar acordes. Presiona Enter para seleccionar el primero, o haz clic en cualquier acorde de la lista.",
+    },
+    resizeHandle: {
+      title: "Número de tiempos",
+      text: "Arrastra el borde derecho de una casilla para cambiar su número de tiempos entre 2 y 4.",
+    },
+    addSquare: {
+      title: "Añadir casillas",
+      text: "Haz clic en el botón + para añadir una nueva casilla a tu cuadrícula.",
+    },
+    multiSelect: {
+      title: "Selección múltiple",
+      text: "Mantén Ctrl (o Cmd en Mac) y haz clic para seleccionar varias casillas. Usa Shift+Clic para seleccionar un rango.",
+    },
+    selectionToolbar: {
+      title: "Acciones de selección",
+      text: "Cuando hay casillas seleccionadas, usa esta barra para agruparlas, borrar sus acordes o eliminarlas.",
+    },
+    playButton: {
+      title: "Reproducción",
+      text: "Presiona Reproducir para escuchar tu progresión. Presiona Detener para pausar.",
+    },
+    tempo: {
+      title: "Tempo",
+      text: "Ajusta la velocidad de reproducción en pulsaciones por minuto (30-300 BPM).",
+    },
+    loops: {
+      title: "Bucles",
+      text: "Define cuántas veces se repite la cuadrícula durante la reproducción.",
+    },
+    instruments: {
+      title: "Instrumentos",
+      text: "Activa o desactiva los instrumentos: metrónomo, acordes, bajo y batería.",
+    },
+    styleSelect: {
+      title: "Estilo musical",
+      text: "Elige un estilo como Rock, Jazz o Bossa Nova para cambiar el patrón de acompañamiento.",
+    },
+    swing: {
+      title: "Swing",
+      text: "Ajusta el swing desde recto (0%) hasta swing completo (100%).",
+    },
+    saveButton: {
+      title: "Guardar",
+      text: "Guarda tu cuadrícula. El botón se activa cuando tienes cambios sin guardar.",
+    },
   },
   settings: {
     title: "Ajustes",

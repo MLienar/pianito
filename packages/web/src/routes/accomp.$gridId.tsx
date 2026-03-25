@@ -7,6 +7,8 @@ import {
   SettingsControls,
 } from "@/components/accomp/playback-controls";
 import { SelectionToolbar } from "@/components/accomp/selection-toolbar";
+import { TourHelpButton } from "@/components/accomp/tour/tour-help-button";
+import { useGridTour } from "@/components/accomp/tour/use-grid-tour";
 import { useGridEditor } from "@/hooks/use-grid-editor";
 import { useGridPlayback } from "@/hooks/use-grid-playback";
 import { useGridEditorStore } from "@/stores/grid-editor";
@@ -27,14 +29,18 @@ function GridEditor() {
   const name = useGridEditorStore((s) => s.name);
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
+  const visibility = useGridEditorStore((s) => s.visibility);
   const data = useGridEditorStore((s) => s.data);
   const updateName = useGridEditorStore((s) => s.updateName);
+  const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
 
   const playback = useGridPlayback(data, tempo, loopCount);
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);
+
+  const { startTour } = useGridTour();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -111,27 +117,49 @@ function GridEditor() {
           >
             ←
           </Link>
-          {editingName ? (
-            <input
-              ref={nameInputRef}
-              type="text"
-              value={name}
-              onChange={(e) => updateName(e.target.value)}
-              onBlur={handleNameBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleNameBlur();
-              }}
-              className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
-            />
-          ) : (
+          <div data-tour="grid-name" className="flex-1">
+            {editingName ? (
+              <input
+                ref={nameInputRef}
+                type="text"
+                value={name}
+                onChange={(e) => updateName(e.target.value)}
+                onBlur={handleNameBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleNameBlur();
+                }}
+                className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingName(true)}
+                className="text-2xl font-bold tracking-tight hover:text-primary"
+              >
+                {name}
+              </button>
+            )}
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs font-bold">{t("accomp.visibility")}</span>
             <button
               type="button"
-              onClick={() => setEditingName(true)}
-              className="text-2xl font-bold tracking-tight hover:text-primary"
+              onClick={() =>
+                updateVisibility(
+                  visibility === "private" ? "public" : "private",
+                )
+              }
+              className={`border-2 border-border px-2 py-1 text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] ${
+                visibility === "public"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
             >
-              {name}
+              {t(`accomp.${visibility}`)}
             </button>
-          )}
+          </div>
+          <TourHelpButton onClick={startTour} />
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

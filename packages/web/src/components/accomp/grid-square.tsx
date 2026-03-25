@@ -115,7 +115,10 @@ export function GridSquare({
   }, []);
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      {...(index === 0 ? { "data-tour": "grid-square" } : {})}
+    >
       <button
         type="button"
         onClick={handleClick}
@@ -138,6 +141,7 @@ export function GridSquare({
         onPointerDown={handleResizePointerDown}
         onPointerMove={handleResizePointerMove}
         onPointerUp={handleResizePointerUp}
+        {...(index === 0 ? { "data-tour": "resize-handle" } : {})}
         className="absolute top-0 right-0 bottom-0 z-10 w-2 cursor-col-resize opacity-0 hover:opacity-100 hover:bg-primary/30 transition-opacity"
       />
       <ChordSearch
