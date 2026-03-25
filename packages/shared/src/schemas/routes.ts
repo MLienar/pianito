@@ -68,6 +68,35 @@ export const updatePreferenceBodySchema = z
     message: "At least one preference field is required",
   });
 
+// ─── User Profile ────────────────────────────────────────────────────
+
+export const usernameSchema = z
+  .string()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be at most 30 characters")
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Username can only contain letters, numbers, underscores, and hyphens",
+  );
+
+export const userProfileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  username: z.string().nullable(),
+  image: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const updateUserProfileBodySchema = z
+  .object({
+    username: usernameSchema.nullable().optional(),
+  })
+  .refine((obj) => Object.keys(obj).length > 0, {
+    message: "At least one field is required",
+  });
+
 // ─── Shared error response ───────────────────────────────────────────
 
 export const errorResponseSchema = z.object({

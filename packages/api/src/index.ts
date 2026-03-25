@@ -11,6 +11,7 @@ import { gridRoutes } from "./routes/grids.js";
 import { healthRoutes } from "./routes/health.js";
 import { notationRoutes } from "./routes/notation.js";
 import { preferenceRoutes } from "./routes/preferences.js";
+import { profileRoutes } from "./routes/profile.js";
 
 const app = Fastify({ logger: true });
 
@@ -53,6 +54,7 @@ await app.register(gridRoutes);
 await app.register(healthRoutes);
 await app.register(notationRoutes);
 await app.register(preferenceRoutes);
+await app.register(profileRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 

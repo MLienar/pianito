@@ -19,7 +19,10 @@ import type {
   noteSchema,
   updateGridBodySchema,
   updatePreferenceBodySchema,
+  updateUserProfileBodySchema,
+  usernameSchema,
   userPreferenceSchema,
+  userProfileSchema,
 } from "./schemas/index.ts";
 
 // Domain types
@@ -37,6 +40,9 @@ export type CompleteResponse = z.infer<typeof completeResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
 export type UserPreference = z.infer<typeof userPreferenceSchema>;
 export type UpdatePreferenceBody = z.infer<typeof updatePreferenceBodySchema>;
+export type UserProfile = z.infer<typeof userProfileSchema>;
+export type UpdateUserProfileBody = z.infer<typeof updateUserProfileBodySchema>;
+export type Username = z.infer<typeof usernameSchema>;
 
 // Grid types
 export type GridSquare = z.infer<typeof gridSquareSchema>;
