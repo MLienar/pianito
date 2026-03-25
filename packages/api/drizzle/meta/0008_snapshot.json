@@ -1,5 +1,5 @@
 {
-  "id": "cf9218d2-8364-444f-9c22-8d1bee8b4443",
+  "id": "9af9aca4-57c6-4c2c-9a4c-a595c3da783c",
   "prevId": "e06e6f27-04a0-4675-8130-b6850771dfde",
   "version": "7",
   "dialect": "postgresql",
@@ -495,15 +495,12 @@
           "primaryKey": false,
           "notNull": false
         },
-<<<<<<< HEAD
         "username": {
           "name": "username",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-=======
->>>>>>> ba672e4 (feat: add grid visibility (public/private) feature)
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -527,14 +524,11 @@
           "name": "user_email_unique",
           "nullsNotDistinct": false,
           "columns": ["email"]
-<<<<<<< HEAD
         },
         "user_username_unique": {
           "name": "user_username_unique",
           "nullsNotDistinct": false,
           "columns": ["username"]
-=======
->>>>>>> ba672e4 (feat: add grid visibility (public/private) feature)
         }
       },
       "policies": {},

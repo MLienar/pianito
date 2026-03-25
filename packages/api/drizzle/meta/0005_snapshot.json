@@ -488,15 +488,12 @@
           "primaryKey": false,
           "notNull": false
         },
-<<<<<<< HEAD
         "username": {
           "name": "username",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-=======
->>>>>>> ba672e4 (feat: add grid visibility (public/private) feature)
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -520,14 +517,11 @@
           "name": "user_email_unique",
           "nullsNotDistinct": false,
           "columns": ["email"]
-<<<<<<< HEAD
         },
         "user_username_unique": {
           "name": "user_username_unique",
           "nullsNotDistinct": false,
           "columns": ["username"]
-=======
->>>>>>> ba672e4 (feat: add grid visibility (public/private) feature)
         }
       },
       "policies": {},
