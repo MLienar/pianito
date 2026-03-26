@@ -1,6 +1,7 @@
 import {
   CLEF_SYMBOLS,
   COLORS,
+  getKeySignatureGlyphs,
   LINE_SPACING,
   NOTE_RADIUS,
   STAFF_TOP,
@@ -10,10 +11,14 @@ import {
 export function StaffLines({
   width,
   clef,
+  keySignature = [],
 }: {
   width: number;
   clef: "treble" | "bass";
+  keySignature?: string[];
 }) {
+  const keySigGlyphs = getKeySignatureGlyphs(keySignature, clef);
+
   return (
     <>
       {Array.from({ length: 5 }, (_, i) => (
@@ -40,6 +45,19 @@ export function StaffLines({
       >
         {CLEF_SYMBOLS[clef]}
       </text>
+      {keySigGlyphs.map((glyph, i) => (
+        <text
+          key={i}
+          x={glyph.x}
+          y={glyph.y + 5}
+          fontSize={20}
+          fontFamily="serif"
+          fill={COLORS.foreground}
+          textAnchor="middle"
+        >
+          {glyph.symbol}
+        </text>
+      ))}
     </>
   );
 }

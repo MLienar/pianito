@@ -6,7 +6,7 @@ import { playBassNote, stopBass } from "@/lib/bass-synth";
 import { startDrums, stopDrums } from "@/lib/drum-engine";
 import { toTimeSignatureKey } from "@/lib/drum-patterns";
 import { playClick } from "@/lib/metronome";
-import type { Style, StyleId } from "@/lib/styles";
+import type { BassPreset, PianoPreset, Style, StyleId } from "@/lib/styles";
 import { STYLES } from "@/lib/styles";
 import { useChordPlayer } from "./use-chord-player";
 
@@ -26,10 +26,11 @@ function flattenGrid(
 ): PlaybackSquare[] {
   const result: PlaybackSquare[] = [];
   const { squares, groups } = gridData;
+  const groupByStart = new Map(groups.map((g) => [g.start, g]));
   let i = 0;
 
   while (i < squares.length) {
-    const group = groups.find((g) => g.start === i);
+    const group = groupByStart.get(i);
     if (group) {
       const ts = group.timeSignature ?? gridTimeSignature;
       const groupSquares = squares.slice(
@@ -101,7 +102,7 @@ export function useGridPlayback(
   const [bassEnabled, setBassEnabled] = useState(true);
   const [drumsEnabled, setDrumsEnabled] = useState(true);
   const [isLoopingSelection, setIsLoopingSelection] = useState(false);
-  const { playChord, stopAll, ensureReady } = useChordPlayer();
+  const { playChord, playNotesHit, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
   const metronomeRef = useRef(metronome);
@@ -149,13 +150,13 @@ export function useGridPlayback(
   const toggleDrums = useCallback(() => setDrumsEnabled((v) => !v), []);
 
   const play = useCallback(async () => {
-    await ensureReady();
-    isPlayingRef.current = true;
-    setIsPlaying(true);
-
     const currentStyle: Style | null = styleRef.current
       ? STYLES[styleRef.current]
       : null;
+    const pianoPreset: PianoPreset = currentStyle?.pianoPreset ?? "grand";
+    await ensureReady(pianoPreset);
+    isPlayingRef.current = true;
+    setIsPlaying(true);
     const tsKey = toTimeSignatureKey(
       timeSignatureRef.current.numerator,
       timeSignatureRef.current.denominator,
@@ -169,11 +170,16 @@ export function useGridPlayback(
     const beatDurationMs = (60 / tempo) * 1000;
 
     const bassPattern = currentStyle?.bass[tsKey] ?? null;
+    const pianoPattern = currentStyle?.piano[tsKey] ?? null;
+    const bassPreset: BassPreset = currentStyle?.bassPreset ?? "fingered";
     const subdivision =
-      bassPattern?.subdivision ?? drumPattern?.subdivision ?? "16n";
+      pianoPattern?.subdivision ??
+      bassPattern?.subdivision ??
+      drumPattern?.subdivision ??
+      "16n";
     const stepsPerBeat = subdivision === "8t" ? 3 : 4;
     const subdivisionMs = beatDurationMs / stepsPerBeat;
-    const needsSubdivisionTicks = !!bassPattern;
+    const needsSubdivisionTicks = !!bassPattern || !!pianoPattern;
 
     let cachedData = dataRef.current;
     let allSquares = flattenGrid(
@@ -187,6 +193,7 @@ export function useGridPlayback(
     let totalSteps = 0;
     let currentChord: string | null = null;
     let currentChordData: ReturnType<typeof Chord.get> | null = null;
+    let currentChordNotes: string[] | null = null;
     let currentStepsPerSquare = stepsPerBeat * DEFAULT_BEATS_PER_SQUARE;
     const startTime = performance.now();
 
@@ -229,8 +236,14 @@ export function useGridPlayback(
         setCurrentIndex(sq.index);
         currentChord = sq.chord;
         currentChordData = currentChord ? Chord.get(currentChord) : null;
-        if (sq.chord && chordsEnabledRef.current) {
-          playChord(sq.chord, squareDurationSec);
+        currentChordNotes =
+          currentChordData && !currentChordData.empty
+            ? currentChordData.notes.map((note, i) =>
+                i === 0 ? `${note}3` : `${note}4`,
+              )
+            : null;
+        if (sq.chord && chordsEnabledRef.current && !pianoPattern) {
+          playChord(sq.chord, squareDurationSec, pianoPreset);
         }
       }
 
@@ -240,12 +253,27 @@ export function useGridPlayback(
         playClick(beatIndex, ts.numerator, ts.denominator);
       }
 
+      if (pianoPattern && currentChordNotes && chordsEnabledRef.current) {
+        const hitIdx = stepInSquare % pianoPattern.hits.length;
+        const velocity = pianoPattern.hits[hitIdx];
+        if (velocity !== null && velocity !== undefined) {
+          const hitDuration = (subdivisionMs * 2) / 1000;
+          playNotesHit(currentChordNotes, velocity, hitDuration, pianoPreset);
+        }
+      }
+
       if (bassPattern && currentChordData && bassEnabledRef.current) {
         if (!currentChordData.empty && currentChordData.tonic) {
           const noteIdx = stepInSquare % bassPattern.notes.length;
-          const offset = bassPattern.notes[noteIdx];
-          if (offset !== null && offset !== undefined) {
-            playBassNote(currentChordData.tonic, offset, subdivision);
+          const note = bassPattern.notes[noteIdx];
+          if (note !== null && note !== undefined) {
+            playBassNote(
+              currentChordData.tonic,
+              note.offset,
+              subdivision,
+              note.velocity,
+              bassPreset,
+            );
           }
         }
       }
@@ -287,10 +315,11 @@ export function useGridPlayback(
     };
 
     playNext();
-  }, [tempo, loopCount, ensureReady, playChord, stop]);
+  }, [tempo, loopCount, ensureReady, playChord, playNotesHit, stop]);
 
   const playSelectionLoop = useCallback(async () => {
     if (!selectedSquares || selectedSquares.size === 0) return;
+    isLoopingSelectionRef.current = true;
     setIsLoopingSelection(true);
     await play();
   }, [selectedSquares, play]);

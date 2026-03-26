@@ -15,9 +15,11 @@ const PADDING = 30;
 function NoteVariantsStaff({
   variants,
   clef,
+  keySignature = [],
 }: {
   variants: string[];
   clef: Clef;
+  keySignature?: string[];
 }) {
   const svgWidth = CLEF_WIDTH + variants.length * NOTE_GAP + PADDING;
 
@@ -29,7 +31,7 @@ function NoteVariantsStaff({
       role="img"
       aria-label="Staff showing note variants"
     >
-      <StaffLines width={svgWidth} clef={clef} />
+      <StaffLines width={svgWidth} clef={clef} keySignature={keySignature} />
 
       {variants.map((noteStr, i) => {
         const x = CLEF_WIDTH + i * NOTE_GAP + NOTE_GAP / 2;
@@ -92,7 +94,11 @@ export function ExerciseIntroModal({
         </div>
 
         <div className="border-3 border-border bg-background p-4">
-          <NoteVariantsStaff variants={variants} clef={clef} />
+          <NoteVariantsStaff
+            variants={variants}
+            clef={clef}
+            keySignature={level.keySignature}
+          />
           <p className="text-center text-sm text-muted-foreground mt-2">
             {t("intro.thisIsA")}
             <span className="text-xl font-bold text-foreground">

@@ -141,6 +141,7 @@ function ReadExercise() {
       <StaffRenderer
         notes={exercise.notes}
         clef={exercise.clef}
+        keySignature={exercise.keySignature}
         scrollOffset={scrollOffset}
         currentIndex={currentIndex}
         answers={answers}

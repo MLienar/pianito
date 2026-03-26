@@ -19,20 +19,25 @@ export function startDrums(
 
   sequence = new Tone.Sequence(
     (time, step) => {
-      if (pattern.kick[step]) {
-        kit.kick.triggerAttackRelease("C1", "8n", time);
+      const kickVel = pattern.kick[step];
+      if (kickVel !== null && kickVel !== undefined) {
+        kit.kick.triggerAttackRelease("C1", "8n", time, kickVel);
       }
-      if (pattern.snare[step]) {
-        kit.snare.triggerAttackRelease("8n", time);
+      const snareVel = pattern.snare[step];
+      if (snareVel !== null && snareVel !== undefined) {
+        kit.snare.triggerAttackRelease("8n", time, snareVel);
       }
-      if (pattern.hihat[step]) {
-        kit.hihat.triggerAttackRelease("C4", "32n", time);
+      const hihatVel = pattern.hihat[step];
+      if (hihatVel !== null && hihatVel !== undefined) {
+        kit.hihat.triggerAttackRelease("C4", "32n", time, hihatVel);
       }
-      if (pattern.ride?.[step]) {
-        kit.ride.triggerAttackRelease("8n", time);
+      const rideVel = pattern.ride?.[step];
+      if (rideVel !== null && rideVel !== undefined) {
+        kit.ride.triggerAttackRelease("8n", time, rideVel);
       }
-      if (pattern.shaker?.[step]) {
-        kit.shaker.triggerAttackRelease("32n", time);
+      const shakerVel = pattern.shaker?.[step];
+      if (shakerVel !== null && shakerVel !== undefined) {
+        kit.shaker.triggerAttackRelease("32n", time, shakerVel);
       }
     },
     [...Array(pattern.kick.length).keys()],

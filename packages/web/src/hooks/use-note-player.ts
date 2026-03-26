@@ -1,13 +1,12 @@
 import { useCallback } from "react";
-import { ensureSampler, getSampler } from "@/lib/sampler";
+import { ensureKeyboard } from "@/lib/piano-synths";
 
 export function useNotePlayer() {
-  const ensureReady = useCallback(() => ensureSampler(), []);
+  const ensureReady = useCallback(() => ensureKeyboard("grand"), []);
 
   const playNote = useCallback(async (note: string, tempo: number) => {
-    await ensureSampler();
-    const beatDuration = 60 / tempo;
-    getSampler()?.triggerAttackRelease(note, beatDuration);
+    const instrument = await ensureKeyboard("grand");
+    instrument.triggerAttackRelease(note, 60 / tempo);
   }, []);
 
   return { playNote, ensureReady };

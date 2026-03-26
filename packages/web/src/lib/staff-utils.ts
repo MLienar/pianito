@@ -28,6 +28,67 @@ export const CLEF_SYMBOLS: Record<"treble" | "bass", string> = {
   bass: "\u{1D122}",
 };
 
+// ─── Key signature rendering positions ──────────────────────────────
+// Steps from bottom staff line (E4 treble, G2 bass) for each accidental.
+// Positive = above bottom line, negative = below.
+
+// Sharps appear in order: F, C, G, D, A, E, B
+// Treble clef positions (steps from bottom line, where bottom line = E4)
+const SHARP_STEPS_TREBLE = [4, 1, 5, 2, -1, 3, 0]; // F5, C5, G5, D5, A4, E5, B4
+// Bass clef positions (steps from bottom line, where bottom line = G2)
+const SHARP_STEPS_BASS = [4, 1, 5, 2, -1, 3, 0]; // same pattern, transposed
+
+// Flats appear in order: B, E, A, D, G, C, F
+const FLAT_STEPS_TREBLE = [0, 3, -1, 2, -2, 1, -3]; // B4, E5, A4, D5, G4, C5, F4
+const FLAT_STEPS_BASS = [0, 3, -1, 2, -2, 1, -3]; // same pattern
+
+const SHARP_ORDER = ["F#", "C#", "G#", "D#", "A#", "E#", "B#"];
+const FLAT_ORDER = ["Bb", "Eb", "Ab", "Db", "Gb", "Cb", "Fb"];
+
+export interface KeySignatureGlyph {
+  symbol: string;
+  y: number;
+  x: number;
+}
+
+export function getKeySignatureGlyphs(
+  keySignature: string[],
+  clef: "treble" | "bass",
+): KeySignatureGlyph[] {
+  if (keySignature.length === 0) return [];
+
+  const bottomLineY = STAFF_TOP + 4 * LINE_SPACING;
+  const halfStep = LINE_SPACING / 2;
+  const baseX = 60; // after clef symbol
+  const spacing = 16;
+
+  const isFlat = keySignature[0]?.includes("b") ?? false;
+
+  if (isFlat) {
+    const steps = clef === "treble" ? FLAT_STEPS_TREBLE : FLAT_STEPS_BASS;
+    return keySignature.map((acc, i) => {
+      const orderIndex = FLAT_ORDER.indexOf(acc);
+      const step = steps[orderIndex >= 0 ? orderIndex : i] ?? 0;
+      return {
+        symbol: "\u266D", // ♭
+        y: bottomLineY - step * halfStep,
+        x: baseX + i * spacing,
+      };
+    });
+  }
+
+  const steps = clef === "treble" ? SHARP_STEPS_TREBLE : SHARP_STEPS_BASS;
+  return keySignature.map((acc, i) => {
+    const orderIndex = SHARP_ORDER.indexOf(acc);
+    const step = steps[orderIndex >= 0 ? orderIndex : i] ?? 0;
+    return {
+      symbol: "\u266F", // ♯
+      y: bottomLineY - step * halfStep,
+      x: baseX + i * spacing,
+    };
+  });
+}
+
 export interface ParsedNote {
   y: number;
   letter: string;

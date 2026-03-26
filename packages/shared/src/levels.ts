@@ -6,6 +6,7 @@ export interface ExerciseLevel {
   clef: "treble" | "bass";
   notes: string[];
   newNotes: string[];
+  keySignature: string[];
   count: number;
   tempo: number;
 }
@@ -14,27 +15,13 @@ export interface LevelGroup {
   name: string;
   clef: "treble" | "bass";
   newNotes: string[];
+  keySignature: string[];
   levels: number[];
 }
 
 // ─── Note constants ─────────────────────────────────────────────────
 
 export const NATURAL_NOTES = ["C", "D", "E", "F", "G", "A", "B"] as const;
-
-const ALL_CHROMATIC = [
-  "C",
-  "C#",
-  "D",
-  "Eb",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "Ab",
-  "A",
-  "Bb",
-  "B",
-];
 
 // ─── Curriculum definition ──────────────────────────────────────────
 // Each block defines:
@@ -46,6 +33,7 @@ interface BlockDef {
   clef: "treble" | "bass";
   notes: string[];
   newNotes: string[];
+  keySignature: string[];
   steps: [count: number, tempo: number][];
 }
 
@@ -56,6 +44,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: ["C", "D", "E"],
     newNotes: ["C", "D", "E"],
+    keySignature: [],
     steps: [
       [8, 45],
       [10, 48],
@@ -67,6 +56,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: ["C", "D", "E", "F", "G"],
     newNotes: ["F", "G"],
+    keySignature: [],
     steps: [
       [10, 45],
       [12, 48],
@@ -79,6 +69,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: [...NATURAL_NOTES],
     newNotes: ["A", "B"],
+    keySignature: [],
     steps: [
       [10, 48],
       [12, 50],
@@ -93,6 +84,7 @@ const BLOCKS: BlockDef[] = [
     clef: "bass",
     notes: ["C", "D", "E"],
     newNotes: ["C", "D", "E"],
+    keySignature: [],
     steps: [
       [8, 42],
       [10, 45],
@@ -104,6 +96,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [14, 52],
       [16, 55],
@@ -116,6 +109,7 @@ const BLOCKS: BlockDef[] = [
     clef: "bass",
     notes: ["C", "D", "E", "F", "G", "A"],
     newNotes: ["F", "G", "A"],
+    keySignature: [],
     steps: [
       [10, 42],
       [12, 45],
@@ -128,6 +122,7 @@ const BLOCKS: BlockDef[] = [
     clef: "bass",
     notes: [...NATURAL_NOTES],
     newNotes: ["B"],
+    keySignature: [],
     steps: [
       [10, 45],
       [12, 48],
@@ -142,6 +137,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [14, 52],
       [16, 55],
@@ -153,6 +149,7 @@ const BLOCKS: BlockDef[] = [
     clef: "bass",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [14, 48],
       [16, 50],
@@ -164,6 +161,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [18, 60],
       [20, 63],
@@ -175,6 +173,7 @@ const BLOCKS: BlockDef[] = [
     clef: "bass",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [18, 55],
       [20, 58],
@@ -188,6 +187,7 @@ const BLOCKS: BlockDef[] = [
     clef: "treble",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [14, 50],
       [16, 52],
@@ -200,6 +200,7 @@ const BLOCKS: BlockDef[] = [
     clef: "bass",
     notes: [...NATURAL_NOTES],
     newNotes: [],
+    keySignature: [],
     steps: [
       [14, 50],
       [16, 52],
@@ -208,12 +209,14 @@ const BLOCKS: BlockDef[] = [
     ],
   },
 
-  // ── Stage 5: Accidentals — One at a Time (49–76) ─────────────────
+  // ── Stage 5: Key Signatures — One at a Time (49–76) ──────────────
+  // Key of G major (1 sharp: F#)
   {
-    name: "First Sharp — F#",
+    name: "Key of G — Treble",
     clef: "treble",
-    notes: ["C", "D", "E", "F", "F#", "G", "A", "B"],
+    notes: ["C", "D", "E", "F#", "G", "A", "B"],
     newNotes: ["F#"],
+    keySignature: ["F#"],
     steps: [
       [10, 45],
       [12, 48],
@@ -222,10 +225,11 @@ const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    name: "F# — Bass Clef",
+    name: "Key of G — Bass",
     clef: "bass",
-    notes: ["C", "D", "E", "F", "F#", "G", "A", "B"],
+    notes: ["C", "D", "E", "F#", "G", "A", "B"],
     newNotes: ["F#"],
+    keySignature: ["F#"],
     steps: [
       [10, 45],
       [12, 48],
@@ -233,11 +237,13 @@ const BLOCKS: BlockDef[] = [
       [16, 52],
     ],
   },
+  // Key of F major (1 flat: Bb)
   {
-    name: "First Flat — Bb",
+    name: "Key of F — Treble",
     clef: "treble",
-    notes: ["C", "D", "E", "F", "F#", "G", "A", "Bb", "B"],
+    notes: ["C", "D", "E", "F", "G", "A", "Bb"],
     newNotes: ["Bb"],
+    keySignature: ["Bb"],
     steps: [
       [10, 45],
       [12, 48],
@@ -246,32 +252,37 @@ const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    name: "Bb — Bass Clef",
+    name: "Key of F — Bass",
     clef: "bass",
-    notes: ["C", "D", "E", "F", "F#", "G", "A", "Bb", "B"],
+    notes: ["C", "D", "E", "F", "G", "A", "Bb"],
     newNotes: ["Bb"],
+    keySignature: ["Bb"],
     steps: [
       [10, 45],
       [12, 48],
       [14, 50],
     ],
   },
+  // Key of D major (2 sharps: F#, C#)
   {
-    name: "C# — Both Clefs",
+    name: "Key of D — Treble",
     clef: "treble",
-    notes: ["C", "C#", "D", "E", "F", "F#", "G", "A", "Bb", "B"],
+    notes: ["C#", "D", "E", "F#", "G", "A", "B"],
     newNotes: ["C#"],
+    keySignature: ["F#", "C#"],
     steps: [
       [12, 48],
       [14, 50],
       [16, 52],
     ],
   },
+  // Key of Bb major (2 flats: Bb, Eb)
   {
-    name: "Eb — Both Clefs",
+    name: "Key of Bb — Bass",
     clef: "bass",
-    notes: ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "A", "Bb", "B"],
+    notes: ["C", "D", "Eb", "F", "G", "A", "Bb"],
     newNotes: ["Eb"],
+    keySignature: ["Bb", "Eb"],
     steps: [
       [12, 48],
       [14, 50],
@@ -279,56 +290,66 @@ const BLOCKS: BlockDef[] = [
     ],
   },
 
-  // ── Stage 6: Combined Accidentals (77–90) ─────────────────────────
+  // ── Stage 6: More Key Signatures (77–90) ──────────────────────────
+  // Key of A major (3 sharps: F#, C#, G#)
   {
-    name: "G# — Treble",
+    name: "Key of A — Treble",
     clef: "treble",
-    notes: ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+    notes: ["A", "B", "C#", "D", "E", "F#", "G#"],
     newNotes: ["G#"],
+    keySignature: ["F#", "C#", "G#"],
     steps: [
       [12, 48],
       [14, 50],
       [16, 52],
     ],
   },
+  // Key of Eb major (3 flats: Bb, Eb, Ab)
   {
-    name: "Ab — Bass",
+    name: "Key of Eb — Bass",
     clef: "bass",
-    notes: [...ALL_CHROMATIC],
+    notes: ["C", "D", "Eb", "F", "G", "Ab", "Bb"],
     newNotes: ["Ab"],
+    keySignature: ["Bb", "Eb", "Ab"],
     steps: [
       [12, 48],
       [14, 50],
       [16, 52],
     ],
   },
+  // Practice: sharp keys
   {
-    name: "Sharps Mix",
+    name: "Sharps Review",
     clef: "treble",
-    notes: ["C", "C#", "D", "E", "F", "F#", "G", "G#", "A", "B"],
+    notes: ["C#", "D", "E", "F#", "G", "G#", "A", "B"],
     newNotes: [],
+    keySignature: ["F#", "C#", "G#"],
     steps: [
       [16, 52],
       [18, 55],
       [20, 58],
     ],
   },
+  // Practice: flat keys
   {
-    name: "Flats Mix",
+    name: "Flats Review",
     clef: "bass",
-    notes: ["C", "D", "Eb", "E", "F", "G", "Ab", "A", "Bb", "B"],
+    notes: ["C", "D", "Eb", "F", "G", "Ab", "Bb"],
     newNotes: [],
+    keySignature: ["Bb", "Eb", "Ab"],
     steps: [
       [16, 52],
       [18, 55],
       [20, 58],
     ],
   },
+  // Key of E major (4 sharps: F#, C#, G#, D#)
   {
-    name: "All Accidentals",
+    name: "Key of E — Treble",
     clef: "treble",
-    notes: [...ALL_CHROMATIC],
-    newNotes: [],
+    notes: ["E", "F#", "G#", "A", "B", "C#", "D#"],
+    newNotes: ["D#"],
+    keySignature: ["F#", "C#", "G#", "D#"],
     steps: [
       [16, 52],
       [18, 55],
@@ -338,10 +359,11 @@ const BLOCKS: BlockDef[] = [
 
   // ── Stage 7: Mastery (91–100) ─────────────────────────────────────
   {
-    name: "Full Range — Treble",
+    name: "Key of G — Mastery",
     clef: "treble",
-    notes: [...ALL_CHROMATIC],
+    notes: ["C", "D", "E", "F#", "G", "A", "B"],
     newNotes: [],
+    keySignature: ["F#"],
     steps: [
       [20, 58],
       [22, 62],
@@ -349,10 +371,11 @@ const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    name: "Full Range — Bass",
+    name: "Key of F — Mastery",
     clef: "bass",
-    notes: [...ALL_CHROMATIC],
+    notes: ["C", "D", "E", "F", "G", "A", "Bb"],
     newNotes: [],
+    keySignature: ["Bb"],
     steps: [
       [20, 58],
       [22, 62],
@@ -362,8 +385,9 @@ const BLOCKS: BlockDef[] = [
   {
     name: "Mastery",
     clef: "treble",
-    notes: [...ALL_CHROMATIC],
+    notes: ["A", "B", "C#", "D", "E", "F#", "G#"],
     newNotes: [],
+    keySignature: ["F#", "C#", "G#"],
     steps: [
       [25, 65],
       [25, 68],
@@ -387,6 +411,7 @@ function buildLevels(): ExerciseLevel[] {
         clef: block.clef,
         notes: block.notes,
         newNotes: block.newNotes,
+        keySignature: block.keySignature,
         count,
         tempo,
       });
@@ -414,6 +439,7 @@ function buildGroups(): LevelGroup[] {
       name: block.name,
       clef: block.clef,
       newNotes: block.newNotes,
+      keySignature: block.keySignature,
       levels,
     });
     i += block.steps.length;

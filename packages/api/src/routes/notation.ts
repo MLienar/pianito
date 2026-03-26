@@ -115,6 +115,7 @@ export async function notationRoutes(app: FastifyInstance) {
       tempo: params.tempo,
       notes,
       allowedNotes,
+      keySignature: exerciseLevel?.keySignature ?? [],
     };
   });
 }
