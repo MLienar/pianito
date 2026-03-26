@@ -82,6 +82,7 @@ export default {
     tempo: "速度",
     bpm: "BPM",
     loopCount: "循环次数",
+    currentLoop: "{{current}}/{{total}}",
     metronome: "节拍器",
     chords: "和弦",
     bass: "贝斯",

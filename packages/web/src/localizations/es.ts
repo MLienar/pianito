@@ -83,6 +83,7 @@ export default {
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Bucles",
+    currentLoop: "{{current}}/{{total}}",
     metronome: "Metrónomo",
     chords: "Acordes",
     bass: "Bajo",

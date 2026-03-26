@@ -240,6 +240,7 @@ function GridEditor() {
             isPlaying={playback.isPlaying}
             isSaving={isSaving}
             readOnly={readOnly}
+            currentLoop={playback.currentLoop}
             onPlay={playback.play}
             onStop={playback.stop}
             onSave={save}

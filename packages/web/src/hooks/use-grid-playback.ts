@@ -95,6 +95,7 @@ export function useGridPlayback(
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  const [currentLoop, setCurrentLoop] = useState(0);
   const [metronome, setMetronome] = useState(false);
   const [style, setStyle] = useState<StyleId | null>(null);
   const [swing, setSwing] = useState(0);
@@ -141,6 +142,7 @@ export function useGridPlayback(
     stopBass();
     setIsPlaying(false);
     setCurrentIndex(null);
+    setCurrentLoop(0);
     setIsLoopingSelection(false);
   }, [clearScheduled, stopAll]);
 
@@ -187,7 +189,8 @@ export function useGridPlayback(
       timeSignatureRef.current,
       isLoopingSelectionRef.current ? selectedSquaresRef.current : undefined,
     );
-    let currentLoop = 0;
+    let loopIdx = 0;
+    setCurrentLoop(1);
     let squareIdx = 0;
     let stepInSquare = 0;
     let totalSteps = 0;
@@ -219,11 +222,12 @@ export function useGridPlayback(
         }
 
         if (squareIdx >= allSquares.length) {
-          currentLoop++;
-          if (!isLoopingSelectionRef.current && currentLoop >= loopCount) {
+          loopIdx++;
+          if (!isLoopingSelectionRef.current && loopIdx >= loopCount) {
             stop();
             return;
           }
+          setCurrentLoop(loopIdx + 1);
           squareIdx = 0;
         }
 
@@ -333,6 +337,7 @@ export function useGridPlayback(
   return {
     isPlaying,
     currentIndex,
+    currentLoop,
     metronome,
     toggleMetronome,
     chordsEnabled,
