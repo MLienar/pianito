@@ -47,16 +47,25 @@ export const useSquareSelectionStore = create<SquareSelectionStore>(
       }
 
       const { anchor } = get();
-      if (shiftKey && anchor !== null) {
-        const start = Math.min(anchor, index);
-        const end = Math.max(anchor, index);
+      if (shiftKey) {
+        if (anchor !== null) {
+          // Range selection when anchor exists
+          const start = Math.min(anchor, index);
+          const end = Math.max(anchor, index);
 
-        const next = new Set<number>();
-        for (let i = start; i <= end && i < totalSquares; i++) {
-          next.add(i);
+          const next = new Set<number>();
+          for (let i = start; i <= end && i < totalSquares; i++) {
+            next.add(i);
+          }
+          set({ selected: next });
+          return true;
+        } else {
+          // Treat shift+click like cmd+click when no anchor exists
+          const next = new Set<number>();
+          next.add(index);
+          set({ selected: next, anchor: index });
+          return true;
         }
-        set({ selected: next });
-        return true;
       }
 
       return false;
