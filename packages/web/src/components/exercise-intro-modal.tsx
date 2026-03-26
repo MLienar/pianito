@@ -1,5 +1,5 @@
 import type { Clef, ExerciseLevel } from "@pianito/shared";
-import { getNewNotes, getNoteVariants } from "@pianito/shared";
+import { getNoteVariants } from "@pianito/shared";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/button";
@@ -65,7 +65,7 @@ export function ExerciseIntroModal({
 }: ExerciseIntroModalProps) {
   const { t } = useTranslation();
   const formatNote = useNoteFormatter();
-  const newNotes = getNewNotes(level.level);
+  const newNotes = level.newNotes;
   const [page, setPage] = useState(0);
 
   const currentNote = newNotes[page];

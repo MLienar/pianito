@@ -55,6 +55,11 @@ export default {
     instructions:
       "Pulsa cualquier botón de nota para empezar. Identifica cada nota cuando llegue a la zona naranja. También puedes usar tu teclado (C, D, E, F, G, A, B).",
     notesAndTempo: "{{notes}} notas · {{tempo}} bpm",
+    newNotes: "Nuevo: {{notes}}",
+    clef: {
+      treble: "Sol",
+      bass: "Fa",
+    },
   },
   intro: {
     thisIsA: "Esto es un ",

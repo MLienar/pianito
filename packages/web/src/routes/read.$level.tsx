@@ -1,5 +1,4 @@
-import type { Clef } from "@pianito/shared";
-import { defaultClefSchema, EXERCISE_LEVELS } from "@pianito/shared";
+import { EXERCISE_LEVELS } from "@pianito/shared";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,27 +12,13 @@ import { useNotationExercise } from "@/hooks/use-notation-exercise";
 
 export const Route = createFileRoute("/read/$level")({
   component: ReadExercise,
-  validateSearch: (search: Record<string, unknown>): { clef: Clef } => ({
-    clef: defaultClefSchema.parse(search.clef),
-  }),
 });
 
 function ReadExercise() {
   const { t } = useTranslation();
   const { level: levelParam } = Route.useParams();
-  const { clef } = Route.useSearch();
   const level = Number(levelParam);
   const navigate = useNavigate();
-
-  const introKey = `intro-dismissed-${clef}-${level}`;
-  const [showIntro, setShowIntro] = useState(
-    () => !localStorage.getItem(introKey),
-  );
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: introKey is derived from level+clef
-  useEffect(() => {
-    setShowIntro(!localStorage.getItem(introKey));
-  }, [level, clef]);
 
   const {
     exercise,
@@ -50,7 +35,18 @@ function ReadExercise() {
     isLastLevel,
     handleAnswer,
     retry,
-  } = useNotationExercise(level, clef);
+  } = useNotationExercise(level);
+
+  const clef = currentLevel.clef;
+  const introKey = `intro-dismissed-${clef}-${level}`;
+  const [showIntro, setShowIntro] = useState(
+    () => !localStorage.getItem(introKey),
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: introKey is derived from level+clef
+  useEffect(() => {
+    setShowIntro(!localStorage.getItem(introKey));
+  }, [level]);
 
   if (isLoading) {
     return (
@@ -75,7 +71,11 @@ function ReadExercise() {
 
   if (!exercise) return null;
 
-  if (showIntro && exerciseState === "idle") {
+  if (
+    showIntro &&
+    exerciseState === "idle" &&
+    currentLevel.newNotes.length > 0
+  ) {
     return (
       <ExerciseIntroModal
         level={currentLevel}
@@ -95,7 +95,6 @@ function ReadExercise() {
         <div>
           <Link
             to="/read"
-            search={{ clef }}
             className="text-muted-foreground hover:text-foreground"
           >
             &larr; {t("read.levels")}
@@ -126,7 +125,6 @@ function ReadExercise() {
                       navigate({
                         to: "/read/$level",
                         params: { level: String(level + 1) },
-                        search: { clef },
                       })
                     }
                   >

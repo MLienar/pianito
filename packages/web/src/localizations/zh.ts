@@ -54,6 +54,11 @@ export default {
     instructions:
       "按任意音符按钮开始。当音符到达橙色区域时识别它。你也可以使用键盘（C、D、E、F、G、A、B）。",
     notesAndTempo: "{{notes}} 个音符 · {{tempo}} bpm",
+    newNotes: "新增：{{notes}}",
+    clef: {
+      treble: "高音",
+      bass: "低音",
+    },
   },
   intro: {
     thisIsA: "这是一个 ",
