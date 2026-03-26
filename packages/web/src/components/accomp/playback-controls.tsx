@@ -221,6 +221,7 @@ export function SettingsControls({
 interface PlaybackProps {
   isPlaying: boolean;
   isSaving: boolean;
+  currentLoop: number;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
@@ -229,6 +230,7 @@ interface PlaybackProps {
 export function PlaybackControls({
   isPlaying,
   isSaving,
+  currentLoop,
   onPlay,
   onStop,
   onSave,
@@ -283,6 +285,14 @@ export function PlaybackControls({
           disabled={isPlaying}
           className="w-16 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
+        {isPlaying && (
+          <span className="border-2 border-border bg-accent px-2 py-1 font-mono text-xs font-bold text-accent-foreground">
+            {t("accomp.currentLoop", {
+              current: currentLoop + 1,
+              total: loopCount,
+            })}
+          </span>
+        )}
       </div>
 
       <button

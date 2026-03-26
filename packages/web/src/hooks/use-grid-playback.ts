@@ -89,6 +89,7 @@ export function useGridPlayback(
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  const [currentLoop, setCurrentLoop] = useState(0);
   const [metronome, setMetronome] = useState(false);
   const [style, setStyle] = useState<StyleId | null>(null);
   const [swing, setSwing] = useState(0);
@@ -130,6 +131,7 @@ export function useGridPlayback(
     stopBass();
     setIsPlaying(false);
     setCurrentIndex(null);
+    setCurrentLoop(0);
   }, [clearScheduled, stopAll]);
 
   const toggleMetronome = useCallback(() => setMetronome((v) => !v), []);
@@ -141,6 +143,7 @@ export function useGridPlayback(
     await ensureReady();
     isPlayingRef.current = true;
     setIsPlaying(true);
+    setCurrentLoop(0);
 
     const currentStyle: Style | null = styleRef.current
       ? STYLES[styleRef.current]
@@ -192,6 +195,7 @@ export function useGridPlayback(
 
         if (squareIdx >= allSquares.length) {
           currentLoop++;
+          setCurrentLoop(currentLoop);
           if (currentLoop >= loopCount) {
             stop();
             return;
@@ -278,6 +282,7 @@ export function useGridPlayback(
   return {
     isPlaying,
     currentIndex,
+    currentLoop,
     metronome,
     toggleMetronome,
     chordsEnabled,

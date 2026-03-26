@@ -198,6 +198,7 @@ function GridEditor() {
           <PlaybackControls
             isPlaying={playback.isPlaying}
             isSaving={isSaving}
+            currentLoop={playback.currentLoop}
             onPlay={playback.play}
             onStop={playback.stop}
             onSave={save}
