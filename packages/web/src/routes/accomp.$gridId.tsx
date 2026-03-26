@@ -238,6 +238,8 @@ function GridEditor() {
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <PlaybackControls
             isPlaying={playback.isPlaying}
+            isCountingDown={playback.isCountingDown}
+            countdownNumber={playback.countdownNumber}
             isSaving={isSaving}
             readOnly={readOnly}
             onPlay={playback.play}

@@ -220,6 +220,8 @@ export function SettingsControls({
 
 interface PlaybackProps {
   isPlaying: boolean;
+  isCountingDown: boolean;
+  countdownNumber: number | null;
   isSaving: boolean;
   readOnly?: boolean;
   onPlay: () => void;
@@ -229,6 +231,8 @@ interface PlaybackProps {
 
 export function PlaybackControls({
   isPlaying,
+  isCountingDown,
+  countdownNumber,
   isSaving,
   readOnly,
   onPlay,
@@ -290,14 +294,21 @@ export function PlaybackControls({
       <button
         type="button"
         data-tour="play-button"
-        onClick={isPlaying ? onStop : onPlay}
-        className={`border-3 border-border px-4 py-1.5 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none ${
+        onClick={isPlaying || isCountingDown ? onStop : onPlay}
+        disabled={isCountingDown}
+        className={`border-3 border-border px-4 py-1.5 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:shadow-none ${
           isPlaying
             ? "bg-destructive text-destructive-foreground"
-            : "bg-accent text-accent-foreground"
+            : isCountingDown
+              ? "bg-muted text-muted-foreground"
+              : "bg-accent text-accent-foreground"
         }`}
       >
-        {isPlaying ? t("accomp.stop") : t("accomp.play")}
+        {isCountingDown
+          ? countdownNumber
+          : isPlaying
+            ? t("accomp.stop")
+            : t("accomp.play")}
       </button>
 
       {!readOnly && (

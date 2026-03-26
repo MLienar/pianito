@@ -94,6 +94,8 @@ export function useGridPlayback(
   selectedSquares?: Set<number>,
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isCountingDown, setIsCountingDown] = useState(false);
+  const [countdownNumber, setCountdownNumber] = useState<number | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [metronome, setMetronome] = useState(false);
   const [style, setStyle] = useState<StyleId | null>(null);
@@ -104,7 +106,11 @@ export function useGridPlayback(
   const [isLoopingSelection, setIsLoopingSelection] = useState(false);
   const { playChord, playNotesHit, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const isPlayingRef = useRef(false);
+  const isCountingDownRef = useRef(false);
   const metronomeRef = useRef(metronome);
   metronomeRef.current = metronome;
   const styleRef = useRef(style);
@@ -131,15 +137,22 @@ export function useGridPlayback(
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+    if (countdownTimeoutRef.current !== null) {
+      clearTimeout(countdownTimeoutRef.current);
+      countdownTimeoutRef.current = null;
+    }
   }, []);
 
   const stop = useCallback(() => {
     isPlayingRef.current = false;
+    isCountingDownRef.current = false;
     clearScheduled();
     stopAll();
     stopDrums();
     stopBass();
     setIsPlaying(false);
+    setIsCountingDown(false);
+    setCountdownNumber(null);
     setCurrentIndex(null);
     setIsLoopingSelection(false);
   }, [clearScheduled, stopAll]);
@@ -149,7 +162,43 @@ export function useGridPlayback(
   const toggleBass = useCallback(() => setBassEnabled((v) => !v), []);
   const toggleDrums = useCallback(() => setDrumsEnabled((v) => !v), []);
 
-  const play = useCallback(async () => {
+  const startCountdown = useCallback(
+    (onComplete: () => void) => {
+      if (isCountingDownRef.current || isPlayingRef.current) return;
+
+      isCountingDownRef.current = true;
+      setIsCountingDown(true);
+      const beatDurationMs = (60 / tempo) * 1000;
+      let currentBeat = 4;
+
+      const countdown = () => {
+        if (!isCountingDownRef.current) return;
+
+        setCountdownNumber(currentBeat);
+        // Play click with higher frequency for beat 1 (downbeat)
+        playClick(
+          currentBeat === 1 ? 0 : 1,
+          timeSignatureRef.current.numerator,
+          timeSignatureRef.current.denominator,
+        );
+        currentBeat--;
+
+        if (currentBeat === 0) {
+          setIsCountingDown(false);
+          setCountdownNumber(null);
+          isCountingDownRef.current = false;
+          onComplete();
+        } else {
+          countdownTimeoutRef.current = setTimeout(countdown, beatDurationMs);
+        }
+      };
+
+      countdown();
+    },
+    [tempo],
+  );
+
+  const playActual = useCallback(async () => {
     const currentStyle: Style | null = styleRef.current
       ? STYLES[styleRef.current]
       : null;
@@ -317,6 +366,11 @@ export function useGridPlayback(
     playNext();
   }, [tempo, loopCount, ensureReady, playChord, playNotesHit, stop]);
 
+  const play = useCallback(async () => {
+    if (isCountingDownRef.current || isPlayingRef.current) return;
+    startCountdown(playActual);
+  }, [startCountdown, playActual]);
+
   const playSelectionLoop = useCallback(async () => {
     if (!selectedSquares || selectedSquares.size === 0) return;
     isLoopingSelectionRef.current = true;
@@ -332,6 +386,8 @@ export function useGridPlayback(
 
   return {
     isPlaying,
+    isCountingDown,
+    countdownNumber,
     currentIndex,
     metronome,
     toggleMetronome,
