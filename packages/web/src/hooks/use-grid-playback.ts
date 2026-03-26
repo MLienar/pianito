@@ -270,10 +270,9 @@ export function useGridPlayback(
 
   useEffect(() => {
     return () => {
-      isPlayingRef.current = false;
-      clearScheduled();
+      stop();
     };
-  }, [clearScheduled]);
+  }, [stop]);
 
   return {
     isPlaying,
