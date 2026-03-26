@@ -121,6 +121,7 @@ export default {
     groupSelection: "分组",
     clearChords: "清除和弦",
     deleteSelection: "删除",
+    loopSelection: "循环",
     authRequired: "需要账户",
     authRequiredDescription: "创建账户以保存和管理你的和弦表。",
     composer: "作曲家",

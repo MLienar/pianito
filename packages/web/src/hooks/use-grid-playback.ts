@@ -22,6 +22,7 @@ interface PlaybackSquare {
 function flattenGrid(
   gridData: GridData,
   gridTimeSignature: TimeSignature,
+  selectedIndices?: Set<number>,
 ): PlaybackSquare[] {
   const result: PlaybackSquare[] = [];
   const { squares, groups } = gridData;
@@ -37,18 +38,21 @@ function flattenGrid(
       );
       for (let repeat = 0; repeat < group.repeatCount; repeat++) {
         for (const [offset, sq] of groupSquares.entries()) {
-          result.push({
-            index: group.start + offset,
-            chord: sq.chord,
-            nbBeats: sq.nbBeats,
-            timeSignature: ts,
-          });
+          const index = group.start + offset;
+          if (!selectedIndices || selectedIndices.has(index)) {
+            result.push({
+              index,
+              chord: sq.chord,
+              nbBeats: sq.nbBeats,
+              timeSignature: ts,
+            });
+          }
         }
       }
       i = group.start + group.nbSquares;
     } else {
       const sq = squares[i];
-      if (sq) {
+      if (sq && (!selectedIndices || selectedIndices.has(i))) {
         result.push({
           index: i,
           chord: sq.chord,
@@ -86,6 +90,7 @@ export function useGridPlayback(
   tempo: number,
   loopCount: number,
   timeSignature: TimeSignature = DEFAULT_TIME_SIGNATURE,
+  selectedSquares?: Set<number>,
 ) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
@@ -95,6 +100,7 @@ export function useGridPlayback(
   const [chordsEnabled, setChordsEnabled] = useState(true);
   const [bassEnabled, setBassEnabled] = useState(true);
   const [drumsEnabled, setDrumsEnabled] = useState(true);
+  const [isLoopingSelection, setIsLoopingSelection] = useState(false);
   const { playChord, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPlayingRef = useRef(false);
@@ -114,6 +120,10 @@ export function useGridPlayback(
   dataRef.current = data;
   const timeSignatureRef = useRef(timeSignature);
   timeSignatureRef.current = timeSignature;
+  const selectedSquaresRef = useRef(selectedSquares);
+  selectedSquaresRef.current = selectedSquares;
+  const isLoopingSelectionRef = useRef(isLoopingSelection);
+  isLoopingSelectionRef.current = isLoopingSelection;
 
   const clearScheduled = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -130,6 +140,7 @@ export function useGridPlayback(
     stopBass();
     setIsPlaying(false);
     setCurrentIndex(null);
+    setIsLoopingSelection(false);
   }, [clearScheduled, stopAll]);
 
   const toggleMetronome = useCallback(() => setMetronome((v) => !v), []);
@@ -165,7 +176,11 @@ export function useGridPlayback(
     const needsSubdivisionTicks = !!bassPattern;
 
     let cachedData = dataRef.current;
-    let allSquares = flattenGrid(cachedData, timeSignatureRef.current);
+    let allSquares = flattenGrid(
+      cachedData,
+      timeSignatureRef.current,
+      isLoopingSelectionRef.current ? selectedSquaresRef.current : undefined,
+    );
     let currentLoop = 0;
     let squareIdx = 0;
     let stepInSquare = 0;
@@ -185,14 +200,20 @@ export function useGridPlayback(
       if (isFirstStepOfSquare) {
         if (dataRef.current !== cachedData) {
           cachedData = dataRef.current;
-          allSquares = flattenGrid(cachedData, timeSignatureRef.current);
+          allSquares = flattenGrid(
+            cachedData,
+            timeSignatureRef.current,
+            isLoopingSelectionRef.current
+              ? selectedSquaresRef.current
+              : undefined,
+          );
           squareIdx = Math.min(squareIdx, allSquares.length - 1);
           stepInSquare = 0;
         }
 
         if (squareIdx >= allSquares.length) {
           currentLoop++;
-          if (currentLoop >= loopCount) {
+          if (!isLoopingSelectionRef.current && currentLoop >= loopCount) {
             stop();
             return;
           }
@@ -268,6 +289,12 @@ export function useGridPlayback(
     playNext();
   }, [tempo, loopCount, ensureReady, playChord, stop]);
 
+  const playSelectionLoop = useCallback(async () => {
+    if (!selectedSquares || selectedSquares.size === 0) return;
+    setIsLoopingSelection(true);
+    await play();
+  }, [selectedSquares, play]);
+
   useEffect(() => {
     return () => {
       isPlayingRef.current = false;
@@ -292,5 +319,7 @@ export function useGridPlayback(
     setSwing,
     play,
     stop,
+    playSelectionLoop,
+    isLoopingSelection,
   };
 }

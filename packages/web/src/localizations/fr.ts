@@ -124,6 +124,7 @@ export default {
     groupSelection: "Grouper",
     clearChords: "Effacer les accords",
     deleteSelection: "Supprimer",
+    loopSelection: "Boucle",
     authRequired: "Compte requis",
     authRequiredDescription:
       "Créez un compte pour sauvegarder et gérer vos grilles d'accords.",

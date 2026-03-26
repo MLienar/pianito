@@ -40,7 +40,14 @@ function GridEditor() {
   const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
 
-  const playback = useGridPlayback(data, tempo, loopCount, timeSignature);
+  const selected = useSquareSelectionStore((s) => s.selected);
+  const playback = useGridPlayback(
+    data,
+    tempo,
+    loopCount,
+    timeSignature,
+    selected,
+  );
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);
@@ -92,6 +99,10 @@ function GridEditor() {
     removeSquares(selected);
     clearSelection();
   }, [removeSquares, clearSelection]);
+
+  const handleLoopSelection = useCallback(() => {
+    playback.playSelectionLoop();
+  }, [playback]);
 
   if (isLoading) {
     return (
@@ -230,6 +241,7 @@ function GridEditor() {
           onClearChords={handleClearChords}
           onDelete={handleDelete}
           onClearSelection={clearSelection}
+          onLoopSelection={handleLoopSelection}
         />
       )}
     </div>
