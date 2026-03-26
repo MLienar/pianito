@@ -123,6 +123,7 @@ export default {
     groupSelection: "Group",
     clearChords: "Clear chords",
     deleteSelection: "Delete",
+    loopSelection: "Loop",
     authRequired: "Account Required",
     authRequiredDescription:
       "Create an account to save and manage your chord grids.",

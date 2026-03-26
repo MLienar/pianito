@@ -123,6 +123,7 @@ export default {
     groupSelection: "Agrupar",
     clearChords: "Borrar acordes",
     deleteSelection: "Eliminar",
+    loopSelection: "Bucle",
     authRequired: "Cuenta requerida",
     authRequiredDescription:
       "Crea una cuenta para guardar y gestionar tus tablas de acordes.",
