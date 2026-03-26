@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { transposeChord } from "@/lib/utils";
+import { useGridEditorStore } from "@/stores/grid-editor";
 import { useSquareSelectionStore } from "@/stores/square-selection";
 import { ChordSearch } from "./chord-search";
 
@@ -47,6 +49,9 @@ export function GridSquare({
   const isSelected = useSquareSelectionStore((s) => s.selected.has(index));
   const handleSquareClick =
     useSquareSelectionStore.getState().handleSquareClick;
+
+  const transpose = useGridEditorStore((s) => s.transpose);
+  const displayChord = chord ? transposeChord(chord, transpose) : null;
 
   useEffect(() => {
     if (autoFocus) {
@@ -124,7 +129,7 @@ export function GridSquare({
             ? "border-primary bg-primary/20 ring-2 ring-primary"
             : isPlaying
               ? "bg-primary text-primary-foreground shadow-[var(--shadow-brutal)] border-border"
-              : chord
+              : displayChord
                 ? "bg-card hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] border-border"
                 : "bg-background text-muted-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] border-border"
         }`}
@@ -132,7 +137,7 @@ export function GridSquare({
           groupColor && !isSelected ? { borderColor: groupColor } : undefined
         }
       >
-        {chord ?? t("accomp.emptySquare")}
+        {displayChord ?? t("accomp.emptySquare")}
       </button>
       <div
         onPointerDown={handleResizePointerDown}

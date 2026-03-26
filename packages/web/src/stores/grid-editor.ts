@@ -128,6 +128,7 @@ interface GridEditorState {
   timeSignature: TimeSignature;
   data: GridData;
   isDirty: boolean;
+  transpose: number; // Number of semitones to transpose (for display only)
 }
 
 interface GridEditorActions {
@@ -158,6 +159,7 @@ interface GridEditorActions {
   mergeWithPreviousGroup: (groupIndex: number) => void;
   deleteGroup: (groupIndex: number) => void;
   groupSquares: (startIndex: number, endIndex: number) => void;
+  updateTranspose: (semitones: number) => void;
 }
 
 export type GridEditorStore = GridEditorState & GridEditorActions;
@@ -173,6 +175,7 @@ const initialState: GridEditorState = {
   timeSignature: DEFAULT_TIME_SIGNATURE,
   data: DEFAULT_DATA,
   isDirty: false,
+  transpose: 0,
 };
 
 export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
@@ -558,4 +561,7 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
         isDirty: true,
       };
     }),
+
+  updateTranspose: (semitones) =>
+    set({ transpose: Math.max(-12, Math.min(12, semitones)) }),
 }));

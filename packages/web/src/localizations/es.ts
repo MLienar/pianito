@@ -139,6 +139,8 @@ export default {
     publicGridsDescription:
       "Navega y toca tablas compartidas por otros usuarios.",
     noPublicGrids: "No hay tablas públicas aún.",
+    transpose: "Transponer",
+    semitones: "semitonos",
   },
   tour: {
     helpButton: "Tour",

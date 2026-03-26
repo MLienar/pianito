@@ -135,6 +135,8 @@ export default {
     publicGrids: "公开表格",
     publicGridsDescription: "浏览和播放其他用户分享的表格。",
     noPublicGrids: "暂无公开表格。",
+    transpose: "移调",
+    semitones: "半音",
   },
   tour: {
     helpButton: "导览",

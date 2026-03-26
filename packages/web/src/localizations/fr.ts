@@ -140,6 +140,8 @@ export default {
     publicGridsDescription:
       "Parcourez et jouez les grilles partagées par d'autres utilisateurs.",
     noPublicGrids: "Aucune grille publique pour le moment.",
+    transpose: "Transposer",
+    semitones: "demi-tons",
   },
   tour: {
     helpButton: "Visite",
