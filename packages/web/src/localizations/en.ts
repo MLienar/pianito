@@ -139,6 +139,8 @@ export default {
     publicGrids: "Public Grids",
     publicGridsDescription: "Browse and play grids shared by other users.",
     noPublicGrids: "No public grids yet.",
+    transpose: "Transpose",
+    semitones: "semitones",
   },
   tour: {
     helpButton: "Tour",

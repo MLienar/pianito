@@ -39,6 +39,8 @@ function GridEditor() {
   const updateKey = useGridEditorStore((s) => s.updateKey);
   const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
+  const transpose = useGridEditorStore((s) => s.transpose);
+  const updateTranspose = useGridEditorStore((s) => s.updateTranspose);
 
   const selected = useSquareSelectionStore((s) => s.selected);
   const playback = useGridPlayback(
@@ -202,6 +204,22 @@ function GridEditor() {
               placeholder={t("accomp.keyPlaceholder")}
               className="w-20 border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
             />
+          </label>
+          <label className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-muted-foreground">
+              {t("accomp.transpose")}
+            </span>
+            <input
+              type="number"
+              value={transpose}
+              onChange={(e) => updateTranspose(Number(e.target.value))}
+              min="-12"
+              max="12"
+              className="w-16 border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
+            />
+            <span className="text-xs text-muted-foreground">
+              {t("accomp.semitones")}
+            </span>
           </label>
         </div>
 
