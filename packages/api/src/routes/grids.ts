@@ -96,6 +96,7 @@ export async function gridRoutes(app: FastifyInstance) {
       return {
         ...row,
         data: row.data as Grid["data"],
+        style: row.style as Grid["style"],
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       };
@@ -124,6 +125,12 @@ export async function gridRoutes(app: FastifyInstance) {
           visibility: body.visibility,
           timeSignature: body.timeSignature,
           data: body.data,
+          metronome: body.metronome,
+          style: body.style,
+          swing: body.swing,
+          chordsEnabled: body.chordsEnabled,
+          bassEnabled: body.bassEnabled,
+          drumsEnabled: body.drumsEnabled,
         })
         .returning();
 

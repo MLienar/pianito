@@ -3,6 +3,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  real,
   text,
   timestamp,
   uuid,
@@ -121,6 +122,12 @@ export const grid = pgTable("grid", {
     .notNull()
     .default({ numerator: 4, denominator: 4 }),
   data: jsonb("data").notNull(),
+  metronome: boolean("metronome").notNull().default(false),
+  style: text("style"),
+  swing: real("swing").notNull().default(0),
+  chordsEnabled: boolean("chords_enabled").notNull().default(true),
+  bassEnabled: boolean("bass_enabled").notNull().default(true),
+  drumsEnabled: boolean("drums_enabled").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

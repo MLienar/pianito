@@ -2,6 +2,7 @@ import {
   DEFAULT_TIME_SIGNATURE,
   type Grid,
   type GridData,
+  type GridPlaybackStyle,
   type GridSquare,
   type GridVisibility,
   type TimeSignature,
@@ -129,6 +130,13 @@ interface GridEditorState {
   data: GridData;
   isDirty: boolean;
   transpose: number; // Number of semitones to transpose (for display only)
+  // Playback settings
+  metronome: boolean;
+  style: GridPlaybackStyle;
+  swing: number;
+  chordsEnabled: boolean;
+  bassEnabled: boolean;
+  drumsEnabled: boolean;
 }
 
 interface GridEditorActions {
@@ -146,6 +154,13 @@ interface GridEditorActions {
     groupIndex: number,
     ts: TimeSignature | undefined,
   ) => void;
+  // Playback settings actions
+  toggleMetronome: () => void;
+  setStyle: (style: GridPlaybackStyle) => void;
+  setSwing: (swing: number) => void;
+  toggleChordsEnabled: () => void;
+  toggleBassEnabled: () => void;
+  toggleDrumsEnabled: () => void;
   setChord: (index: number, chord: string | null) => void;
   clearChord: (index: number) => void;
   setSquareBeats: (index: number, nbBeats: number) => void;
@@ -176,6 +191,12 @@ const initialState: GridEditorState = {
   data: DEFAULT_DATA,
   isDirty: false,
   transpose: 0,
+  metronome: false,
+  style: null,
+  swing: 0,
+  chordsEnabled: true,
+  bassEnabled: true,
+  drumsEnabled: true,
 };
 
 export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
@@ -193,6 +214,12 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       timeSignature: grid.timeSignature ?? DEFAULT_TIME_SIGNATURE,
       data: migrateGridData(grid.data as unknown as Record<string, unknown>),
       isDirty: false,
+      metronome: grid.metronome ?? false,
+      style: grid.style ?? null,
+      swing: grid.swing ?? 0,
+      chordsEnabled: grid.chordsEnabled ?? true,
+      bassEnabled: grid.bassEnabled ?? true,
+      drumsEnabled: grid.drumsEnabled ?? true,
     }),
 
   reset: () => set({ ...initialState }),
@@ -564,4 +591,16 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   updateTranspose: (semitones) =>
     set({ transpose: Math.max(-12, Math.min(12, semitones)) }),
+
+  toggleMetronome: () => set((state) => ({ metronome: !state.metronome, isDirty: true })),
+
+  setStyle: (style) => set({ style, isDirty: true }),
+
+  setSwing: (swing) => set({ swing: Math.max(0, Math.min(1, swing)), isDirty: true }),
+
+  toggleChordsEnabled: () => set((state) => ({ chordsEnabled: !state.chordsEnabled, isDirty: true })),
+
+  toggleBassEnabled: () => set((state) => ({ bassEnabled: !state.bassEnabled, isDirty: true })),
+
+  toggleDrumsEnabled: () => set((state) => ({ drumsEnabled: !state.drumsEnabled, isDirty: true })),
 }));

@@ -105,6 +105,10 @@ export const errorResponseSchema = z.object({
 
 export const gridVisibilitySchema = z.enum(["private", "public"]);
 
+export const gridPlaybackStyleSchema = z
+  .enum(["rock", "pop", "bossaNova", "jazz", "funk", "reggae"])
+  .nullable();
+
 export const timeSignatureSchema = z.object({
   numerator: z.number().int().min(2).max(6),
   denominator: z
@@ -172,6 +176,12 @@ const gridFieldsSchema = z.object({
   visibility: gridVisibilitySchema,
   timeSignature: timeSignatureSchema,
   data: gridDataSchema,
+  metronome: z.boolean(),
+  style: gridPlaybackStyleSchema,
+  swing: z.number().min(0).max(1),
+  chordsEnabled: z.boolean(),
+  bassEnabled: z.boolean(),
+  drumsEnabled: z.boolean(),
 });
 
 export const gridSchema = gridFieldsSchema.extend({
@@ -207,6 +217,12 @@ export const createGridBodySchema = gridFieldsSchema.extend({
     squares: [{ chord: null }],
     groups: [],
   }),
+  metronome: z.boolean().default(false),
+  style: gridPlaybackStyleSchema.default(null),
+  swing: z.number().min(0).max(1).default(0),
+  chordsEnabled: z.boolean().default(true),
+  bassEnabled: z.boolean().default(true),
+  drumsEnabled: z.boolean().default(true),
 });
 
 export const updateGridBodySchema = gridFieldsSchema

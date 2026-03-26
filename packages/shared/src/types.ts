@@ -11,6 +11,7 @@ import type {
   gridDataSchema,
   gridGroupSchema,
   gridListResponseSchema,
+  gridPlaybackStyleSchema,
   gridSchema,
   gridSquareSchema,
   gridSummarySchema,
@@ -48,6 +49,7 @@ export type Username = z.infer<typeof usernameSchema>;
 
 // Grid types
 export type TimeSignature = z.infer<typeof timeSignatureSchema>;
+export type GridPlaybackStyle = z.infer<typeof gridPlaybackStyleSchema>;
 export type GridVisibility = z.infer<typeof gridVisibilitySchema>;
 export type GridSquare = z.infer<typeof gridSquareSchema>;
 export type GridGroup = z.infer<typeof gridGroupSchema>;
