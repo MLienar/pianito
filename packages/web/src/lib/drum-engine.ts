@@ -14,7 +14,7 @@ export function startDrums(
   const kit = getDrumKit();
   const transport = Tone.getTransport();
   transport.bpm.value = tempo;
-  transport.swing = swing;
+  transport.swing = Math.min(swing, 0.5);
   transport.swingSubdivision = "8n";
 
   sequence = new Tone.Sequence(
