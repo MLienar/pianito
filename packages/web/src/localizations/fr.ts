@@ -44,10 +44,7 @@ export default {
   },
   read: {
     title: "Lire la musique",
-    description:
-      "Progressez à travers les gammes, des notes naturelles aux quatre altérations.",
-    trebleClef: "Clé de Sol",
-    bassClef: "Clé de Fa",
+    description: "Apprenez à lire les notes sur la portée, étape par étape.",
     levels: "Niveaux",
     level: "Niveau {{level}}",
     levelProgress: "Niveau {{current}}/{{total}}",
@@ -58,7 +55,7 @@ export default {
     loadingExercise: "Chargement de l'exercice...",
     instructions:
       "Appuyez sur un bouton de note pour commencer. Identifiez chaque note lorsqu'elle atteint la zone orange. Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B).",
-    notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
+    notesAndTempo: "{{notes}} notes · {{tempo}} bpm",
   },
   intro: {
     thisIsA: "Ceci est un ",
@@ -143,6 +140,7 @@ export default {
     noPublicGrids: "Aucune grille publique pour le moment.",
     transpose: "Transposer",
     semitones: "demi-tons",
+    readOnly: "Lecture seule",
   },
   tour: {
     helpButton: "Visite",

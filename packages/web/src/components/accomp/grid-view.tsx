@@ -27,9 +27,10 @@ function getBeatsPerRow(ts: TimeSignature): number {
 
 interface GridViewProps {
   playingIndex: number | null;
+  readOnly?: boolean;
 }
 
-export function GridView({ playingIndex }: GridViewProps) {
+export function GridView({ playingIndex, readOnly }: GridViewProps) {
   const data = useGridEditorStore((s) => s.data);
   const timeSignature = useGridEditorStore((s) => s.timeSignature);
   const reorderSquares = useGridEditorStore((s) => s.reorderSquares);
@@ -147,6 +148,7 @@ export function GridView({ playingIndex }: GridViewProps) {
               <SortableSquareWrapper
                 key={`sq-${globalIndex}`}
                 id={`sq-${globalIndex}`}
+                readOnly={readOnly}
                 squareProps={{
                   chord: square.chord,
                   nbBeats: square.nbBeats,
@@ -158,31 +160,36 @@ export function GridView({ playingIndex }: GridViewProps) {
                   onClear: () => clearChord(globalIndex),
                   onSetBeats: (nb) => setSquareBeats(globalIndex, nb),
                   groupColor,
+                  readOnly,
                   autoFocus: autoFocusIndex === globalIndex,
                   onAutoFocusConsumed: handleAutoFocusConsumed,
                 }}
                 separator={
-                  sepInfo
-                    ? {
-                        repeatCount: sepInfo.repeatCount,
-                        onRepeatCountChange: (val) =>
-                          updateGroupRepeatCount(sepInfo.groupIndex, val),
-                        onDelete: () => deleteGroup(sepInfo.groupIndex),
-                      }
-                    : undefined
+                  readOnly
+                    ? undefined
+                    : sepInfo
+                      ? {
+                          repeatCount: sepInfo.repeatCount,
+                          onRepeatCountChange: (val) =>
+                            updateGroupRepeatCount(sepInfo.groupIndex, val),
+                          onDelete: () => deleteGroup(sepInfo.groupIndex),
+                        }
+                      : undefined
                 }
                 tsIndicator={tsInd}
               />
             );
           })}
-          <button
-            type="button"
-            data-tour="add-square"
-            onClick={handleAddSquare}
-            className="col-span-1 flex h-20 w-full items-center justify-center border-3 border-dashed border-border bg-background text-2xl text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-brutal)]"
-          >
-            +
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              data-tour="add-square"
+              onClick={handleAddSquare}
+              className="col-span-1 flex h-20 w-full items-center justify-center border-3 border-dashed border-border bg-background text-2xl text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-brutal)]"
+            >
+              +
+            </button>
+          )}
         </div>
       </SortableContext>
     </DndContext>
@@ -220,14 +227,16 @@ function SortableSquareWrapper({
   squareProps,
   separator,
   tsIndicator,
+  readOnly,
 }: {
   id: string;
   squareProps: GridSquareProps;
   separator?: SeparatorInfo;
   tsIndicator?: TimeSignature;
+  readOnly?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+    useSortable({ id, disabled: readOnly });
 
   const style = {
     transform: CSS.Transform.toString(transform),

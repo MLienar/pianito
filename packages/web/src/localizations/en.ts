@@ -43,10 +43,7 @@ export default {
   },
   read: {
     title: "Read Music",
-    description:
-      "Progress through scales, from natural notes to four accidentals.",
-    trebleClef: "Treble Clef",
-    bassClef: "Bass Clef",
+    description: "Learn to read notes on the staff, one step at a time.",
     levels: "Levels",
     level: "Level {{level}}",
     levelProgress: "Level {{current}}/{{total}}",
@@ -57,7 +54,7 @@ export default {
     loadingExercise: "Loading exercise...",
     instructions:
       "Press any note button to begin. Identify each note as it reaches the orange zone. You can also use your keyboard (C, D, E, F, G, A, B).",
-    notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
+    notesAndTempo: "{{notes}} notes · {{tempo}} bpm",
   },
   intro: {
     thisIsA: "This is a ",
@@ -141,6 +138,7 @@ export default {
     noPublicGrids: "No public grids yet.",
     transpose: "Transpose",
     semitones: "semitones",
+    readOnly: "Read-only",
   },
   tour: {
     helpButton: "Tour",

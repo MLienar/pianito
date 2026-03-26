@@ -24,7 +24,7 @@ function GridEditor() {
   const [editingName, setEditingName] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const { isLoading, isSaving, error, save } = useGridEditor(gridId);
+  const { isLoading, isSaving, readOnly, error, save } = useGridEditor(gridId);
 
   const name = useGridEditorStore((s) => s.name);
   const composer = useGridEditorStore((s) => s.composer);
@@ -136,7 +136,9 @@ function GridEditor() {
             ←
           </Link>
           <div data-tour="grid-name" className="flex-1">
-            {editingName ? (
+            {readOnly ? (
+              <span className="text-2xl font-bold tracking-tight">{name}</span>
+            ) : editingName ? (
               <input
                 ref={nameInputRef}
                 type="text"
@@ -159,24 +161,32 @@ function GridEditor() {
             )}
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs font-bold">{t("accomp.visibility")}</span>
-            <button
-              type="button"
-              onClick={() =>
-                updateVisibility(
-                  visibility === "private" ? "public" : "private",
-                )
-              }
-              className={`border-2 border-border px-2 py-1 text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] ${
-                visibility === "public"
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {t(`accomp.${visibility}`)}
-            </button>
-          </div>
+          {readOnly ? (
+            <span className="ml-auto border-2 border-border bg-muted px-2 py-1 text-xs font-bold text-muted-foreground">
+              {t("accomp.readOnly")}
+            </span>
+          ) : (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs font-bold">
+                {t("accomp.visibility")}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  updateVisibility(
+                    visibility === "private" ? "public" : "private",
+                  )
+                }
+                className={`border-2 border-border px-2 py-1 text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] ${
+                  visibility === "public"
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {t(`accomp.${visibility}`)}
+              </button>
+            </div>
+          )}
           <TourHelpButton onClick={startTour} />
         </div>
 
@@ -190,6 +200,7 @@ function GridEditor() {
               value={composer ?? ""}
               onChange={(e) => updateComposer(e.target.value)}
               placeholder={t("accomp.composerPlaceholder")}
+              readOnly={readOnly}
               className="border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
             />
           </label>
@@ -202,6 +213,7 @@ function GridEditor() {
               value={gridKey ?? ""}
               onChange={(e) => updateKey(e.target.value)}
               placeholder={t("accomp.keyPlaceholder")}
+              readOnly={readOnly}
               className="w-20 border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
             />
           </label>
@@ -227,6 +239,7 @@ function GridEditor() {
           <PlaybackControls
             isPlaying={playback.isPlaying}
             isSaving={isSaving}
+            readOnly={readOnly}
             onPlay={playback.play}
             onStop={playback.stop}
             onSave={save}
@@ -250,9 +263,9 @@ function GridEditor() {
         </div>
       </div>
 
-      <GridView playingIndex={playback.currentIndex} />
+      <GridView playingIndex={playback.currentIndex} readOnly={readOnly} />
 
-      {selectedSize > 0 && (
+      {!readOnly && selectedSize > 0 && (
         <SelectionToolbar
           selectionCount={selectedSize}
           onGroup={handleGroup}

@@ -43,10 +43,7 @@ export default {
   },
   read: {
     title: "Leer música",
-    description:
-      "Progresa a través de las escalas, desde notas naturales hasta cuatro alteraciones.",
-    trebleClef: "Clave de Sol",
-    bassClef: "Clave de Fa",
+    description: "Aprende a leer las notas en el pentagrama, paso a paso.",
     levels: "Niveles",
     level: "Nivel {{level}}",
     levelProgress: "Nivel {{current}}/{{total}}",
@@ -57,7 +54,7 @@ export default {
     loadingExercise: "Cargando ejercicio...",
     instructions:
       "Pulsa cualquier botón de nota para empezar. Identifica cada nota cuando llegue a la zona naranja. También puedes usar tu teclado (C, D, E, F, G, A, B).",
-    notesAndTempo: "{{degrees}} notas · {{tempo}} bpm",
+    notesAndTempo: "{{notes}} notas · {{tempo}} bpm",
   },
   intro: {
     thisIsA: "Esto es un ",
@@ -142,6 +139,7 @@ export default {
     noPublicGrids: "No hay tablas públicas aún.",
     transpose: "Transponer",
     semitones: "semitonos",
+    readOnly: "Solo lectura",
   },
   tour: {
     helpButton: "Tour",

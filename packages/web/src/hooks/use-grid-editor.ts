@@ -1,10 +1,12 @@
 import type { Grid } from "@pianito/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useSession } from "@/lib/auth";
 import { useGridEditorStore } from "@/stores/grid-editor";
 
 export function useGridEditor(gridId: string) {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   const {
     data: serverGrid,
@@ -26,6 +28,11 @@ export function useGridEditor(gridId: string) {
       useGridEditorStore.getState().initialize(serverGrid);
     }
   }, [serverGrid]);
+
+  const readOnly = useMemo(
+    () => !serverGrid || serverGrid.userId !== session?.user?.id,
+    [serverGrid, session?.user?.id],
+  );
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -65,6 +72,7 @@ export function useGridEditor(gridId: string) {
   return {
     isLoading,
     isSaving: saveMutation.isPending,
+    readOnly,
     error,
     save,
   };

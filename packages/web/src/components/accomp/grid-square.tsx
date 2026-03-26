@@ -25,6 +25,7 @@ export interface GridSquareProps {
   onClear: () => void;
   onSetBeats: (nbBeats: number) => void;
   groupColor?: string;
+  readOnly?: boolean;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;
 }
@@ -40,6 +41,7 @@ export function GridSquare({
   onClear,
   onSetBeats,
   groupColor,
+  readOnly,
   autoFocus,
   onAutoFocusConsumed,
 }: GridSquareProps) {
@@ -54,14 +56,15 @@ export function GridSquare({
   const displayChord = chord ? transposeChord(chord, transpose) : null;
 
   useEffect(() => {
-    if (autoFocus) {
+    if (autoFocus && !readOnly) {
       setSearchOpen(true);
       onAutoFocusConsumed?.();
     }
-  }, [autoFocus, onAutoFocusConsumed]);
+  }, [autoFocus, readOnly, onAutoFocusConsumed]);
 
   const handleClick = useCallback(
     (e: MouseEvent) => {
+      if (readOnly) return;
       const handled = handleSquareClick(
         index,
         e.metaKey || e.ctrlKey,
@@ -72,7 +75,7 @@ export function GridSquare({
         setSearchOpen((prev) => !prev);
       }
     },
-    [handleSquareClick, index, totalSquares],
+    [handleSquareClick, index, totalSquares, readOnly],
   );
 
   const dragStartX = useRef(0);
@@ -139,20 +142,24 @@ export function GridSquare({
       >
         {displayChord ?? t("accomp.emptySquare")}
       </button>
-      <div
-        onPointerDown={handleResizePointerDown}
-        onPointerMove={handleResizePointerMove}
-        onPointerUp={handleResizePointerUp}
-        {...(index === 0 ? { "data-tour": "resize-handle" } : {})}
-        className="absolute top-0 right-0 bottom-0 z-10 w-2 cursor-col-resize opacity-0 hover:opacity-100 hover:bg-primary/30 transition-opacity"
-      />
-      <ChordSearch
-        open={searchOpen}
-        currentChord={chord}
-        onSelect={onSetChord}
-        onClear={onClear}
-        onClose={() => setSearchOpen(false)}
-      />
+      {!readOnly && (
+        <div
+          onPointerDown={handleResizePointerDown}
+          onPointerMove={handleResizePointerMove}
+          onPointerUp={handleResizePointerUp}
+          {...(index === 0 ? { "data-tour": "resize-handle" } : {})}
+          className="absolute top-0 right-0 bottom-0 z-10 w-2 cursor-col-resize opacity-0 hover:opacity-100 hover:bg-primary/30 transition-opacity"
+        />
+      )}
+      {!readOnly && (
+        <ChordSearch
+          open={searchOpen}
+          currentChord={chord}
+          onSelect={onSetChord}
+          onClear={onClear}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
     </div>
   );
 }

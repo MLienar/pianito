@@ -42,9 +42,7 @@ export default {
   },
   read: {
     title: "读谱",
-    description: "从自然音到四个变音记号，逐步进阶。",
-    trebleClef: "高音谱号",
-    bassClef: "低音谱号",
+    description: "一步一步学习读谱。",
     levels: "关卡",
     level: "第 {{level}} 关",
     levelProgress: "第 {{current}}/{{total}} 关",
@@ -55,7 +53,7 @@ export default {
     loadingExercise: "加载练习中...",
     instructions:
       "按任意音符按钮开始。当音符到达橙色区域时识别它。你也可以使用键盘（C、D、E、F、G、A、B）。",
-    notesAndTempo: "{{degrees}} 个音符 · {{tempo}} bpm",
+    notesAndTempo: "{{notes}} 个音符 · {{tempo}} bpm",
   },
   intro: {
     thisIsA: "这是一个 ",
@@ -138,6 +136,7 @@ export default {
     noPublicGrids: "暂无公开表格。",
     transpose: "移调",
     semitones: "半音",
+    readOnly: "只读",
   },
   tour: {
     helpButton: "导览",

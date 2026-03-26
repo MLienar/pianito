@@ -221,6 +221,7 @@ export function SettingsControls({
 interface PlaybackProps {
   isPlaying: boolean;
   isSaving: boolean;
+  readOnly?: boolean;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
@@ -229,6 +230,7 @@ interface PlaybackProps {
 export function PlaybackControls({
   isPlaying,
   isSaving,
+  readOnly,
   onPlay,
   onStop,
   onSave,
@@ -247,7 +249,7 @@ export function PlaybackControls({
     <div className="flex flex-wrap items-center gap-3">
       <TimeSignatureSelect
         value={timeSignature}
-        disabled={isPlaying}
+        disabled={isPlaying || !!readOnly}
         onChange={updateTimeSignature}
       />
 
@@ -263,7 +265,7 @@ export function PlaybackControls({
           value={tempo}
           onChange={(e) => updateTempo(Number(e.target.value))}
           onBlur={clampTempo}
-          disabled={isPlaying}
+          disabled={isPlaying || readOnly}
           className="w-20 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         <span className="text-xs text-muted-foreground">{t("accomp.bpm")}</span>
@@ -280,7 +282,7 @@ export function PlaybackControls({
           max={50}
           value={loopCount}
           onChange={(e) => updateLoopCount(Number(e.target.value))}
-          disabled={isPlaying}
+          disabled={isPlaying || readOnly}
           className="w-16 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
       </div>
@@ -298,19 +300,21 @@ export function PlaybackControls({
         {isPlaying ? t("accomp.stop") : t("accomp.play")}
       </button>
 
-      <button
-        type="button"
-        data-tour="save-button"
-        onClick={onSave}
-        disabled={!isDirty || isSaving}
-        className="border-3 border-border bg-primary px-4 py-1.5 font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
-      >
-        {isSaving
-          ? t("accomp.saving")
-          : isDirty
-            ? t("accomp.save")
-            : t("accomp.saved")}
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          data-tour="save-button"
+          onClick={onSave}
+          disabled={!isDirty || isSaving}
+          className="border-3 border-border bg-primary px-4 py-1.5 font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
+        >
+          {isSaving
+            ? t("accomp.saving")
+            : isDirty
+              ? t("accomp.save")
+              : t("accomp.saved")}
+        </button>
+      )}
     </div>
   );
 }
