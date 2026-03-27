@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cluster from "node:cluster";
 import cors from "@fastify/cors";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import Fastify from "fastify";
@@ -15,7 +16,10 @@ import { profileRoutes } from "./routes/profile.js";
 
 const app = Fastify({ logger: true });
 
-await migrate(db, { migrationsFolder: "./drizzle" });
+// When running standalone (not via cluster.ts), handle migrations here
+if (!cluster.isWorker) {
+  await migrate(db, { migrationsFolder: "./drizzle" });
+}
 
 await app.register(cors, {
   origin: CORS_ORIGIN,

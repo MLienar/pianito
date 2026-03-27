@@ -19,13 +19,40 @@ services:
     image: ghcr.io/mlienar/pianito-api:latest
     restart: unless-stopped
     depends_on:
+      pgbouncer:
+        condition: service_started
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://pianito:${DB_PASSWORD}@db:5432/pianito
+      DATABASE_URL: postgresql://pianito:${DB_PASSWORD}@pgbouncer:6432/pianito
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       CORS_ORIGIN: https://pianito.matheolienard.fr
       PORT: "3000"
+      CLUSTER_WORKERS: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+          cpus: "3.0"
+
+  pgbouncer:
+    image: edoburu/pgbouncer:1.23.1-p2
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: pianito
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_NAME: pianito
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: "20"
+      MAX_CLIENT_CONN: "200"
+      MIN_POOL_SIZE: "5"
+      AUTH_TYPE: md5
+    ports:
+      - "6432:6432"
 
   db:
     image: postgres:16-alpine
@@ -36,11 +63,40 @@ services:
       POSTGRES_DB: pianito
     volumes:
       - pgdata:/var/lib/postgresql/data
+    command:
+      - postgres
+      - -c
+      - shared_buffers=2GB
+      - -c
+      - effective_cache_size=4GB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=512MB
+      - -c
+      - max_connections=50
+      - -c
+      - wal_buffers=64MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - max_worker_processes=4
+      - -c
+      - max_parallel_workers_per_gather=2
+      - -c
+      - max_parallel_workers=4
+      - -c
+      - log_min_duration_statement=1000
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pianito"]
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+          cpus: "1.0"
 
 volumes:
   pgdata:

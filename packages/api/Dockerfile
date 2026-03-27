@@ -31,4 +31,4 @@ COPY packages/api/drizzle.config.ts ./packages/api/
 ENV NODE_ENV=production
 EXPOSE 3000
 WORKDIR /app/packages/api
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/cluster.js"]
