@@ -19,12 +19,13 @@ if (!match) {
 }
 const [, user, password, host, port, database] = match;
 
-const client = postgres({
+export const client = postgres({
   host,
   port: Number(port),
   user,
   password,
   database,
+  max: 5,
   prepare: false, // Required for PgBouncer transaction pooling mode
 });
 

@@ -51,8 +51,6 @@ services:
       MAX_CLIENT_CONN: "200"
       MIN_POOL_SIZE: "5"
       AUTH_TYPE: md5
-    ports:
-      - "6432:6432"
 
   db:
     image: postgres:16-alpine
@@ -66,9 +64,9 @@ services:
     command:
       - postgres
       - -c
-      - shared_buffers=2GB
+      - shared_buffers=1GB
       - -c
-      - effective_cache_size=4GB
+      - effective_cache_size=3GB
       - -c
       - work_mem=16MB
       - -c
@@ -80,11 +78,11 @@ services:
       - -c
       - checkpoint_completion_target=0.9
       - -c
-      - max_worker_processes=4
+      - max_worker_processes=2
       - -c
-      - max_parallel_workers_per_gather=2
+      - max_parallel_workers_per_gather=1
       - -c
-      - max_parallel_workers=4
+      - max_parallel_workers=1
       - -c
       - log_min_duration_statement=1000
     healthcheck:
