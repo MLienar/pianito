@@ -1,4 +1,5 @@
 import * as Tone from "tone";
+import { getDrumBus } from "./drum-bus";
 
 export interface DrumKit {
   kick: Tone.MembraneSynth;
@@ -12,19 +13,21 @@ let kit: DrumKit | null = null;
 
 export function getDrumKit(): DrumKit {
   if (!kit) {
+    const bus = getDrumBus();
+
     kit = {
       kick: new Tone.MembraneSynth({
-        pitchDecay: 0.05,
+        pitchDecay: 0.08,
         octaves: 6,
         oscillator: { type: "sine" },
-        envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.1 },
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.1 },
         volume: -8,
-      }).toDestination(),
+      }).connect(bus),
       snare: new Tone.NoiseSynth({
         noise: { type: "white" },
         envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.05 },
         volume: -12,
-      }).toDestination(),
+      }).connect(bus),
       hihat: new Tone.MetalSynth({
         envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 },
         harmonicity: 5.1,
@@ -32,14 +35,14 @@ export function getDrumKit(): DrumKit {
         resonance: 4000,
         octaves: 1.5,
         volume: -20,
-      }).toDestination(),
+      }).connect(bus),
       shaker: new Tone.NoiseSynth({
         noise: { type: "white" },
         envelope: { attack: 0.003, decay: 0.06, sustain: 0, release: 0.02 },
         volume: -26,
       }).chain(
         new Tone.Filter({ type: "highpass", frequency: 8000, Q: 0.3 }),
-        Tone.getDestination(),
+        bus,
       ),
       ride: new Tone.NoiseSynth({
         noise: { type: "pink" },
@@ -47,7 +50,7 @@ export function getDrumKit(): DrumKit {
         volume: -18,
       }).chain(
         new Tone.Filter({ type: "bandpass", frequency: 4000, Q: 0.5 }),
-        Tone.getDestination(),
+        bus,
       ),
     };
   }

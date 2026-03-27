@@ -1,20 +1,23 @@
 import "dotenv/config";
+import cluster from "node:cluster";
 import cors from "@fastify/cors";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import Fastify from "fastify";
 import { auth } from "./auth.js";
 import { CORS_ORIGIN } from "./config.js";
-import { db } from "./db/index.js";
+import { runMigrations } from "./db/migrate.js";
 import { accountRoutes } from "./routes/account.js";
 import { completionRoutes } from "./routes/completions.js";
 import { gridRoutes } from "./routes/grids.js";
 import { healthRoutes } from "./routes/health.js";
 import { notationRoutes } from "./routes/notation.js";
 import { preferenceRoutes } from "./routes/preferences.js";
+import { profileRoutes } from "./routes/profile.js";
 
 const app = Fastify({ logger: true });
 
-await migrate(db, { migrationsFolder: "./drizzle" });
+if (!cluster.isWorker) {
+  await runMigrations();
+}
 
 await app.register(cors, {
   origin: CORS_ORIGIN,
@@ -53,6 +56,7 @@ await app.register(gridRoutes);
 await app.register(healthRoutes);
 await app.register(notationRoutes);
 await app.register(preferenceRoutes);
+await app.register(profileRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 

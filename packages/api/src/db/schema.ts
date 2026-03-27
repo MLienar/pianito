@@ -16,6 +16,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  username: text("username").unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -106,12 +107,20 @@ export const userPreference = pgTable("user_preference", {
 
 export const grid = pgTable("grid", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  composer: text("composer"),
+  key: text("key"),
   tempo: integer("tempo").notNull().default(90),
   loopCount: integer("loop_count").notNull().default(1),
+  visibility: text("visibility")
+    .$type<"private" | "public">()
+    .notNull()
+    .default("private"),
+  timeSignature: jsonb("time_signature")
+    .$type<{ numerator: number; denominator: number }>()
+    .notNull()
+    .default({ numerator: 4, denominator: 4 }),
   data: jsonb("data").notNull(),
   // Playback settings
   metronome: boolean("metronome").notNull().default(false),

@@ -7,11 +7,34 @@ import {
   type UpdateGridBody,
   updateGridBodySchema,
 } from "@pianito/shared";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { db } from "../db/index.js";
 import { grid } from "../db/schema.js";
 import { getSessionUser } from "../lib/session.js";
+
+const gridSummaryColumns = {
+  id: grid.id,
+  userId: grid.userId,
+  name: grid.name,
+  composer: grid.composer,
+  key: grid.key,
+  tempo: grid.tempo,
+  visibility: grid.visibility,
+  timeSignature: grid.timeSignature,
+  createdAt: grid.createdAt,
+};
+
+function toGridListResponse(
+  rows: { createdAt: Date; [k: string]: unknown }[],
+): GridListResponse {
+  return {
+    grids: rows.map((r) => ({
+      ...(r as Record<string, unknown>),
+      createdAt: r.createdAt.toISOString(),
+    })) as GridListResponse["grids"],
+  };
+}
 
 export async function gridRoutes(app: FastifyInstance) {
   app.get<{ Reply: GridListResponse | ErrorResponse }>(
@@ -23,22 +46,25 @@ export async function gridRoutes(app: FastifyInstance) {
       }
 
       const rows = await db
-        .select({
-          id: grid.id,
-          name: grid.name,
-          tempo: grid.tempo,
-          createdAt: grid.createdAt,
-        })
+        .select(gridSummaryColumns)
         .from(grid)
         .where(eq(grid.userId, user.id))
         .orderBy(desc(grid.createdAt));
 
-      return {
-        grids: rows.map((r) => ({
-          ...r,
-          createdAt: r.createdAt.toISOString(),
-        })),
-      };
+      return toGridListResponse(rows);
+    },
+  );
+
+  app.get<{ Reply: GridListResponse | ErrorResponse }>(
+    "/api/grids/public",
+    async (_request, _reply) => {
+      const rows = await db
+        .select(gridSummaryColumns)
+        .from(grid)
+        .where(or(eq(grid.visibility, "public"), isNull(grid.userId)))
+        .orderBy(desc(grid.createdAt));
+
+      return toGridListResponse(rows);
     },
   );
 
@@ -46,14 +72,20 @@ export async function gridRoutes(app: FastifyInstance) {
     "/api/grids/:id",
     async (request, reply) => {
       const user = await getSessionUser(request);
-      if (!user) {
-        return reply.status(401).send({ error: "Unauthorized" });
-      }
 
       const rows = await db
         .select()
         .from(grid)
-        .where(and(eq(grid.id, request.params.id), eq(grid.userId, user.id)))
+        .where(
+          and(
+            eq(grid.id, request.params.id),
+            or(
+              eq(grid.visibility, "public"),
+              isNull(grid.userId),
+              user ? eq(grid.userId, user.id) : sql`false`,
+            ),
+          ),
+        )
         .limit(1);
 
       const row = rows[0];
@@ -86,12 +118,16 @@ export async function gridRoutes(app: FastifyInstance) {
         .values({
           userId: user.id,
           name: body.name,
+          composer: body.composer,
+          key: body.key,
           tempo: body.tempo,
           loopCount: body.loopCount,
+          visibility: body.visibility,
+          timeSignature: body.timeSignature,
           data: body.data,
           metronome: body.metronome,
           style: body.style,
-          swing: body.swing.toString(),
+          swing: body.swing?.toFixed(2),
           chordsEnabled: body.chordsEnabled,
           bassEnabled: body.bassEnabled,
           drumsEnabled: body.drumsEnabled,
@@ -124,28 +160,9 @@ export async function gridRoutes(app: FastifyInstance) {
 
     const body = updateGridBodySchema.parse(request.body);
 
-    // Convert swing to string for database storage and handle other fields
-    const updateData: Record<string, unknown> = {
-      updatedAt: sql`now()`,
-    };
-
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.tempo !== undefined) updateData.tempo = body.tempo;
-    if (body.loopCount !== undefined) updateData.loopCount = body.loopCount;
-    if (body.data !== undefined) updateData.data = body.data;
-    if (body.metronome !== undefined) updateData.metronome = body.metronome;
-    if (body.style !== undefined) updateData.style = body.style;
-    if (body.swing !== undefined) updateData.swing = body.swing.toString();
-    if (body.chordsEnabled !== undefined)
-      updateData.chordsEnabled = body.chordsEnabled;
-    if (body.bassEnabled !== undefined)
-      updateData.bassEnabled = body.bassEnabled;
-    if (body.drumsEnabled !== undefined)
-      updateData.drumsEnabled = body.drumsEnabled;
-
     const rows = await db
       .update(grid)
-      .set(updateData)
+      .set({ ...body, updatedAt: sql`now()` })
       .where(and(eq(grid.id, request.params.id), eq(grid.userId, user.id)))
       .returning();
 

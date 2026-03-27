@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Tooltip } from "@/components/tooltip";
 import type { StyleId } from "@/lib/styles";
 import { STYLE_IDS } from "@/lib/styles";
 import { useGridEditorStore } from "@/stores/grid-editor";
+import { TimeSignatureSelect } from "./time-signature-select";
 
 /* ─── Neobrutalist SVG Icons ─── */
 
@@ -103,21 +105,22 @@ function InstrumentToggle({
   label: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      className={`border-3 border-border p-1.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none ${
-        active
-          ? "bg-accent text-accent-foreground"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      {icon}
-    </button>
+    <Tooltip content={label}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        aria-pressed={active}
+        className={`border-3 border-border p-1.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none ${
+          active
+            ? "bg-accent text-accent-foreground"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        {icon}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -158,7 +161,7 @@ export function SettingsControls({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-1">
+      <div data-tour="instrument-toggles" className="flex items-center gap-1">
         <InstrumentToggle
           active={metronome}
           onClick={onMetronomeToggle}
@@ -191,7 +194,7 @@ export function SettingsControls({
         onStyleChange={onStyleChange}
       />
 
-      <div className="flex items-center gap-1.5">
+      <div data-tour="swing" className="flex items-center gap-1.5">
         <label className="text-xs font-bold" htmlFor="swing">
           {t("accomp.swing")}
         </label>
@@ -217,7 +220,10 @@ export function SettingsControls({
 
 interface PlaybackProps {
   isPlaying: boolean;
+  isCountingDown: boolean;
+  countdownNumber: number | null;
   isSaving: boolean;
+  readOnly?: boolean;
   onPlay: () => void;
   onStop: () => void;
   onSave: () => void;
@@ -225,7 +231,10 @@ interface PlaybackProps {
 
 export function PlaybackControls({
   isPlaying,
+  isCountingDown,
+  countdownNumber,
   isSaving,
+  readOnly,
   onPlay,
   onStop,
   onSave,
@@ -233,14 +242,22 @@ export function PlaybackControls({
   const { t } = useTranslation();
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
+  const timeSignature = useGridEditorStore((s) => s.timeSignature);
   const isDirty = useGridEditorStore((s) => s.isDirty);
   const updateTempo = useGridEditorStore((s) => s.updateTempo);
   const clampTempo = useGridEditorStore((s) => s.clampTempo);
   const updateLoopCount = useGridEditorStore((s) => s.updateLoopCount);
+  const updateTimeSignature = useGridEditorStore((s) => s.updateTimeSignature);
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-2">
+      <TimeSignatureSelect
+        value={timeSignature}
+        disabled={isPlaying || !!readOnly}
+        onChange={updateTimeSignature}
+      />
+
+      <div data-tour="tempo" className="flex items-center gap-2">
         <label className="text-sm font-bold" htmlFor="tempo">
           {t("accomp.tempo")}
         </label>
@@ -252,13 +269,13 @@ export function PlaybackControls({
           value={tempo}
           onChange={(e) => updateTempo(Number(e.target.value))}
           onBlur={clampTempo}
-          disabled={isPlaying}
+          disabled={isPlaying || readOnly}
           className="w-20 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         <span className="text-xs text-muted-foreground">{t("accomp.bpm")}</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div data-tour="loops" className="flex items-center gap-2">
         <label className="text-sm font-bold" htmlFor="loops">
           {t("accomp.loopCount")}
         </label>
@@ -269,35 +286,46 @@ export function PlaybackControls({
           max={50}
           value={loopCount}
           onChange={(e) => updateLoopCount(Number(e.target.value))}
-          disabled={isPlaying}
+          disabled={isPlaying || readOnly}
           className="w-16 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
       </div>
 
       <button
         type="button"
-        onClick={isPlaying ? onStop : onPlay}
-        className={`border-3 border-border px-4 py-1.5 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none ${
+        data-tour="play-button"
+        onClick={isPlaying || isCountingDown ? onStop : onPlay}
+        disabled={isCountingDown}
+        className={`border-3 border-border px-4 py-1.5 font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:shadow-none ${
           isPlaying
             ? "bg-destructive text-destructive-foreground"
-            : "bg-accent text-accent-foreground"
+            : isCountingDown
+              ? "bg-muted text-muted-foreground"
+              : "bg-accent text-accent-foreground"
         }`}
       >
-        {isPlaying ? t("accomp.stop") : t("accomp.play")}
+        {isCountingDown
+          ? countdownNumber
+          : isPlaying
+            ? t("accomp.stop")
+            : t("accomp.play")}
       </button>
 
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={!isDirty || isSaving}
-        className="border-3 border-border bg-primary px-4 py-1.5 font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
-      >
-        {isSaving
-          ? t("accomp.saving")
-          : isDirty
-            ? t("accomp.save")
-            : t("accomp.saved")}
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          data-tour="save-button"
+          onClick={onSave}
+          disabled={!isDirty || isSaving}
+          className="border-3 border-border bg-primary px-4 py-1.5 font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal)] active:translate-y-0 active:shadow-none disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
+        >
+          {isSaving
+            ? t("accomp.saving")
+            : isDirty
+              ? t("accomp.save")
+              : t("accomp.saved")}
+        </button>
+      )}
     </div>
   );
 }
@@ -387,7 +415,7 @@ function StyleSelect({
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div data-tour="style-select" className="flex items-center gap-1.5">
       <span className="text-xs font-bold">{t("accomp.style")}</span>
       <div ref={containerRef} className="relative">
         <button

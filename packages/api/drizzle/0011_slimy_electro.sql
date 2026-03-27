@@ -1,0 +1,1 @@
+ALTER TABLE "grid" ADD COLUMN "time_signature" jsonb DEFAULT '{"numerator":4,"denominator":4}'::jsonb NOT NULL;

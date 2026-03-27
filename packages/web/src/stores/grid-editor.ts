@@ -1,12 +1,72 @@
-import type { Grid, GridData, GridSquare, StyleId } from "@pianito/shared";
+import {
+  DEFAULT_TIME_SIGNATURE,
+  type Grid,
+  type GridData,
+  type GridSquare,
+  type GridVisibility,
+  type StyleId,
+  type TimeSignature,
+} from "@pianito/shared";
 import { create } from "zustand";
 
-const EMPTY_SQUARE: GridSquare = { chord: null, nbBeats: 4 };
+function makeEmptySquare(numerator: number): GridSquare {
+  return { chord: null, nbBeats: numerator };
+}
 
 const DEFAULT_DATA: GridData = {
-  squares: [EMPTY_SQUARE],
-  groups: [{ squareCount: 1, repeatCount: 1 }],
+  squares: [makeEmptySquare(DEFAULT_TIME_SIGNATURE.numerator)],
+  groups: [],
 };
+
+function findGroupForSquare(
+  groups: GridData["groups"],
+  squareIndex: number,
+): number {
+  return groups.findIndex(
+    (g) => squareIndex >= g.start && squareIndex < g.start + g.nbSquares,
+  );
+}
+
+function getEffectiveNumerator(
+  squareIndex: number,
+  groups: GridData["groups"],
+  gridTimeSignature: TimeSignature,
+): number {
+  const gi = findGroupForSquare(groups, squareIndex);
+  return groups[gi]?.timeSignature?.numerator ?? gridTimeSignature.numerator;
+}
+
+function convertSquaresForTimeSignatureChange(
+  squares: GridSquare[],
+  oldNumerator: number,
+  newNumerator: number,
+  startIdx: number,
+  endIdx: number,
+): GridSquare[] {
+  return squares.map((sq, i) => {
+    if (i < startIdx || i >= endIdx) return sq;
+    const newBeats = sq.nbBeats === oldNumerator ? newNumerator : 1;
+    return { ...sq, nbBeats: Math.min(newBeats, newNumerator) };
+  });
+}
+
+function migrateOldGroups(
+  oldGroups: { squareCount: number; repeatCount: number }[],
+): GridData["groups"] {
+  const newGroups: GridData["groups"] = [];
+  let offset = 0;
+  for (const g of oldGroups) {
+    if (g.repeatCount > 1) {
+      newGroups.push({
+        start: offset,
+        nbSquares: g.squareCount,
+        repeatCount: g.repeatCount,
+      });
+    }
+    offset += g.squareCount;
+  }
+  return newGroups;
+}
 
 function migrateGridData(data: Record<string, unknown>): GridData {
   if (
@@ -18,14 +78,32 @@ function migrateGridData(data: Record<string, unknown>): GridData {
     const squares = (
       data.squares as { chord: string | null; nbBeats?: number }[]
     ).map((sq) => ({ chord: sq.chord, nbBeats: sq.nbBeats ?? 4 }));
-    return { squares, groups: data.groups } as unknown as GridData;
+
+    const rawGroups = data.groups as Record<string, unknown>[];
+    const isNewFormat =
+      rawGroups.length === 0 || (rawGroups[0] && "start" in rawGroups[0]);
+
+    if (isNewFormat) {
+      return {
+        squares,
+        groups: rawGroups as unknown as GridData["groups"],
+      };
+    }
+
+    // Old format: { squareCount, repeatCount }[]
+    const oldGroups = rawGroups as unknown as {
+      squareCount: number;
+      repeatCount: number;
+    }[];
+    return { squares, groups: migrateOldGroups(oldGroups) };
   }
+
   if ("lines" in data && Array.isArray(data.lines)) {
     const lines = data.lines as { chord: string | null }[][];
     const squares = lines
       .flat()
       .map((sq) => ({ chord: sq.chord, nbBeats: 4 as const }));
-    const groups =
+    const oldGroups =
       "groups" in data && Array.isArray(data.groups)
         ? (data.groups as { lineCount: number; repeatCount: number }[]).map(
             (g) => ({
@@ -34,33 +112,24 @@ function migrateGridData(data: Record<string, unknown>): GridData {
             }),
           )
         : [{ squareCount: squares.length, repeatCount: 1 }];
-    return { squares, groups };
+    return { squares, groups: migrateOldGroups(oldGroups) };
   }
-  return { ...DEFAULT_DATA };
-}
 
-function findGroupForSquare(
-  groups: GridData["groups"],
-  squareIndex: number,
-): { groupIndex: number; offsetInGroup: number } {
-  let offset = 0;
-  for (let gi = 0; gi < groups.length; gi++) {
-    const group = groups[gi];
-    if (!group) continue;
-    if (squareIndex < offset + group.squareCount) {
-      return { groupIndex: gi, offsetInGroup: squareIndex - offset };
-    }
-    offset += group.squareCount;
-  }
-  return { groupIndex: groups.length - 1, offsetInGroup: 0 };
+  return { ...DEFAULT_DATA };
 }
 
 interface GridEditorState {
   gridId: string | null;
   name: string;
+  composer: string | null;
+  key: string | null;
   tempo: number;
   loopCount: number;
+  visibility: GridVisibility;
+  timeSignature: TimeSignature;
   data: GridData;
+  isDirty: boolean;
+  transpose: number; // Number of semitones to transpose (for display only)
   // Playback settings
   metronome: boolean;
   style: StyleId | null;
@@ -68,26 +137,26 @@ interface GridEditorState {
   chordsEnabled: boolean;
   bassEnabled: boolean;
   drumsEnabled: boolean;
-  isDirty: boolean;
 }
 
 interface GridEditorActions {
   initialize: (grid: Grid) => void;
   reset: () => void;
   updateName: (name: string) => void;
+  updateComposer: (composer: string | null) => void;
+  updateKey: (key: string | null) => void;
   updateTempo: (tempo: number) => void;
   clampTempo: () => void;
   updateLoopCount: (count: number) => void;
-  // Playback settings actions
-  updateMetronome: (metronome: boolean) => void;
-  updateStyle: (style: StyleId | null) => void;
-  updateSwing: (swing: number) => void;
-  updateChordsEnabled: (enabled: boolean) => void;
-  updateBassEnabled: (enabled: boolean) => void;
-  updateDrumsEnabled: (enabled: boolean) => void;
+  updateVisibility: (visibility: GridVisibility) => void;
+  updateTimeSignature: (ts: TimeSignature) => void;
+  updateGroupTimeSignature: (
+    groupIndex: number,
+    ts: TimeSignature | undefined,
+  ) => void;
   setChord: (index: number, chord: string | null) => void;
   clearChord: (index: number) => void;
-  setSquareBeats: (index: number, nbBeats: 2 | 4) => void;
+  setSquareBeats: (index: number, nbBeats: number) => void;
   addSquare: () => void;
   removeSquare: (index: number) => void;
   clearChords: (indices: Set<number>) => void;
@@ -96,7 +165,15 @@ interface GridEditorActions {
   updateGroupRepeatCount: (groupIndex: number, repeatCount: number) => void;
   splitGroup: (squareIndex: number) => void;
   mergeWithPreviousGroup: (groupIndex: number) => void;
+  deleteGroup: (groupIndex: number) => void;
   groupSquares: (startIndex: number, endIndex: number) => void;
+  updateTranspose: (semitones: number) => void;
+  updateMetronome: (metronome: boolean) => void;
+  updateStyle: (style: StyleId | null) => void;
+  updateSwing: (swing: number) => void;
+  updateChordsEnabled: (chordsEnabled: boolean) => void;
+  updateBassEnabled: (bassEnabled: boolean) => void;
+  updateDrumsEnabled: (drumsEnabled: boolean) => void;
 }
 
 export type GridEditorStore = GridEditorState & GridEditorActions;
@@ -104,17 +181,21 @@ export type GridEditorStore = GridEditorState & GridEditorActions;
 const initialState: GridEditorState = {
   gridId: null,
   name: "",
+  composer: null,
+  key: null,
   tempo: 90,
   loopCount: 1,
+  visibility: "private",
+  timeSignature: DEFAULT_TIME_SIGNATURE,
   data: DEFAULT_DATA,
-  // Playback settings with defaults
+  isDirty: false,
+  transpose: 0,
   metronome: false,
   style: null,
   swing: 0,
   chordsEnabled: true,
   bassEnabled: true,
   drumsEnabled: true,
-  isDirty: false,
 };
 
 export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
@@ -124,22 +205,30 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     set({
       gridId: grid.id,
       name: grid.name,
+      composer: grid.composer,
+      key: grid.key,
       tempo: grid.tempo,
       loopCount: grid.loopCount,
+      visibility: grid.visibility,
+      timeSignature: grid.timeSignature ?? DEFAULT_TIME_SIGNATURE,
       data: migrateGridData(grid.data as unknown as Record<string, unknown>),
-      // Initialize playback settings from server data
-      metronome: grid.metronome,
-      style: grid.style,
-      swing: grid.swing,
-      chordsEnabled: grid.chordsEnabled,
-      bassEnabled: grid.bassEnabled,
-      drumsEnabled: grid.drumsEnabled,
       isDirty: false,
+      metronome: grid.metronome ?? false,
+      style: grid.style ?? null,
+      swing: grid.swing ?? 0,
+      chordsEnabled: grid.chordsEnabled ?? true,
+      bassEnabled: grid.bassEnabled ?? true,
+      drumsEnabled: grid.drumsEnabled ?? true,
     }),
 
   reset: () => set({ ...initialState }),
 
   updateName: (name) => set({ name, isDirty: true }),
+
+  updateComposer: (composer) =>
+    set({ composer: composer || null, isDirty: true }),
+
+  updateKey: (key) => set({ key: key || null, isDirty: true }),
 
   updateTempo: (tempo) => set({ tempo, isDirty: true }),
 
@@ -149,14 +238,65 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
   updateLoopCount: (count) =>
     set({ loopCount: Math.max(1, Math.min(50, count)), isDirty: true }),
 
-  // Playback settings actions
-  updateMetronome: (metronome) => set({ metronome, isDirty: true }),
-  updateStyle: (style) => set({ style, isDirty: true }),
-  updateSwing: (swing) =>
-    set({ swing: Math.max(0, Math.min(1, swing)), isDirty: true }),
-  updateChordsEnabled: (chordsEnabled) => set({ chordsEnabled, isDirty: true }),
-  updateBassEnabled: (bassEnabled) => set({ bassEnabled, isDirty: true }),
-  updateDrumsEnabled: (drumsEnabled) => set({ drumsEnabled, isDirty: true }),
+  updateVisibility: (visibility) => set({ visibility, isDirty: true }),
+
+  updateTimeSignature: (ts) =>
+    set((state) => {
+      const oldNumerator = state.timeSignature.numerator;
+      const newNumerator = ts.numerator;
+      if (
+        oldNumerator === newNumerator &&
+        state.timeSignature.denominator === ts.denominator
+      )
+        return state;
+
+      // Build set of square indices covered by groups with their own override
+      const overriddenIndices = new Set<number>();
+      for (const g of state.data.groups) {
+        if (!g.timeSignature) continue;
+        for (let i = g.start; i < g.start + g.nbSquares; i++) {
+          overriddenIndices.add(i);
+        }
+      }
+
+      const squares = state.data.squares.map((sq, i) => {
+        if (overriddenIndices.has(i)) return sq;
+        const newBeats = sq.nbBeats === oldNumerator ? newNumerator : 1;
+        return { ...sq, nbBeats: Math.min(newBeats, newNumerator) };
+      });
+
+      return {
+        timeSignature: ts,
+        data: { ...state.data, squares },
+        isDirty: true,
+      };
+    }),
+
+  updateGroupTimeSignature: (groupIndex, ts) =>
+    set((state) => {
+      const group = state.data.groups[groupIndex];
+      if (!group) return state;
+
+      const oldNumerator =
+        group.timeSignature?.numerator ?? state.timeSignature.numerator;
+      const newNumerator = ts?.numerator ?? state.timeSignature.numerator;
+
+      const newGroups = [...state.data.groups];
+      newGroups[groupIndex] = { ...group, timeSignature: ts };
+
+      const squares = convertSquaresForTimeSignatureChange(
+        state.data.squares,
+        oldNumerator,
+        newNumerator,
+        group.start,
+        group.start + group.nbSquares,
+      );
+
+      return {
+        data: { ...state.data, squares, groups: newGroups },
+        isDirty: true,
+      };
+    }),
 
   setChord: (index, chord) =>
     set((state) => {
@@ -177,12 +317,19 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
   setSquareBeats: (index, nbBeats) =>
     set((state) => {
       const sq = state.data.squares[index];
-      if (!sq || sq.nbBeats === nbBeats) return state;
+      if (!sq) return state;
+      const maxBeats = getEffectiveNumerator(
+        index,
+        state.data.groups,
+        state.timeSignature,
+      );
+      const clamped = Math.max(1, Math.min(maxBeats, nbBeats));
+      if (sq.nbBeats === clamped) return state;
       return {
         data: {
           ...state.data,
           squares: state.data.squares.map((s, i) =>
-            i === index ? { ...s, nbBeats } : s,
+            i === index ? { ...s, nbBeats: clamped } : s,
           ),
         },
         isDirty: true,
@@ -190,48 +337,36 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     }),
 
   addSquare: () =>
-    set((state) => {
-      const lastGroup = state.data.groups[state.data.groups.length - 1];
-      if (!lastGroup) return state;
-      const newGroups = [...state.data.groups];
-      newGroups[newGroups.length - 1] = {
-        ...lastGroup,
-        squareCount: lastGroup.squareCount + 1,
-      };
-      return {
-        data: {
-          squares: [...state.data.squares, EMPTY_SQUARE],
-          groups: newGroups,
-        },
-        isDirty: true,
-      };
-    }),
+    set((state) => ({
+      data: {
+        ...state.data,
+        squares: [
+          ...state.data.squares,
+          makeEmptySquare(state.timeSignature.numerator),
+        ],
+      },
+      isDirty: true,
+    })),
 
   removeSquare: (index) =>
     set((state) => {
       if (state.data.squares.length <= 1) return state;
 
-      const { groupIndex } = findGroupForSquare(state.data.groups, index);
-      const group = state.data.groups[groupIndex];
-      if (!group) return state;
-
-      const newGroups = [...state.data.groups];
-      if (group.squareCount <= 1) {
-        newGroups.splice(groupIndex, 1);
-      } else {
-        newGroups[groupIndex] = {
-          ...group,
-          squareCount: group.squareCount - 1,
-        };
-      }
-
-      if (newGroups.length === 0) return state;
+      const newSquares = state.data.squares.filter((_, i) => i !== index);
+      const newGroups = state.data.groups
+        .map((g) => {
+          if (index >= g.start && index < g.start + g.nbSquares) {
+            return { ...g, nbSquares: g.nbSquares - 1 };
+          }
+          if (index < g.start) {
+            return { ...g, start: g.start - 1 };
+          }
+          return g;
+        })
+        .filter((g) => g.nbSquares > 0);
 
       return {
-        data: {
-          squares: state.data.squares.filter((_, i) => i !== index),
-          groups: newGroups,
-        },
+        data: { squares: newSquares, groups: newGroups },
         isDirty: true,
       };
     }),
@@ -257,20 +392,24 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       if (remaining < 1) return state;
 
       const newSquares = state.data.squares.filter((_, i) => !indices.has(i));
-      const newGroups: GridData["groups"] = [];
-      let offset = 0;
-      for (const group of state.data.groups) {
-        let kept = 0;
-        for (let i = 0; i < group.squareCount; i++) {
-          if (!indices.has(offset + i)) kept++;
-        }
-        offset += group.squareCount;
-        if (kept > 0) {
-          newGroups.push({ squareCount: kept, repeatCount: group.repeatCount });
-        }
-      }
+      const sortedIndices = [...indices].sort((a, b) => a - b);
 
-      if (newGroups.length === 0) return state;
+      const newGroups = state.data.groups
+        .map((g) => {
+          const gEnd = g.start + g.nbSquares;
+          let removedInside = 0;
+          let removedBefore = 0;
+          for (const idx of sortedIndices) {
+            if (idx < g.start) removedBefore++;
+            else if (idx < gEnd) removedInside++;
+          }
+          return {
+            start: g.start - removedBefore,
+            nbSquares: g.nbSquares - removedInside,
+            repeatCount: g.repeatCount,
+          };
+        })
+        .filter((g) => g.nbSquares > 0);
 
       return {
         data: { squares: newSquares, groups: newGroups },
@@ -280,11 +419,43 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   reorderSquares: (fromIndex, toIndex) =>
     set((state) => {
+      if (fromIndex === toIndex) return state;
       const newSquares = [...state.data.squares];
       const [moved] = newSquares.splice(fromIndex, 1);
-      if (moved) newSquares.splice(toIndex, 0, moved);
+      if (!moved) return state;
+      newSquares.splice(toIndex, 0, moved);
+
+      const newGroups = state.data.groups
+        .map((g) => {
+          let { start, nbSquares } = g;
+          const gEnd = start + nbSquares;
+
+          const fromInGroup = fromIndex >= start && fromIndex < gEnd;
+
+          // Phase 1: removal at fromIndex
+          if (fromInGroup) {
+            nbSquares--;
+          } else if (fromIndex < start) {
+            start--;
+          }
+
+          // Phase 2: insertion at toIndex (relative to post-removal array)
+          const newGEnd = start + nbSquares;
+          if (toIndex > start && toIndex < newGEnd) {
+            // Inserted strictly inside this group
+            nbSquares++;
+          } else if (toIndex <= start) {
+            // Inserted before or at group start
+            start++;
+          }
+          // toIndex >= newGEnd: inserted at end or after — no change
+
+          return { start, nbSquares, repeatCount: g.repeatCount };
+        })
+        .filter((g) => g.nbSquares > 0);
+
       return {
-        data: { ...state.data, squares: newSquares },
+        data: { squares: newSquares, groups: newGroups },
         isDirty: true,
       };
     }),
@@ -304,20 +475,25 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
 
   splitGroup: (squareIndex) =>
     set((state) => {
-      const { groupIndex, offsetInGroup } = findGroupForSquare(
-        state.data.groups,
-        squareIndex,
-      );
-      const group = state.data.groups[groupIndex];
-      if (!group || group.squareCount <= 1 || offsetInGroup === 0) return state;
+      const gi = findGroupForSquare(state.data.groups, squareIndex);
+      if (gi === -1) return state;
+      const group = state.data.groups[gi];
+      if (!group) return state;
+      const splitOffset = squareIndex - group.start;
+      if (splitOffset <= 0 || splitOffset >= group.nbSquares) return state;
 
       const newGroups = [...state.data.groups];
       newGroups.splice(
-        groupIndex,
+        gi,
         1,
-        { squareCount: offsetInGroup, repeatCount: group.repeatCount },
         {
-          squareCount: group.squareCount - offsetInGroup,
+          start: group.start,
+          nbSquares: splitOffset,
+          repeatCount: group.repeatCount,
+        },
+        {
+          start: group.start + splitOffset,
+          nbSquares: group.nbSquares - splitOffset,
           repeatCount: group.repeatCount,
         },
       );
@@ -331,15 +507,30 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
     set((state) => {
       if (groupIndex <= 0 || groupIndex >= state.data.groups.length)
         return state;
-      const prevGroup = state.data.groups[groupIndex - 1];
-      const currGroup = state.data.groups[groupIndex];
-      if (!prevGroup || !currGroup) return state;
+      const prev = state.data.groups[groupIndex - 1];
+      const curr = state.data.groups[groupIndex];
+      if (!prev || !curr) return state;
+
+      const mergedStart = prev.start;
+      const mergedEnd = curr.start + curr.nbSquares;
 
       const newGroups = [...state.data.groups];
       newGroups.splice(groupIndex - 1, 2, {
-        squareCount: prevGroup.squareCount + currGroup.squareCount,
-        repeatCount: prevGroup.repeatCount,
+        start: mergedStart,
+        nbSquares: mergedEnd - mergedStart,
+        repeatCount: prev.repeatCount,
       });
+      return {
+        data: { ...state.data, groups: newGroups },
+        isDirty: true,
+      };
+    }),
+
+  deleteGroup: (groupIndex) =>
+    set((state) => {
+      if (groupIndex < 0 || groupIndex >= state.data.groups.length)
+        return state;
+      const newGroups = state.data.groups.filter((_, i) => i !== groupIndex);
       return {
         data: { ...state.data, groups: newGroups },
         isDirty: true,
@@ -355,52 +546,56 @@ export const useGridEditorStore = create<GridEditorStore>((set, get) => ({
       )
         return state;
 
-      const newGroups: GridData["groups"] = [];
-      let offset = 0;
-      let rangeInsertIndex = -1;
-      let rangeSquareCount = 0;
+      const rangeStart = startIndex;
+      const rangeEnd = endIndex + 1; // exclusive
 
-      for (const group of state.data.groups) {
-        const groupStart = offset;
-        const groupEnd = offset + group.squareCount - 1;
-        offset += group.squareCount;
+      // Adjust existing groups that overlap the new range
+      const adjusted: GridData["groups"] = [];
+      for (const g of state.data.groups) {
+        const gEnd = g.start + g.nbSquares;
 
-        const overlapStart = Math.max(groupStart, startIndex);
-        const overlapEnd = Math.min(groupEnd, endIndex);
-
-        if (overlapStart > groupEnd || overlapEnd < groupStart) {
-          newGroups.push(group);
+        if (gEnd <= rangeStart || g.start >= rangeEnd) {
+          adjusted.push(g);
           continue;
         }
 
-        if (groupStart < overlapStart) {
-          newGroups.push({
-            squareCount: overlapStart - groupStart,
-            repeatCount: group.repeatCount,
+        if (g.start < rangeStart) {
+          adjusted.push({
+            start: g.start,
+            nbSquares: rangeStart - g.start,
+            repeatCount: g.repeatCount,
           });
         }
-
-        if (rangeInsertIndex === -1) rangeInsertIndex = newGroups.length;
-        rangeSquareCount += overlapEnd - overlapStart + 1;
-
-        if (groupEnd > overlapEnd) {
-          newGroups.push({
-            squareCount: groupEnd - overlapEnd,
-            repeatCount: group.repeatCount,
+        if (gEnd > rangeEnd) {
+          adjusted.push({
+            start: rangeEnd,
+            nbSquares: gEnd - rangeEnd,
+            repeatCount: g.repeatCount,
           });
         }
       }
 
-      if (rangeInsertIndex !== -1 && rangeSquareCount > 0) {
-        newGroups.splice(rangeInsertIndex, 0, {
-          squareCount: rangeSquareCount,
-          repeatCount: 1,
-        });
-      }
+      adjusted.push({
+        start: rangeStart,
+        nbSquares: rangeEnd - rangeStart,
+        repeatCount: 1,
+      });
+      adjusted.sort((a, b) => a.start - b.start);
 
       return {
-        data: { ...state.data, groups: newGroups },
+        data: { ...state.data, groups: adjusted },
         isDirty: true,
       };
     }),
+
+  updateTranspose: (semitones) =>
+    set({ transpose: Math.max(-12, Math.min(12, semitones)) }),
+
+  updateMetronome: (metronome) => set({ metronome, isDirty: true }),
+  updateStyle: (style) => set({ style, isDirty: true }),
+  updateSwing: (swing) =>
+    set({ swing: Math.max(0, Math.min(1, swing)), isDirty: true }),
+  updateChordsEnabled: (chordsEnabled) => set({ chordsEnabled, isDirty: true }),
+  updateBassEnabled: (bassEnabled) => set({ bassEnabled, isDirty: true }),
+  updateDrumsEnabled: (drumsEnabled) => set({ drumsEnabled, isDirty: true }),
 }));

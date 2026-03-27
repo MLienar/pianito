@@ -13,31 +13,34 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     id: "grid-1",
     userId: "user-1",
     name: "Test Grid",
+    composer: null,
+    key: null,
     tempo: 120,
     loopCount: 2,
+    visibility: "private",
+    timeSignature: { numerator: 4, denominator: 4 },
     data: {
       squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
-      groups: [{ squareCount: 4, repeatCount: 1 }],
+      groups: [],
     },
-    // Default playback settings
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
     metronome: false,
     style: null,
     swing: 0,
     chordsEnabled: true,
     bassEnabled: true,
     drumsEnabled: true,
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
     ...overrides,
   };
 }
 
-function multiGroupData(): GridData {
+function groupedData(): GridData {
   return {
     squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm"), sq("E7")],
     groups: [
-      { squareCount: 4, repeatCount: 2 },
-      { squareCount: 2, repeatCount: 1 },
+      { start: 0, nbSquares: 4, repeatCount: 2 },
+      { start: 4, nbSquares: 2, repeatCount: 3 },
     ],
   };
 }
@@ -55,7 +58,26 @@ describe("initialize", () => {
     expect(store().tempo).toBe(120);
     expect(store().loopCount).toBe(2);
     expect(store().data.squares).toHaveLength(4);
+    expect(store().data.groups).toEqual([]);
     expect(store().isDirty).toBe(false);
+  });
+
+  it("migrates old format groups, dropping repeatCount=1", () => {
+    const grid = makeGrid({
+      data: {
+        squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+        groups: [
+          { squareCount: 2, repeatCount: 3 },
+          { squareCount: 2, repeatCount: 1 },
+        ],
+      } as unknown as GridData,
+    });
+
+    store().initialize(grid);
+
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 2, repeatCount: 3 },
+    ]);
   });
 
   it("migrates legacy lines format", () => {
@@ -75,8 +97,21 @@ describe("initialize", () => {
       sq("Am"),
       sq("F"),
     ]);
+    expect(store().data.groups).toEqual([]);
+  });
+
+  it("passes through new format groups", () => {
+    const grid = makeGrid({
+      data: {
+        squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+        groups: [{ start: 0, nbSquares: 4, repeatCount: 2 }],
+      },
+    });
+
+    store().initialize(grid);
+
     expect(store().data.groups).toEqual([
-      { squareCount: 4, repeatCount: 1 },
+      { start: 0, nbSquares: 4, repeatCount: 2 },
     ]);
   });
 
@@ -88,9 +123,48 @@ describe("initialize", () => {
     store().initialize(grid);
 
     expect(store().data.squares).toEqual([sq(null)]);
-    expect(store().data.groups).toEqual([
-      { squareCount: 1, repeatCount: 1 },
-    ]);
+    expect(store().data.groups).toEqual([]);
+  });
+
+  it("initializes playback settings from grid", () => {
+    store().initialize(
+      makeGrid({
+        metronome: true,
+        style: "rock",
+        swing: 0.5,
+        chordsEnabled: false,
+        bassEnabled: false,
+        drumsEnabled: false,
+      }),
+    );
+
+    expect(store().metronome).toBe(true);
+    expect(store().style).toBe("rock");
+    expect(store().swing).toBe(0.5);
+    expect(store().chordsEnabled).toBe(false);
+    expect(store().bassEnabled).toBe(false);
+    expect(store().drumsEnabled).toBe(false);
+  });
+
+  it("uses defaults for missing playback settings", () => {
+    const grid = makeGrid();
+    // Remove playback settings to simulate old grid
+    const gridWithoutSettings = { ...grid } as Record<string, unknown>;
+    delete gridWithoutSettings.metronome;
+    delete gridWithoutSettings.style;
+    delete gridWithoutSettings.swing;
+    delete gridWithoutSettings.chordsEnabled;
+    delete gridWithoutSettings.bassEnabled;
+    delete gridWithoutSettings.drumsEnabled;
+
+    store().initialize(gridWithoutSettings as Grid);
+
+    expect(store().metronome).toBe(false);
+    expect(store().style).toBeNull();
+    expect(store().swing).toBe(0);
+    expect(store().chordsEnabled).toBe(true);
+    expect(store().bassEnabled).toBe(true);
+    expect(store().drumsEnabled).toBe(true);
   });
 });
 
@@ -104,6 +178,20 @@ describe("reset", () => {
     expect(store().name).toBe("");
     expect(store().tempo).toBe(90);
     expect(store().isDirty).toBe(false);
+  });
+
+  it("resets playback settings to defaults", () => {
+    store().initialize(
+      makeGrid({ metronome: true, style: "jazz", swing: 0.5 }),
+    );
+    store().reset();
+
+    expect(store().metronome).toBe(false);
+    expect(store().style).toBeNull();
+    expect(store().swing).toBe(0);
+    expect(store().chordsEnabled).toBe(true);
+    expect(store().bassEnabled).toBe(true);
+    expect(store().drumsEnabled).toBe(true);
   });
 });
 
@@ -170,7 +258,7 @@ describe("updateLoopCount", () => {
 describe("setChord", () => {
   it("sets a chord at the given index", () => {
     store().initialize(makeGrid());
-    store().initialize(makeGrid()); // reset isDirty
+    store().initialize(makeGrid());
     store().setChord(0, "D");
 
     expect(store().data.squares[0]?.chord).toBe("D");
@@ -181,7 +269,7 @@ describe("setChord", () => {
     store().initialize(makeGrid());
     const dataBefore = store().data;
 
-    store().setChord(0, "C"); // already "C"
+    store().setChord(0, "C");
 
     expect(store().data).toBe(dataBefore);
     expect(store().isDirty).toBe(false);
@@ -202,7 +290,7 @@ describe("clearChord", () => {
       makeGrid({
         data: {
           squares: [sq(null)],
-          groups: [{ squareCount: 1, repeatCount: 1 }],
+          groups: [],
         },
       }),
     );
@@ -215,21 +303,38 @@ describe("clearChord", () => {
 });
 
 describe("addSquare", () => {
-  it("adds an empty square to the last group", () => {
+  it("adds an empty square without creating a group", () => {
     store().initialize(makeGrid());
     store().addSquare();
 
     expect(store().data.squares).toHaveLength(5);
     expect(store().data.squares[4]?.chord).toBeNull();
-    expect(store().data.groups[0]?.squareCount).toBe(5);
+    expect(store().data.groups).toEqual([]);
     expect(store().isDirty).toBe(true);
+  });
+
+  it("does not modify existing groups", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am")],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 2 }],
+        },
+      }),
+    );
+    store().addSquare();
+
+    expect(store().data.squares).toHaveLength(3);
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 2, repeatCount: 2 },
+    ]);
   });
 });
 
 describe("removeSquare", () => {
-  it("removes a square and decrements group count", () => {
+  it("removes a standalone square", () => {
     store().initialize(makeGrid());
-    store().removeSquare(2); // remove "F"
+    store().removeSquare(2);
 
     expect(store().data.squares).toHaveLength(3);
     expect(store().data.squares.map((s) => s.chord)).toEqual([
@@ -237,8 +342,57 @@ describe("removeSquare", () => {
       "Am",
       "G",
     ]);
-    expect(store().data.groups[0]?.squareCount).toBe(3);
-    expect(store().isDirty).toBe(true);
+  });
+
+  it("shrinks a group when removing a square inside it", () => {
+    store().initialize(
+      makeGrid({
+        data: groupedData(),
+      }),
+    );
+    store().removeSquare(1); // remove "Am" from group 0
+
+    expect(store().data.groups[0]).toEqual({
+      start: 0,
+      nbSquares: 3,
+      repeatCount: 2,
+    });
+    expect(store().data.groups[1]).toEqual({
+      start: 3,
+      nbSquares: 2,
+      repeatCount: 3,
+    });
+  });
+
+  it("removes a group when its last square is removed", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am")],
+          groups: [{ start: 1, nbSquares: 1, repeatCount: 2 }],
+        },
+      }),
+    );
+    store().removeSquare(1);
+
+    expect(store().data.squares).toHaveLength(1);
+    expect(store().data.groups).toEqual([]);
+  });
+
+  it("shifts group starts when removing a square before a group", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [{ start: 2, nbSquares: 2, repeatCount: 2 }],
+        },
+      }),
+    );
+    store().removeSquare(0);
+
+    expect(store().data.groups).toEqual([
+      { start: 1, nbSquares: 2, repeatCount: 2 },
+    ]);
   });
 
   it("does not remove the last remaining square", () => {
@@ -246,7 +400,7 @@ describe("removeSquare", () => {
       makeGrid({
         data: {
           squares: [sq("C")],
-          groups: [{ squareCount: 1, repeatCount: 1 }],
+          groups: [],
         },
       }),
     );
@@ -255,27 +409,30 @@ describe("removeSquare", () => {
 
     expect(store().data.squares).toHaveLength(1);
   });
+});
 
-  it("removes a single-square group entirely", () => {
-    store().initialize(
-      makeGrid({
-        data: multiGroupData(),
-      }),
-    );
+describe("removeSquares", () => {
+  it("removes multiple squares and adjusts groups", () => {
+    store().initialize(makeGrid({ data: groupedData() }));
+    store().removeSquares(new Set([0, 4])); // remove from both groups
 
-    // Remove both squares from group 2 (indices 4, 5 → after first removal index 4)
-    store().removeSquare(5);
-    store().removeSquare(4);
-
-    expect(store().data.groups).toHaveLength(1);
-    expect(store().data.squares).toHaveLength(4);
+    expect(store().data.squares.map((s) => s.chord)).toEqual([
+      "Am",
+      "F",
+      "G",
+      "E7",
+    ]);
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 3, repeatCount: 2 },
+      { start: 3, nbSquares: 1, repeatCount: 3 },
+    ]);
   });
 });
 
 describe("reorderSquares", () => {
   it("moves a square from one position to another", () => {
     store().initialize(makeGrid());
-    store().reorderSquares(0, 2); // move C from index 0 to index 2
+    store().reorderSquares(0, 2);
 
     expect(store().data.squares.map((s) => s.chord)).toEqual([
       "Am",
@@ -285,12 +442,97 @@ describe("reorderSquares", () => {
     ]);
     expect(store().isDirty).toBe(true);
   });
+
+  it("shrinks source group when dragging a square out", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm")],
+          groups: [{ start: 0, nbSquares: 4, repeatCount: 2 }],
+        },
+      }),
+    );
+    // Drag "C" (index 0) out to index 4 (after the group, standalone area)
+    store().reorderSquares(0, 4);
+
+    expect(store().data.squares.map((s) => s.chord)).toEqual([
+      "Am",
+      "F",
+      "G",
+      "Dm",
+      "C",
+    ]);
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 3, repeatCount: 2 },
+    ]);
+  });
+
+  it("expands group when dragging a square into its interior", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm")],
+          groups: [{ start: 0, nbSquares: 3, repeatCount: 2 }],
+        },
+      }),
+    );
+    // Drag "Dm" (index 4) to index 1 (inside the group)
+    store().reorderSquares(4, 1);
+
+    expect(store().data.squares.map((s) => s.chord)).toEqual([
+      "C",
+      "Dm",
+      "Am",
+      "F",
+      "G",
+    ]);
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 4, repeatCount: 2 },
+    ]);
+  });
+
+  it("keeps group size when reordering within the same group", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [{ start: 0, nbSquares: 4, repeatCount: 2 }],
+        },
+      }),
+    );
+    store().reorderSquares(0, 2);
+
+    expect(store().data.squares.map((s) => s.chord)).toEqual([
+      "Am",
+      "F",
+      "C",
+      "G",
+    ]);
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 4, repeatCount: 2 },
+    ]);
+  });
+
+  it("is a no-op when fromIndex equals toIndex", () => {
+    store().initialize(makeGrid());
+    const dataBefore = store().data;
+
+    store().reorderSquares(1, 1);
+
+    expect(store().data).toBe(dataBefore);
+  });
 });
 
 describe("updateGroupRepeatCount", () => {
   it("updates the repeat count for a group", () => {
-    store().initialize(makeGrid());
-    store().initialize(makeGrid()); // reset isDirty
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am")],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 1 }],
+        },
+      }),
+    );
     store().updateGroupRepeatCount(0, 3);
 
     expect(store().data.groups[0]?.repeatCount).toBe(3);
@@ -298,76 +540,71 @@ describe("updateGroupRepeatCount", () => {
   });
 
   it("clamps to minimum 1", () => {
-    store().initialize(makeGrid());
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am")],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 2 }],
+        },
+      }),
+    );
     store().updateGroupRepeatCount(0, 0);
 
     expect(store().data.groups[0]?.repeatCount).toBe(1);
   });
 
   it("clamps to maximum 50", () => {
-    store().initialize(makeGrid());
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am")],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 2 }],
+        },
+      }),
+    );
     store().updateGroupRepeatCount(0, 100);
 
     expect(store().data.groups[0]?.repeatCount).toBe(50);
-  });
-
-  it("is a no-op when value is already the same", () => {
-    store().initialize(makeGrid());
-    const dataBefore = store().data;
-
-    store().updateGroupRepeatCount(0, 1); // already 1
-
-    expect(store().data).toBe(dataBefore);
   });
 });
 
 describe("splitGroup", () => {
   it("splits a group at the given square index", () => {
-    store().initialize(makeGrid());
-    store().splitGroup(2); // split at index 2 → groups of 2 and 2
-
-    expect(store().data.groups).toEqual([
-      { squareCount: 2, repeatCount: 1 },
-      { squareCount: 2, repeatCount: 1 },
-    ]);
-    expect(store().isDirty).toBe(true);
-  });
-
-  it("preserves repeat count in both halves", () => {
     store().initialize(
       makeGrid({
         data: {
           squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
-          groups: [{ squareCount: 4, repeatCount: 3 }],
+          groups: [{ start: 0, nbSquares: 4, repeatCount: 2 }],
         },
       }),
     );
     store().splitGroup(2);
 
     expect(store().data.groups).toEqual([
-      { squareCount: 2, repeatCount: 3 },
-      { squareCount: 2, repeatCount: 3 },
+      { start: 0, nbSquares: 2, repeatCount: 2 },
+      { start: 2, nbSquares: 2, repeatCount: 2 },
     ]);
+    expect(store().isDirty).toBe(true);
   });
 
   it("is a no-op at the first square of a group", () => {
-    store().initialize(makeGrid());
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [{ start: 0, nbSquares: 4, repeatCount: 2 }],
+        },
+      }),
+    );
     const dataBefore = store().data;
 
-    store().splitGroup(0); // offset 0 → no-op
+    store().splitGroup(0);
 
     expect(store().data).toBe(dataBefore);
   });
 
-  it("is a no-op for a single-square group", () => {
-    store().initialize(
-      makeGrid({
-        data: {
-          squares: [sq("C")],
-          groups: [{ squareCount: 1, repeatCount: 1 }],
-        },
-      }),
-    );
+  it("is a no-op for a standalone square", () => {
+    store().initialize(makeGrid());
     const dataBefore = store().data;
 
     store().splitGroup(0);
@@ -378,25 +615,44 @@ describe("splitGroup", () => {
 
 describe("mergeWithPreviousGroup", () => {
   it("merges a group with the previous one", () => {
-    store().initialize(makeGrid({ data: multiGroupData() }));
+    store().initialize(makeGrid({ data: groupedData() }));
     store().mergeWithPreviousGroup(1);
 
     expect(store().data.groups).toEqual([
-      { squareCount: 6, repeatCount: 2 },
+      { start: 0, nbSquares: 6, repeatCount: 2 },
     ]);
-    expect(store().data.squares).toHaveLength(6);
     expect(store().isDirty).toBe(true);
   });
 
+  it("absorbs gap squares between groups", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm"), sq("E7")],
+          groups: [
+            { start: 0, nbSquares: 2, repeatCount: 2 },
+            { start: 4, nbSquares: 2, repeatCount: 3 },
+          ],
+        },
+      }),
+    );
+    store().mergeWithPreviousGroup(1);
+
+    // Absorbs standalone squares at indices 2-3
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 6, repeatCount: 2 },
+    ]);
+  });
+
   it("keeps the previous group's repeat count", () => {
-    store().initialize(makeGrid({ data: multiGroupData() }));
+    store().initialize(makeGrid({ data: groupedData() }));
     store().mergeWithPreviousGroup(1);
 
     expect(store().data.groups[0]?.repeatCount).toBe(2);
   });
 
   it("is a no-op for the first group (index 0)", () => {
-    store().initialize(makeGrid({ data: multiGroupData() }));
+    store().initialize(makeGrid({ data: groupedData() }));
     const dataBefore = store().data;
 
     store().mergeWithPreviousGroup(0);
@@ -405,7 +661,7 @@ describe("mergeWithPreviousGroup", () => {
   });
 
   it("is a no-op for out-of-range index", () => {
-    store().initialize(makeGrid({ data: multiGroupData() }));
+    store().initialize(makeGrid({ data: groupedData() }));
     const dataBefore = store().data;
 
     store().mergeWithPreviousGroup(10);
@@ -414,28 +670,87 @@ describe("mergeWithPreviousGroup", () => {
   });
 });
 
-describe("groupSquares", () => {
-  it("groups a range of squares into a new group", () => {
-    store().initialize(makeGrid());
-    store().groupSquares(1, 2); // group Am and F
+describe("deleteGroup", () => {
+  it("removes a group without affecting squares", () => {
+    store().initialize(makeGrid({ data: groupedData() }));
+    store().deleteGroup(0);
 
+    expect(store().data.squares).toHaveLength(6);
     expect(store().data.groups).toEqual([
-      { squareCount: 1, repeatCount: 1 },
-      { squareCount: 2, repeatCount: 1 },
-      { squareCount: 1, repeatCount: 1 },
+      { start: 4, nbSquares: 2, repeatCount: 3 },
     ]);
     expect(store().isDirty).toBe(true);
   });
 
-  it("groups squares spanning multiple existing groups", () => {
-    store().initialize(makeGrid({ data: multiGroupData() }));
-    store().groupSquares(3, 4); // spans group boundary
+  it("can remove all groups", () => {
+    store().initialize(makeGrid({ data: groupedData() }));
+    store().deleteGroup(1);
+    store().deleteGroup(0);
 
-    // Group 1 becomes 3 squares, new group is 2, group 2 becomes 1
+    expect(store().data.squares).toHaveLength(6);
+    expect(store().data.groups).toEqual([]);
+  });
+
+  it("is a no-op for invalid index", () => {
+    store().initialize(makeGrid({ data: groupedData() }));
+    const dataBefore = store().data;
+
+    store().deleteGroup(-1);
+
+    expect(store().data).toBe(dataBefore);
+  });
+});
+
+describe("groupSquares", () => {
+  it("groups a range of standalone squares", () => {
+    store().initialize(makeGrid());
+    store().groupSquares(1, 2);
+
     expect(store().data.groups).toEqual([
-      { squareCount: 3, repeatCount: 2 },
-      { squareCount: 2, repeatCount: 1 },
-      { squareCount: 1, repeatCount: 1 },
+      { start: 1, nbSquares: 2, repeatCount: 1 },
+    ]);
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("trims an overlapping group", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm"), sq("E7")],
+          groups: [{ start: 0, nbSquares: 4, repeatCount: 2 }],
+        },
+      }),
+    );
+    store().groupSquares(2, 4); // overlaps last 2 squares of existing group
+
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 2, repeatCount: 2 },
+      { start: 2, nbSquares: 3, repeatCount: 1 },
+    ]);
+  });
+
+  it("replaces a fully contained group", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G"), sq("Dm"), sq("E7")],
+          groups: [{ start: 1, nbSquares: 2, repeatCount: 3 }],
+        },
+      }),
+    );
+    store().groupSquares(0, 5);
+
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 6, repeatCount: 1 },
+    ]);
+  });
+
+  it("can group all squares", () => {
+    store().initialize(makeGrid({ data: groupedData() }));
+    store().groupSquares(0, 5);
+
+    expect(store().data.groups).toEqual([
+      { start: 0, nbSquares: 6, repeatCount: 1 },
     ]);
   });
 
@@ -465,13 +780,342 @@ describe("groupSquares", () => {
 
     expect(store().data).toBe(dataBefore);
   });
+});
 
-  it("can group all squares", () => {
-    store().initialize(makeGrid({ data: multiGroupData() }));
-    store().groupSquares(0, 5);
+// ─── Time Signature ─────────────────────────────────────────────────
 
-    expect(store().data.groups).toEqual([
-      { squareCount: 6, repeatCount: 1 },
-    ]);
+function sqBeats(
+  chord: string | null,
+  nbBeats: number,
+): { chord: string | null; nbBeats: number } {
+  return { chord, nbBeats };
+}
+
+describe("initialize with timeSignature", () => {
+  it("sets timeSignature from grid", () => {
+    store().initialize(
+      makeGrid({ timeSignature: { numerator: 3, denominator: 4 } }),
+    );
+
+    expect(store().timeSignature).toEqual({ numerator: 3, denominator: 4 });
+  });
+
+  it("defaults to 4/4 when timeSignature is missing", () => {
+    const grid = makeGrid();
+    // Simulate old grid without timeSignature
+    const gridWithoutTs = { ...grid } as Record<string, unknown>;
+    delete gridWithoutTs.timeSignature;
+
+    store().initialize(gridWithoutTs as Grid);
+
+    expect(store().timeSignature).toEqual({ numerator: 4, denominator: 4 });
+  });
+});
+
+describe("updateTimeSignature", () => {
+  it("converts full-measure squares to new numerator", () => {
+    store().initialize(makeGrid());
+    // All 4 squares have nbBeats=4 (full measures in 4/4)
+
+    store().updateTimeSignature({ numerator: 3, denominator: 4 });
+
+    expect(store().timeSignature).toEqual({ numerator: 3, denominator: 4 });
+    for (const sq of store().data.squares) {
+      expect(sq.nbBeats).toBe(3);
+    }
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("converts partial squares to 1 beat", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sqBeats("C", 4), sqBeats("Am", 2), sqBeats("F", 4)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().updateTimeSignature({ numerator: 3, denominator: 4 });
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3); // was full → new full
+    expect(store().data.squares[1]?.nbBeats).toBe(1); // was partial → 1
+    expect(store().data.squares[2]?.nbBeats).toBe(3); // was full → new full
+  });
+
+  it("skips squares in groups with their own override", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [
+            {
+              start: 0,
+              nbSquares: 2,
+              repeatCount: 1,
+              timeSignature: { numerator: 6, denominator: 8 },
+            },
+          ],
+        },
+      }),
+    );
+
+    store().updateTimeSignature({ numerator: 3, denominator: 4 });
+
+    // Squares in the overridden group stay at 4
+    expect(store().data.squares[0]?.nbBeats).toBe(4);
+    expect(store().data.squares[1]?.nbBeats).toBe(4);
+    // Squares outside the group are converted
+    expect(store().data.squares[2]?.nbBeats).toBe(3);
+    expect(store().data.squares[3]?.nbBeats).toBe(3);
+  });
+
+  it("is a no-op when time signature is the same", () => {
+    store().initialize(makeGrid());
+    const stateBefore = store().data;
+
+    store().updateTimeSignature({ numerator: 4, denominator: 4 });
+
+    expect(store().data).toBe(stateBefore);
+  });
+});
+
+describe("updateGroupTimeSignature", () => {
+  it("converts squares in group to new numerator", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sq("C"), sq("Am"), sq("F"), sq("G")],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 2 }],
+        },
+      }),
+    );
+
+    store().updateGroupTimeSignature(0, { numerator: 3, denominator: 4 });
+
+    // Group squares converted: 4 (full in 4/4) → 3 (full in 3/4)
+    expect(store().data.squares[0]?.nbBeats).toBe(3);
+    expect(store().data.squares[1]?.nbBeats).toBe(3);
+    // Non-group squares untouched
+    expect(store().data.squares[2]?.nbBeats).toBe(4);
+    expect(store().data.squares[3]?.nbBeats).toBe(4);
+    // Group has timeSignature set
+    expect(store().data.groups[0]?.timeSignature).toEqual({
+      numerator: 3,
+      denominator: 4,
+    });
+  });
+
+  it("clearing override converts group squares back to grid TS", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [
+            sqBeats("C", 3),
+            sqBeats("Am", 3),
+            sq("F"),
+            sq("G"),
+          ],
+          groups: [
+            {
+              start: 0,
+              nbSquares: 2,
+              repeatCount: 2,
+              timeSignature: { numerator: 3, denominator: 4 },
+            },
+          ],
+        },
+      }),
+    );
+
+    store().updateGroupTimeSignature(0, undefined);
+
+    // Squares were full (3 in 3/4) → full (4 in 4/4)
+    expect(store().data.squares[0]?.nbBeats).toBe(4);
+    expect(store().data.squares[1]?.nbBeats).toBe(4);
+    expect(store().data.groups[0]?.timeSignature).toBeUndefined();
+  });
+
+  it("partial squares in group become 1 beat", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sqBeats("C", 4), sqBeats("Am", 2)],
+          groups: [{ start: 0, nbSquares: 2, repeatCount: 1 }],
+        },
+      }),
+    );
+
+    store().updateGroupTimeSignature(0, { numerator: 3, denominator: 4 });
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3); // full → full
+    expect(store().data.squares[1]?.nbBeats).toBe(1); // partial → 1
+  });
+
+  it("is a no-op for invalid group index", () => {
+    store().initialize(makeGrid());
+    const dataBefore = store().data;
+
+    store().updateGroupTimeSignature(99, { numerator: 3, denominator: 4 });
+
+    expect(store().data).toBe(dataBefore);
+  });
+});
+
+describe("setSquareBeats with time signature", () => {
+  it("clamps to effective numerator", () => {
+    store().initialize(
+      makeGrid({
+        timeSignature: { numerator: 3, denominator: 4 },
+        data: {
+          squares: [sqBeats("C", 3), sqBeats("Am", 3)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().setSquareBeats(0, 5); // exceeds max of 3
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3);
+  });
+
+  it("clamps to minimum 1", () => {
+    store().initialize(makeGrid());
+
+    store().setSquareBeats(0, 0);
+
+    expect(store().data.squares[0]?.nbBeats).toBe(1);
+  });
+
+  it("uses group override numerator when square is in overridden group", () => {
+    store().initialize(
+      makeGrid({
+        data: {
+          squares: [sqBeats("C", 3), sqBeats("Am", 3)],
+          groups: [
+            {
+              start: 0,
+              nbSquares: 2,
+              repeatCount: 1,
+              timeSignature: { numerator: 3, denominator: 4 },
+            },
+          ],
+        },
+      }),
+    );
+
+    store().setSquareBeats(0, 6); // group limits to 3
+
+    expect(store().data.squares[0]?.nbBeats).toBe(3);
+  });
+});
+
+describe("addSquare with time signature", () => {
+  it("uses current TS numerator as default nbBeats", () => {
+    store().initialize(
+      makeGrid({
+        timeSignature: { numerator: 3, denominator: 4 },
+        data: {
+          squares: [sqBeats("C", 3)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().addSquare();
+
+    const lastSquare = store().data.squares[store().data.squares.length - 1];
+    expect(lastSquare?.nbBeats).toBe(3);
+    expect(lastSquare?.chord).toBeNull();
+  });
+
+  it("uses 6 beats for 6/8", () => {
+    store().initialize(
+      makeGrid({
+        timeSignature: { numerator: 6, denominator: 8 },
+        data: {
+          squares: [sqBeats("C", 6)],
+          groups: [],
+        },
+      }),
+    );
+
+    store().addSquare();
+
+    const lastSquare = store().data.squares[store().data.squares.length - 1];
+    expect(lastSquare?.nbBeats).toBe(6);
+  });
+});
+
+// ─── Playback Settings ───────────────────────────────────────────────
+
+describe("updateMetronome", () => {
+  it("sets metronome and marks dirty", () => {
+    store().updateMetronome(true);
+
+    expect(store().metronome).toBe(true);
+    expect(store().isDirty).toBe(true);
+  });
+});
+
+describe("updateStyle", () => {
+  it("sets style and marks dirty", () => {
+    store().updateStyle("jazz");
+
+    expect(store().style).toBe("jazz");
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("can set style to null", () => {
+    store().updateStyle("rock");
+    store().updateStyle(null);
+
+    expect(store().style).toBeNull();
+  });
+});
+
+describe("updateSwing", () => {
+  it("sets swing and marks dirty", () => {
+    store().updateSwing(0.5);
+
+    expect(store().swing).toBe(0.5);
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("clamps swing below 0 to 0", () => {
+    store().updateSwing(-0.5);
+    expect(store().swing).toBe(0);
+  });
+
+  it("clamps swing above 1 to 1", () => {
+    store().updateSwing(1.5);
+    expect(store().swing).toBe(1);
+  });
+});
+
+describe("updateChordsEnabled", () => {
+  it("sets chordsEnabled and marks dirty", () => {
+    store().updateChordsEnabled(false);
+
+    expect(store().chordsEnabled).toBe(false);
+    expect(store().isDirty).toBe(true);
+  });
+});
+
+describe("updateBassEnabled", () => {
+  it("sets bassEnabled and marks dirty", () => {
+    store().updateBassEnabled(false);
+
+    expect(store().bassEnabled).toBe(false);
+    expect(store().isDirty).toBe(true);
+  });
+});
+
+describe("updateDrumsEnabled", () => {
+  it("sets drumsEnabled and marks dirty", () => {
+    store().updateDrumsEnabled(false);
+
+    expect(store().drumsEnabled).toBe(false);
+    expect(store().isDirty).toBe(true);
   });
 });

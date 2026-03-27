@@ -44,10 +44,7 @@ export default {
   },
   read: {
     title: "Lire la musique",
-    description:
-      "Progressez à travers les gammes, des notes naturelles aux quatre altérations.",
-    trebleClef: "Clé de Sol",
-    bassClef: "Clé de Fa",
+    description: "Apprenez à lire les notes sur la portée, étape par étape.",
     levels: "Niveaux",
     level: "Niveau {{level}}",
     levelProgress: "Niveau {{current}}/{{total}}",
@@ -58,7 +55,12 @@ export default {
     loadingExercise: "Chargement de l'exercice...",
     instructions:
       "Appuyez sur un bouton de note pour commencer. Identifiez chaque note lorsqu'elle atteint la zone orange. Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B).",
-    notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
+    notesAndTempo: "{{notes}} notes · {{tempo}} bpm",
+    newNotes: "Nouveau : {{notes}}",
+    clef: {
+      treble: "Sol",
+      bass: "Fa",
+    },
   },
   intro: {
     thisIsA: "Ceci est un ",
@@ -78,6 +80,7 @@ export default {
     createNew: "Nouvelle grille",
     untitled: "Sans titre",
     gridName: "Nom de la grille",
+    timeSignature: "Mesure",
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Boucles",
@@ -116,15 +119,99 @@ export default {
     dragToReorder: "Glisser pour réordonner",
     repeatCount: "Répétitions",
     mergeGroup: "Fusionner les groupes",
+    deleteGroup: "Supprimer le groupe",
     splitHere: "Séparer ici",
     splitGroup: "Séparer le groupe à cette ligne",
     selectedCount: "{{count}} sélectionné(s)",
     groupSelection: "Grouper",
     clearChords: "Effacer les accords",
     deleteSelection: "Supprimer",
+    loopSelection: "Boucle",
     authRequired: "Compte requis",
     authRequiredDescription:
       "Créez un compte pour sauvegarder et gérer vos grilles d'accords.",
+    composer: "Compositeur",
+    composerPlaceholder: "ex. Miles Davis",
+    key: "Tonalité",
+    keyPlaceholder: "ex. Dom",
+    visibility: "Visibilité",
+    private: "Privé",
+    public: "Public",
+    community: "Communauté",
+    searchPublicGrids: "Rechercher par nom, compositeur ou tonalité...",
+    publicGrids: "Grilles publiques",
+    publicGridsDescription:
+      "Parcourez et jouez les grilles partagées par d'autres utilisateurs.",
+    noPublicGrids: "Aucune grille publique pour le moment.",
+    transpose: "Transposer",
+    semitones: "demi-tons",
+    readOnly: "Lecture seule",
+  },
+  tour: {
+    helpButton: "Visite",
+    back: "Retour",
+    next: "Suivant",
+    done: "Terminé",
+    gridName: {
+      title: "Nom de la grille",
+      text: "Cliquez sur le nom pour renommer votre progression d'accords.",
+    },
+    gridOverview: {
+      title: "La grille",
+      text: "Voici votre grille d'accords. Chaque case représente un accord. Glissez les cases pour les réordonner.",
+    },
+    gridSquare: {
+      title: "Cases d'accords",
+      text: "Cliquez sur une case pour ouvrir la recherche et attribuer un accord.",
+    },
+    chordSearch: {
+      title: "Recherche d'accords",
+      text: "Tapez pour rechercher des accords. Appuyez sur Entrée pour sélectionner le premier résultat, ou cliquez sur un accord dans la liste.",
+    },
+    resizeHandle: {
+      title: "Nombre de temps",
+      text: "Glissez le bord droit d'une case pour changer son nombre de temps entre 2 et 4.",
+    },
+    addSquare: {
+      title: "Ajouter des cases",
+      text: "Cliquez sur le bouton + pour ajouter une nouvelle case à votre grille.",
+    },
+    multiSelect: {
+      title: "Sélection multiple",
+      text: "Maintenez Ctrl (ou Cmd sur Mac) et cliquez pour sélectionner plusieurs cases. Utilisez Maj+Clic pour sélectionner une plage.",
+    },
+    selectionToolbar: {
+      title: "Actions de sélection",
+      text: "Quand des cases sont sélectionnées, utilisez cette barre pour les grouper, effacer leurs accords ou les supprimer.",
+    },
+    playButton: {
+      title: "Lecture",
+      text: "Appuyez sur Jouer pour écouter votre progression. Appuyez sur Arrêter pour mettre en pause.",
+    },
+    tempo: {
+      title: "Tempo",
+      text: "Réglez la vitesse de lecture en battements par minute (30-300 BPM).",
+    },
+    loops: {
+      title: "Boucles",
+      text: "Définissez combien de fois la grille se répète pendant la lecture.",
+    },
+    instruments: {
+      title: "Instruments",
+      text: "Activez ou désactivez les instruments : métronome, accords, basse et batterie.",
+    },
+    styleSelect: {
+      title: "Style musical",
+      text: "Choisissez un style comme Rock, Jazz ou Bossa Nova pour changer le pattern d'accompagnement.",
+    },
+    swing: {
+      title: "Swing",
+      text: "Ajustez le swing de droit (0%) à swing complet (100%).",
+    },
+    saveButton: {
+      title: "Enregistrer",
+      text: "Enregistrez votre grille. Le bouton est actif quand vous avez des modifications non sauvegardées.",
+    },
   },
   settings: {
     title: "Paramètres",

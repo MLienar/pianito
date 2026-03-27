@@ -3,7 +3,7 @@
 ## Project structure
 
 pnpm monorepo with three packages:
-- `packages/api` — Backend API (Hono + Drizzle + PostgreSQL)
+- `packages/api` — Backend API (Fastify + Drizzle + PostgreSQL)
 - `packages/web` — Frontend (React + Vite + TanStack Router)
 - `packages/shared` — Shared types, schemas, and utilities
 

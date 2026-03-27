@@ -1,0 +1,1 @@
+ALTER TABLE "grid" ADD COLUMN IF NOT EXISTS "visibility" text DEFAULT 'private' NOT NULL;

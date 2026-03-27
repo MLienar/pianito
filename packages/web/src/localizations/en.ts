@@ -43,10 +43,7 @@ export default {
   },
   read: {
     title: "Read Music",
-    description:
-      "Progress through scales, from natural notes to four accidentals.",
-    trebleClef: "Treble Clef",
-    bassClef: "Bass Clef",
+    description: "Learn to read notes on the staff, one step at a time.",
     levels: "Levels",
     level: "Level {{level}}",
     levelProgress: "Level {{current}}/{{total}}",
@@ -57,7 +54,12 @@ export default {
     loadingExercise: "Loading exercise...",
     instructions:
       "Press any note button to begin. Identify each note as it reaches the orange zone. You can also use your keyboard (C, D, E, F, G, A, B).",
-    notesAndTempo: "{{degrees}} notes · {{tempo}} bpm",
+    notesAndTempo: "{{notes}} notes · {{tempo}} bpm",
+    newNotes: "New: {{notes}}",
+    clef: {
+      treble: "Treble",
+      bass: "Bass",
+    },
   },
   intro: {
     thisIsA: "This is a ",
@@ -77,6 +79,7 @@ export default {
     createNew: "Create New Grid",
     untitled: "Untitled",
     gridName: "Grid name",
+    timeSignature: "Time sig.",
     tempo: "Tempo",
     bpm: "BPM",
     loopCount: "Loops",
@@ -115,15 +118,98 @@ export default {
     dragToReorder: "Drag to reorder",
     repeatCount: "Repeat",
     mergeGroup: "Merge groups",
+    deleteGroup: "Delete group",
     splitHere: "Split here",
     splitGroup: "Split group at this line",
     selectedCount: "{{count}} selected",
     groupSelection: "Group",
     clearChords: "Clear chords",
     deleteSelection: "Delete",
+    loopSelection: "Loop",
     authRequired: "Account Required",
     authRequiredDescription:
       "Create an account to save and manage your chord grids.",
+    composer: "Composer",
+    composerPlaceholder: "e.g. Miles Davis",
+    key: "Key",
+    keyPlaceholder: "e.g. Cm",
+    visibility: "Visibility",
+    private: "Private",
+    public: "Public",
+    community: "Community",
+    searchPublicGrids: "Search by name, composer, or key...",
+    publicGrids: "Public Grids",
+    publicGridsDescription: "Browse and play grids shared by other users.",
+    noPublicGrids: "No public grids yet.",
+    transpose: "Transpose",
+    semitones: "semitones",
+    readOnly: "Read-only",
+  },
+  tour: {
+    helpButton: "Tour",
+    back: "Back",
+    next: "Next",
+    done: "Done",
+    gridName: {
+      title: "Grid Name",
+      text: "Click the name to rename your chord progression.",
+    },
+    gridOverview: {
+      title: "The Grid",
+      text: "This is your chord grid. Each square represents a chord in your progression. Drag squares to reorder them.",
+    },
+    gridSquare: {
+      title: "Chord Squares",
+      text: "Click any square to open the chord search and assign a chord.",
+    },
+    chordSearch: {
+      title: "Chord Search",
+      text: "Type to search through chords. Press Enter to select the first match, or click any chord in the list.",
+    },
+    resizeHandle: {
+      title: "Beat Count",
+      text: "Drag the right edge of a square to change its beat count between 2 and 4 beats.",
+    },
+    addSquare: {
+      title: "Add Squares",
+      text: "Click the + button to add a new square to your grid.",
+    },
+    multiSelect: {
+      title: "Multi-Select",
+      text: "Hold Ctrl (or Cmd on Mac) and click to select multiple squares. Use Shift+Click to select a range.",
+    },
+    selectionToolbar: {
+      title: "Selection Actions",
+      text: "When squares are selected, use this toolbar to group them, clear their chords, or delete them.",
+    },
+    playButton: {
+      title: "Playback",
+      text: "Press Play to hear your chord progression. Press Stop to pause.",
+    },
+    tempo: {
+      title: "Tempo",
+      text: "Set the playback speed in beats per minute (30-300 BPM).",
+    },
+    loops: {
+      title: "Loops",
+      text: "Set how many times the grid repeats during playback.",
+    },
+    instruments: {
+      title: "Instruments",
+      text: "Toggle which instruments play: metronome, chords, bass, and drums.",
+    },
+    styleSelect: {
+      title: "Musical Style",
+      text: "Choose a musical style like Rock, Jazz, or Bossa Nova to change the accompaniment pattern.",
+    },
+    swing: {
+      title: "Swing",
+      text: "Adjust the swing feel from straight (0%) to full swing (100%).",
+    },
+    saveButton: {
+      title: "Save",
+      text: "Save your grid. The button is enabled when you have unsaved changes.",
+    },
   },
   settings: {
     title: "Settings",

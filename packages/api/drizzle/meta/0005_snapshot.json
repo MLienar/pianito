@@ -1,5 +1,5 @@
 {
-  "id": "890d826d-b0cd-4e37-8e52-fb677f142258",
+  "id": "e06e6f27-04a0-4675-8130-b6850771dfde",
   "prevId": "d865dd36-a739-45a3-a541-fcd81e39fae6",
   "version": "7",
   "dialect": "postgresql",
@@ -214,47 +214,6 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
-        },
-        "metronome": {
-          "name": "metronome",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "style": {
-          "name": "style",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "swing": {
-          "name": "swing",
-          "type": "numeric(3, 2)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'0.00'"
-        },
-        "chords_enabled": {
-          "name": "chords_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "bass_enabled": {
-          "name": "bass_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "drums_enabled": {
-          "name": "drums_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -529,6 +488,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -552,6 +517,11 @@
           "name": "user_email_unique",
           "nullsNotDistinct": false,
           "columns": ["email"]
+        },
+        "user_username_unique": {
+          "name": "user_username_unique",
+          "nullsNotDistinct": false,
+          "columns": ["username"]
         }
       },
       "policies": {},

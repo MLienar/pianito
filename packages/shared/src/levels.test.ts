@@ -1,53 +1,79 @@
 import { describe, expect, it } from "vitest";
 import {
   EXERCISE_LEVELS,
-  SCALE_GROUPS,
-  STEP_LABELS,
+  LEVEL_GROUPS,
   getExerciseLevel,
+  getNewNotes,
 } from "./levels.ts";
 
 describe("EXERCISE_LEVELS", () => {
-  it("generates 4 levels per scale group", () => {
-    expect(EXERCISE_LEVELS).toHaveLength(SCALE_GROUPS.length * STEP_LABELS.length);
+  it("has around 100 levels", () => {
+    expect(EXERCISE_LEVELS.length).toBeGreaterThanOrEqual(90);
+    expect(EXERCISE_LEVELS.length).toBeLessThanOrEqual(110);
   });
 
   it("assigns sequential level numbers starting at 1", () => {
     const levels = EXERCISE_LEVELS.map((l) => l.level);
-    expect(levels).toEqual(Array.from({ length: 40 }, (_, i) => i + 1));
+    expect(levels).toEqual(
+      Array.from({ length: EXERCISE_LEVELS.length }, (_, i) => i + 1),
+    );
   });
 
-  it("includes step label in level name", () => {
-    const first4 = EXERCISE_LEVELS.slice(0, 4);
-    expect(first4.map((l) => l.name)).toEqual([
-      "First Notes — Introduction",
-      "First Notes — Practice",
-      "First Notes — Consolidation",
-      "First Notes — Mastery",
-    ]);
+  it("starts with treble clef C, D, E", () => {
+    const first = EXERCISE_LEVELS[0];
+    expect(first).toBeDefined();
+    expect(first!.clef).toBe("treble");
+    expect(first!.notes).toEqual(["C", "D", "E"]);
+    expect(first!.newNotes).toEqual(["C", "D", "E"]);
   });
 
-  it("maps degrees and tempos from scale group", () => {
-    const level1 = EXERCISE_LEVELS[0];
-    expect(level1.scale).toBe("C major");
-    expect(level1.degrees).toBe(3);
-    expect(level1.tempo).toBe(45);
-
-    const level4 = EXERCISE_LEVELS[3];
-    expect(level4.degrees).toBe(7);
-    expect(level4.tempo).toBe(52);
+  it("introduces bass clef before level 20", () => {
+    const firstBass = EXERCISE_LEVELS.find((l) => l.clef === "bass");
+    expect(firstBass).toBeDefined();
+    expect(firstBass!.level).toBeLessThan(20);
   });
 
-  it("sets count based on tier (10, 13, 16, 20) with 25 for last level", () => {
-    // Check first 4 levels (first scale group)
-    expect(EXERCISE_LEVELS[0].count).toBe(10); // Introduction
-    expect(EXERCISE_LEVELS[1].count).toBe(13); // Practice
-    expect(EXERCISE_LEVELS[2].count).toBe(16); // Consolidation
-    expect(EXERCISE_LEVELS[3].count).toBe(20); // Mastery
-    
-    // Check last level (level 40)
-    const lastLevel = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1];
-    expect(lastLevel.count).toBe(25);
-    expect(lastLevel.level).toBe(40);
+  it("introduces accidentals after natural notes are covered", () => {
+    const firstAccidental = EXERCISE_LEVELS.find((l) =>
+      l.notes.some((n) => n.includes("#") || n.includes("b")),
+    );
+    expect(firstAccidental).toBeDefined();
+    expect(firstAccidental!.level).toBeGreaterThan(40);
+  });
+
+  it("every level has valid clef", () => {
+    for (const level of EXERCISE_LEVELS) {
+      expect(["treble", "bass"]).toContain(level.clef);
+    }
+  });
+
+  it("every level has at least one note", () => {
+    for (const level of EXERCISE_LEVELS) {
+      expect(level.notes.length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("count and tempo increase over time", () => {
+    const first = EXERCISE_LEVELS[0]!;
+    const last = EXERCISE_LEVELS[EXERCISE_LEVELS.length - 1]!;
+    expect(last.count).toBeGreaterThan(first.count);
+    expect(last.tempo).toBeGreaterThan(first.tempo);
+  });
+});
+
+describe("LEVEL_GROUPS", () => {
+  it("covers all levels", () => {
+    const allLevels = LEVEL_GROUPS.flatMap((g) => g.levels);
+    expect(allLevels).toEqual(
+      Array.from({ length: EXERCISE_LEVELS.length }, (_, i) => i + 1),
+    );
+  });
+
+  it("each group has a name and valid clef", () => {
+    for (const group of LEVEL_GROUPS) {
+      expect(group.name.length).toBeGreaterThan(0);
+      expect(["treble", "bass"]).toContain(group.clef);
+    }
   });
 });
 
@@ -55,8 +81,8 @@ describe("getExerciseLevel", () => {
   it("returns the correct level by number", () => {
     const level = getExerciseLevel(1);
     expect(level).toBeDefined();
-    expect(level!.name).toBe("First Notes — Introduction");
-    expect(level!.scale).toBe("C major");
+    expect(level!.name).toBe("First Notes");
+    expect(level!.clef).toBe("treble");
   });
 
   it("returns undefined for level 0", () => {
@@ -64,14 +90,33 @@ describe("getExerciseLevel", () => {
   });
 
   it("returns undefined for out-of-range levels", () => {
-    expect(getExerciseLevel(41)).toBeUndefined();
+    expect(getExerciseLevel(EXERCISE_LEVELS.length + 1)).toBeUndefined();
     expect(getExerciseLevel(-1)).toBeUndefined();
   });
 
   it("returns the last level", () => {
-    const last = getExerciseLevel(40);
+    const last = getExerciseLevel(EXERCISE_LEVELS.length);
     expect(last).toBeDefined();
-    expect(last!.scale).toBe("Ab major");
-    expect(last!.name).toContain("Mastery");
+    expect(last!.name).toBe("Mastery");
+  });
+});
+
+describe("getNewNotes", () => {
+  it("returns new notes for level 1", () => {
+    const notes = getNewNotes(1);
+    expect(notes).toEqual(["C", "D", "E"]);
+  });
+
+  it("returns empty array for consolidation levels", () => {
+    // Find a level with no new notes
+    const consolidation = EXERCISE_LEVELS.find((l) => l.newNotes.length === 0);
+    expect(consolidation).toBeDefined();
+    const notes = getNewNotes(consolidation!.level);
+    expect(notes).toEqual([]);
+  });
+
+  it("returns empty for invalid level", () => {
+    expect(getNewNotes(0)).toEqual([]);
+    expect(getNewNotes(999)).toEqual([]);
   });
 });

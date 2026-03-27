@@ -1,9 +1,11 @@
 import type { GridListResponse, GridSummary } from "@pianito/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BadgeCheck } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthGateModal } from "@/components/auth-gate-modal";
+import { Tooltip } from "@/components/tooltip";
 import { useSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/accomp/")({
@@ -28,6 +30,16 @@ function AccompIndex() {
     },
     enabled: isAuthenticated,
   });
+
+  const { data: publicData, isLoading: isLoadingPublic } =
+    useQuery<GridListResponse>({
+      queryKey: ["public-grids"],
+      queryFn: async () => {
+        const res = await fetch("/api/grids/public");
+        if (!res.ok) throw new Error("Failed to fetch public grids");
+        return res.json();
+      },
+    });
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -108,12 +120,12 @@ function AccompIndex() {
             <GridCard
               key={grid.id}
               grid={grid}
-              deletingId={deletingId}
-              onDelete={(id) => {
-                if (deletingId === id) {
-                  deleteMutation.mutate(id);
+              isConfirming={deletingId === grid.id}
+              onDelete={() => {
+                if (deletingId === grid.id) {
+                  deleteMutation.mutate(grid.id);
                 } else {
-                  setDeletingId(id);
+                  setDeletingId(grid.id);
                 }
               }}
               onCancelDelete={() => setDeletingId(null)}
@@ -127,23 +139,27 @@ function AccompIndex() {
           {t("accomp.noGrids")}
         </p>
       )}
+
+      <PublicGridsSection
+        publicData={publicData}
+        isLoadingPublic={isLoadingPublic}
+      />
     </div>
   );
 }
 
 function GridCard({
   grid,
-  deletingId,
+  isConfirming,
   onDelete,
   onCancelDelete,
 }: {
   grid: GridSummary;
-  deletingId: string | null;
-  onDelete: (id: string) => void;
+  isConfirming: boolean;
+  onDelete: () => void;
   onCancelDelete: () => void;
 }) {
   const { t } = useTranslation();
-  const isConfirming = deletingId === grid.id;
 
   return (
     <div className="relative flex min-h-[140px] flex-col border-3 border-border bg-card p-6 shadow-[var(--shadow-brutal)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-hover)]">
@@ -153,9 +169,23 @@ function GridCard({
         className="flex flex-1 flex-col"
       >
         <h3 className="text-lg font-bold">{grid.name}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {grid.tempo} {t("accomp.bpm")}
-        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="font-mono text-sm text-muted-foreground">
+            {grid.timeSignature.numerator}/{grid.timeSignature.denominator}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {grid.tempo} {t("accomp.bpm")}
+          </span>
+          <span
+            className={`text-xs font-bold px-1.5 py-0.5 border-2 border-border ${
+              grid.visibility === "public"
+                ? "bg-accent text-accent-foreground"
+                : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {t(`accomp.${grid.visibility}`)}
+          </span>
+        </div>
         <p className="mt-auto pt-3 text-xs text-muted-foreground">
           {t("accomp.createdAt", {
             date: new Date(grid.createdAt).toLocaleDateString(),
@@ -169,7 +199,7 @@ function GridCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(grid.id);
+                onDelete();
               }}
               className="border-2 border-border bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground"
             >
@@ -191,7 +221,7 @@ function GridCard({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(grid.id);
+              onDelete();
             }}
             className="border-2 border-border bg-card px-2 py-1 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground"
           >
@@ -199,6 +229,115 @@ function GridCard({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function PublicGridsSection({
+  publicData,
+  isLoadingPublic,
+}: {
+  publicData: GridListResponse | undefined;
+  isLoadingPublic: boolean;
+}) {
+  const { t } = useTranslation();
+  const [search, setSearch] = useState("");
+
+  const allPublicGrids = publicData?.grids ?? [];
+  const filtered = search.trim()
+    ? allPublicGrids.filter((g) => {
+        const q = search.toLowerCase();
+        return (
+          g.name.toLowerCase().includes(q) ||
+          g.composer?.toLowerCase().includes(q) ||
+          g.key?.toLowerCase().includes(q)
+        );
+      })
+    : allPublicGrids;
+
+  return (
+    <div className="border-t-3 border-border pt-8">
+      <h2 className="text-2xl font-bold tracking-tight">
+        {t("accomp.publicGrids")}
+      </h2>
+      <p className="mt-1 text-muted-foreground">
+        {t("accomp.publicGridsDescription")}
+      </p>
+
+      {!isLoadingPublic && allPublicGrids.length > 0 && (
+        <div className="mt-4">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("accomp.searchPublicGrids")}
+            className="w-full max-w-sm border-3 border-border bg-background px-3 py-2 font-bold placeholder:font-normal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      )}
+
+      {isLoadingPublic ? (
+        <p className="mt-4 text-muted-foreground">{t("common.loading")}</p>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {filtered.map((grid) => (
+            <PublicGridCard key={grid.id} grid={grid} />
+          ))}
+        </div>
+      )}
+
+      {!isLoadingPublic &&
+        allPublicGrids.length > 0 &&
+        filtered.length === 0 && (
+          <p className="mt-4 text-center text-muted-foreground">
+            {t("accomp.noResults")}
+          </p>
+        )}
+
+      {!isLoadingPublic && allPublicGrids.length === 0 && (
+        <p className="mt-4 text-center text-muted-foreground">
+          {t("accomp.noPublicGrids")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PublicGridCard({ grid }: { grid: GridSummary }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="relative flex min-h-[140px] flex-col border-3 border-border bg-card p-6 shadow-[var(--shadow-brutal)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-hover)]">
+      <Link
+        to="/accomp/$gridId"
+        params={{ gridId: grid.id }}
+        className="flex flex-1 flex-col"
+      >
+        <h3 className="text-lg font-bold">{grid.name}</h3>
+        {grid.composer && (
+          <p className="text-sm text-muted-foreground">{grid.composer}</p>
+        )}
+        <div className="mt-1 flex items-center gap-2">
+          <span className="font-mono text-sm text-muted-foreground">
+            {grid.timeSignature.numerator}/{grid.timeSignature.denominator}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {grid.tempo} {t("accomp.bpm")}
+          </span>
+          {grid.key && (
+            <span className="border-2 border-border px-1.5 py-0.5 text-xs font-bold">
+              {grid.key}
+            </span>
+          )}
+        </div>
+      </Link>
+      {!grid.userId && (
+        <Tooltip content={t("accomp.community")}>
+          <span className="absolute top-3 right-3">
+            <BadgeCheck size={20} strokeWidth={2.5} className="text-primary" />
+          </span>
+        </Tooltip>
+      )}
     </div>
   );
 }

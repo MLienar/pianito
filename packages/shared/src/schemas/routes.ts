@@ -14,6 +14,7 @@ export const notationExerciseSchema = z.object({
   tempo: z.number().int().min(30).max(240),
   notes: z.array(noteSchema).min(1),
   allowedNotes: z.array(z.string()).min(1),
+  keySignature: z.array(z.string()).default([]),
 });
 
 // ─── GET /api/completions ────────────────────────────────────────────
@@ -58,14 +59,40 @@ export const userPreferenceSchema = z.object({
 
 // ─── PATCH /api/preferences ─────────────────────────────────────────
 
-export const updatePreferenceBodySchema = z
-  .object({
-    notation: notationSchema.optional(),
-    theme: themeSchema.optional(),
-    language: languageSchema.optional(),
-  })
+export const updatePreferenceBodySchema = userPreferenceSchema
+  .partial()
   .refine((obj) => Object.keys(obj).length > 0, {
     message: "At least one preference field is required",
+  });
+
+// ─── User Profile ────────────────────────────────────────────────────
+
+export const usernameSchema = z
+  .string()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be at most 30 characters")
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Username can only contain letters, numbers, underscores, and hyphens",
+  );
+
+export const userProfileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  username: z.string().nullable(),
+  image: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const updateUserProfileBodySchema = z
+  .object({
+    username: usernameSchema.nullable(),
+  })
+  .partial()
+  .refine((obj) => Object.keys(obj).length > 0, {
+    message: "At least one field is required",
   });
 
 // ─── Shared error response ───────────────────────────────────────────
@@ -76,28 +103,82 @@ export const errorResponseSchema = z.object({
 
 // ─── Grid (Accompaniment) ───────────────────────────────────────────
 
+export const gridVisibilitySchema = z.enum(["private", "public"]);
+
+export const timeSignatureSchema = z.object({
+  numerator: z.number().int().min(2).max(6),
+  denominator: z
+    .number()
+    .int()
+    .refine((v) => [2, 4, 8].includes(v), {
+      message: "Denominator must be 2, 4, or 8",
+    }),
+});
+
+export const SUPPORTED_TIME_SIGNATURES = [
+  { numerator: 4, denominator: 4 },
+  { numerator: 3, denominator: 4 },
+  { numerator: 2, denominator: 4 },
+  { numerator: 6, denominator: 8 },
+  { numerator: 5, denominator: 4 },
+  { numerator: 2, denominator: 2 },
+] as const;
+
+export const DEFAULT_TIME_SIGNATURE = { numerator: 4, denominator: 4 };
+
 export const gridSquareSchema = z.object({
   chord: chordSchema.nullable(),
-  nbBeats: z.number().int().min(2).max(4).default(4),
+  nbBeats: z.number().int().min(1).max(6).default(4),
 });
 
 export const gridGroupSchema = z.object({
-  squareCount: z.number().int().min(1).max(200),
+  start: z.number().int().min(0),
+  nbSquares: z.number().int().min(1).max(200),
   repeatCount: z.number().int().min(1).max(50).default(1),
+  timeSignature: timeSignatureSchema.optional(),
 });
 
-export const gridDataSchema = z.object({
-  squares: z.array(gridSquareSchema).min(1).max(200),
-  groups: z.array(gridGroupSchema).min(1).max(50),
-});
+export const gridDataSchema = z
+  .object({
+    squares: z.array(gridSquareSchema).min(1).max(200),
+    groups: z.array(gridGroupSchema).max(50).default([]),
+  })
+  .refine(
+    (data) => {
+      for (let i = 0; i < data.groups.length; i++) {
+        const g = data.groups[i];
+        if (!g) continue;
+        if (g.start + g.nbSquares > data.squares.length) return false;
+        if (i > 0) {
+          const prev = data.groups[i - 1];
+          if (prev && g.start < prev.start + prev.nbSquares) return false;
+        }
+      }
+      return true;
+    },
+    {
+      message:
+        "Groups must be sorted by start, non-overlapping, and within bounds",
+    },
+  );
 
-export const gridSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string(),
+/** Base shape for grid-editable fields (no id, userId, timestamps). */
+const gridFieldsSchema = z.object({
   name: z.string().min(1).max(100),
+  composer: z.string().max(200).nullable(),
+  key: z.string().max(20).nullable(),
   tempo: z.number().int().min(30).max(300),
   loopCount: z.number().int().min(1).max(50),
+  visibility: gridVisibilitySchema,
+  timeSignature: timeSignatureSchema,
   data: gridDataSchema,
+});
+
+export const gridSchema = gridFieldsSchema.extend({
+  id: z.string().uuid(),
+  userId: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
   // Playback settings
   metronome: z.boolean().default(false),
   style: styleSchema.nullable().default(null),
@@ -105,26 +186,35 @@ export const gridSchema = z.object({
   chordsEnabled: z.boolean().default(true),
   bassEnabled: z.boolean().default(true),
   drumsEnabled: z.boolean().default(true),
-  createdAt: z.string(),
-  updatedAt: z.string(),
 });
 
-export const gridSummarySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  tempo: z.number().int(),
-  createdAt: z.string(),
-});
+export const gridSummarySchema = gridFieldsSchema
+  .pick({
+    name: true,
+    composer: true,
+    key: true,
+    tempo: true,
+    visibility: true,
+    timeSignature: true,
+  })
+  .extend({
+    id: z.string().uuid(),
+    userId: z.string().nullable(),
+    createdAt: z.string(),
+  });
 
-export const createGridBodySchema = z.object({
-  name: z.string().min(1).max(100),
+export const createGridBodySchema = gridFieldsSchema.extend({
+  composer: z.string().max(200).nullable().default(null),
+  key: z.string().max(20).nullable().default(null),
   tempo: z.number().int().min(30).max(300).default(90),
   loopCount: z.number().int().min(1).max(50).default(1),
+  visibility: gridVisibilitySchema.default("private"),
+  timeSignature: timeSignatureSchema.default(DEFAULT_TIME_SIGNATURE),
   data: gridDataSchema.default({
     squares: [{ chord: null }],
-    groups: [{ squareCount: 1, repeatCount: 1 }],
+    groups: [],
   }),
-  // Playback settings - all optional for creating
+  // Playback settings
   metronome: z.boolean().default(false),
   style: styleSchema.nullable().default(null),
   swing: z.number().min(0).max(1).default(0),
@@ -133,13 +223,9 @@ export const createGridBodySchema = z.object({
   drumsEnabled: z.boolean().default(true),
 });
 
-export const updateGridBodySchema = z
-  .object({
-    name: z.string().min(1).max(100).optional(),
-    tempo: z.number().int().min(30).max(300).optional(),
-    loopCount: z.number().int().min(1).max(50).optional(),
-    data: gridDataSchema.optional(),
-    // Playback settings - all optional for updating
+export const updateGridBodySchema = gridFieldsSchema
+  .partial()
+  .extend({
     metronome: z.boolean().optional(),
     style: styleSchema.nullable().optional(),
     swing: z.number().min(0).max(1).optional(),

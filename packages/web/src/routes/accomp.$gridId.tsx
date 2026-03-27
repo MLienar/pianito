@@ -7,6 +7,8 @@ import {
   SettingsControls,
 } from "@/components/accomp/playback-controls";
 import { SelectionToolbar } from "@/components/accomp/selection-toolbar";
+import { TourHelpButton } from "@/components/accomp/tour/tour-help-button";
+import { useGridTour } from "@/components/accomp/tour/use-grid-tour";
 import { useGridEditor } from "@/hooks/use-grid-editor";
 import { useGridPlayback } from "@/hooks/use-grid-playback";
 import { useGridEditorStore } from "@/stores/grid-editor";
@@ -22,19 +24,37 @@ function GridEditor() {
   const [editingName, setEditingName] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const { isLoading, isSaving, error, save } = useGridEditor(gridId);
+  const { isLoading, isSaving, readOnly, error, save } = useGridEditor(gridId);
 
   const name = useGridEditorStore((s) => s.name);
+  const composer = useGridEditorStore((s) => s.composer);
+  const gridKey = useGridEditorStore((s) => s.key);
   const tempo = useGridEditorStore((s) => s.tempo);
   const loopCount = useGridEditorStore((s) => s.loopCount);
+  const visibility = useGridEditorStore((s) => s.visibility);
+  const timeSignature = useGridEditorStore((s) => s.timeSignature);
   const data = useGridEditorStore((s) => s.data);
   const updateName = useGridEditorStore((s) => s.updateName);
+  const updateComposer = useGridEditorStore((s) => s.updateComposer);
+  const updateKey = useGridEditorStore((s) => s.updateKey);
+  const updateVisibility = useGridEditorStore((s) => s.updateVisibility);
   const groupSquares = useGridEditorStore((s) => s.groupSquares);
+  const transpose = useGridEditorStore((s) => s.transpose);
+  const updateTranspose = useGridEditorStore((s) => s.updateTranspose);
 
-  const playback = useGridPlayback(data, tempo, loopCount);
+  const selected = useSquareSelectionStore((s) => s.selected);
+  const playback = useGridPlayback(
+    data,
+    tempo,
+    loopCount,
+    timeSignature,
+    selected,
+  );
 
   const selectedSize = useSquareSelectionStore((s) => s.selected.size);
   const clearSelection = useSquareSelectionStore((s) => s.clearSelection);
+
+  const { startTour } = useGridTour();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -82,6 +102,10 @@ function GridEditor() {
     clearSelection();
   }, [removeSquares, clearSelection]);
 
+  const handleLoopSelection = useCallback(() => {
+    playback.playSelectionLoop();
+  }, [playback]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-8 py-8">
@@ -111,33 +135,113 @@ function GridEditor() {
           >
             ←
           </Link>
-          {editingName ? (
-            <input
-              ref={nameInputRef}
-              type="text"
-              value={name}
-              onChange={(e) => updateName(e.target.value)}
-              onBlur={handleNameBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleNameBlur();
-              }}
-              className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
-            />
+          <div data-tour="grid-name" className="flex-1">
+            {readOnly ? (
+              <span className="text-2xl font-bold tracking-tight">{name}</span>
+            ) : editingName ? (
+              <input
+                ref={nameInputRef}
+                type="text"
+                value={name}
+                onChange={(e) => updateName(e.target.value)}
+                onBlur={handleNameBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleNameBlur();
+                }}
+                className="border-b-3 border-border bg-transparent text-2xl font-bold tracking-tight focus:outline-none"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingName(true)}
+                className="text-2xl font-bold tracking-tight hover:text-primary"
+              >
+                {name}
+              </button>
+            )}
+          </div>
+
+          {readOnly ? (
+            <span className="ml-auto border-2 border-border bg-muted px-2 py-1 text-xs font-bold text-muted-foreground">
+              {t("accomp.readOnly")}
+            </span>
           ) : (
-            <button
-              type="button"
-              onClick={() => setEditingName(true)}
-              className="text-2xl font-bold tracking-tight hover:text-primary"
-            >
-              {name}
-            </button>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs font-bold">
+                {t("accomp.visibility")}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  updateVisibility(
+                    visibility === "private" ? "public" : "private",
+                  )
+                }
+                className={`border-2 border-border px-2 py-1 text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-brutal-sm)] ${
+                  visibility === "public"
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {t(`accomp.${visibility}`)}
+              </button>
+            </div>
           )}
+          <TourHelpButton onClick={startTour} />
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <label className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-muted-foreground">
+              {t("accomp.composer")}
+            </span>
+            <input
+              type="text"
+              value={composer ?? ""}
+              onChange={(e) => updateComposer(e.target.value)}
+              placeholder={t("accomp.composerPlaceholder")}
+              readOnly={readOnly}
+              className="border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-muted-foreground">
+              {t("accomp.key")}
+            </span>
+            <input
+              type="text"
+              value={gridKey ?? ""}
+              onChange={(e) => updateKey(e.target.value)}
+              placeholder={t("accomp.keyPlaceholder")}
+              readOnly={readOnly}
+              className="w-20 border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-muted-foreground">
+              {t("accomp.transpose")}
+            </span>
+            <input
+              type="number"
+              value={transpose}
+              onChange={(e) => updateTranspose(Number(e.target.value))}
+              min="-12"
+              max="12"
+              className="w-16 border-b-2 border-border bg-transparent px-1 py-0.5 text-sm focus:outline-none"
+            />
+            <span className="text-xs text-muted-foreground">
+              {t("accomp.semitones")}
+            </span>
+          </label>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <PlaybackControls
             isPlaying={playback.isPlaying}
+            isCountingDown={playback.isCountingDown}
+            countdownNumber={playback.countdownNumber}
             isSaving={isSaving}
+            readOnly={readOnly}
             onPlay={playback.play}
             onStop={playback.stop}
             onSave={save}
@@ -161,15 +265,16 @@ function GridEditor() {
         </div>
       </div>
 
-      <GridView playingIndex={playback.currentIndex} />
+      <GridView playingIndex={playback.currentIndex} readOnly={readOnly} />
 
-      {selectedSize > 0 && (
+      {!readOnly && selectedSize > 0 && (
         <SelectionToolbar
           selectionCount={selectedSize}
           onGroup={handleGroup}
           onClearChords={handleClearChords}
           onDelete={handleDelete}
           onClearSelection={clearSelection}
+          onLoopSelection={handleLoopSelection}
         />
       )}
     </div>
