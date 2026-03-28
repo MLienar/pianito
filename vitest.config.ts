@@ -1,9 +1,6 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  test: {
-    include: ["packages/*/src/**/*.test.ts"],
-  },
   resolve: {
     alias: {
       "@pianito/shared": new URL(
@@ -13,5 +10,8 @@ export default defineConfig({
       "@pianito/api": new URL("./packages/api/src", import.meta.url).pathname,
       "@pianito/web": new URL("./packages/web/src", import.meta.url).pathname,
     },
+  },
+  test: {
+    include: ["packages/*/src/**/*.test.ts"],
   },
 });
