@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { chordSchema, clefSchema, noteSchema } from "./domain.ts";
+import { chordSchema, clefSchema, noteSchema, styleSchema } from "./domain.ts";
 
 // ─── GET /api/exercises/notation ─────────────────────────────────────
 
@@ -172,6 +172,13 @@ const gridFieldsSchema = z.object({
   visibility: gridVisibilitySchema,
   timeSignature: timeSignatureSchema,
   data: gridDataSchema,
+  // Playback settings
+  metronome: z.boolean().default(false),
+  style: styleSchema.nullable().default(null),
+  swing: z.number().min(0).max(1).default(0),
+  chordsEnabled: z.boolean().default(true),
+  bassEnabled: z.boolean().default(true),
+  drumsEnabled: z.boolean().default(true),
 });
 
 export const gridSchema = gridFieldsSchema.extend({
@@ -207,6 +214,13 @@ export const createGridBodySchema = gridFieldsSchema.extend({
     squares: [{ chord: null }],
     groups: [],
   }),
+  // Playback settings
+  metronome: z.boolean().default(false),
+  style: styleSchema.nullable().default(null),
+  swing: z.number().min(0).max(1).default(0),
+  chordsEnabled: z.boolean().default(true),
+  bassEnabled: z.boolean().default(true),
+  drumsEnabled: z.boolean().default(true),
 });
 
 export const updateGridBodySchema = gridFieldsSchema

@@ -6,8 +6,9 @@ import { playBassNote, stopBass } from "@/lib/bass-synth";
 import { startDrums, stopDrums } from "@/lib/drum-engine";
 import { toTimeSignatureKey } from "@/lib/drum-patterns";
 import { playClick } from "@/lib/metronome";
-import type { BassPreset, PianoPreset, Style, StyleId } from "@/lib/styles";
+import type { BassPreset, PianoPreset, Style } from "@/lib/styles";
 import { STYLES } from "@/lib/styles";
+import { useGridEditorStore } from "@/stores/grid-editor";
 import { useChordPlayer } from "./use-chord-player";
 
 const DEFAULT_BEATS_PER_SQUARE = 4;
@@ -97,13 +98,20 @@ export function useGridPlayback(
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [countdownNumber, setCountdownNumber] = useState<number | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  const [metronome, setMetronome] = useState(false);
-  const [style, setStyle] = useState<StyleId | null>(null);
-  const [swing, setSwing] = useState(0);
-  const [chordsEnabled, setChordsEnabled] = useState(true);
-  const [bassEnabled, setBassEnabled] = useState(true);
-  const [drumsEnabled, setDrumsEnabled] = useState(true);
   const [isLoopingSelection, setIsLoopingSelection] = useState(false);
+
+  const metronome = useGridEditorStore((s) => s.metronome);
+  const style = useGridEditorStore((s) => s.style);
+  const swing = useGridEditorStore((s) => s.swing);
+  const chordsEnabled = useGridEditorStore((s) => s.chordsEnabled);
+  const bassEnabled = useGridEditorStore((s) => s.bassEnabled);
+  const drumsEnabled = useGridEditorStore((s) => s.drumsEnabled);
+  const updateMetronome = useGridEditorStore((s) => s.updateMetronome);
+  const updateStyle = useGridEditorStore((s) => s.updateStyle);
+  const updateSwing = useGridEditorStore((s) => s.updateSwing);
+  const updateChordsEnabled = useGridEditorStore((s) => s.updateChordsEnabled);
+  const updateBassEnabled = useGridEditorStore((s) => s.updateBassEnabled);
+  const updateDrumsEnabled = useGridEditorStore((s) => s.updateDrumsEnabled);
   const { playChord, playNotesHit, stopAll, ensureReady } = useChordPlayer();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -157,10 +165,22 @@ export function useGridPlayback(
     setIsLoopingSelection(false);
   }, [clearScheduled, stopAll]);
 
-  const toggleMetronome = useCallback(() => setMetronome((v) => !v), []);
-  const toggleChords = useCallback(() => setChordsEnabled((v) => !v), []);
-  const toggleBass = useCallback(() => setBassEnabled((v) => !v), []);
-  const toggleDrums = useCallback(() => setDrumsEnabled((v) => !v), []);
+  const toggleMetronome = useCallback(
+    () => updateMetronome(!metronome),
+    [updateMetronome, metronome],
+  );
+  const toggleChords = useCallback(
+    () => updateChordsEnabled(!chordsEnabled),
+    [updateChordsEnabled, chordsEnabled],
+  );
+  const toggleBass = useCallback(
+    () => updateBassEnabled(!bassEnabled),
+    [updateBassEnabled, bassEnabled],
+  );
+  const toggleDrums = useCallback(
+    () => updateDrumsEnabled(!drumsEnabled),
+    [updateDrumsEnabled, drumsEnabled],
+  );
 
   const startCountdown = useCallback(
     (onComplete: () => void) => {
@@ -398,9 +418,9 @@ export function useGridPlayback(
     drumsEnabled,
     toggleDrums,
     style,
-    selectStyle: setStyle,
+    selectStyle: updateStyle,
     swing,
-    setSwing,
+    setSwing: updateSwing,
     play,
     stop,
     playSelectionLoop,

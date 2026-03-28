@@ -25,6 +25,12 @@ function makeGrid(overrides?: Partial<Grid>): Grid {
     },
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:00Z",
+    metronome: false,
+    style: null,
+    swing: 0,
+    chordsEnabled: true,
+    bassEnabled: true,
+    drumsEnabled: true,
     ...overrides,
   };
 }
@@ -119,6 +125,47 @@ describe("initialize", () => {
     expect(store().data.squares).toEqual([sq(null)]);
     expect(store().data.groups).toEqual([]);
   });
+
+  it("initializes playback settings from grid", () => {
+    store().initialize(
+      makeGrid({
+        metronome: true,
+        style: "rock",
+        swing: 0.5,
+        chordsEnabled: false,
+        bassEnabled: false,
+        drumsEnabled: false,
+      }),
+    );
+
+    expect(store().metronome).toBe(true);
+    expect(store().style).toBe("rock");
+    expect(store().swing).toBe(0.5);
+    expect(store().chordsEnabled).toBe(false);
+    expect(store().bassEnabled).toBe(false);
+    expect(store().drumsEnabled).toBe(false);
+  });
+
+  it("uses defaults for missing playback settings", () => {
+    const grid = makeGrid();
+    // Remove playback settings to simulate old grid
+    const gridWithoutSettings = { ...grid } as Record<string, unknown>;
+    delete gridWithoutSettings.metronome;
+    delete gridWithoutSettings.style;
+    delete gridWithoutSettings.swing;
+    delete gridWithoutSettings.chordsEnabled;
+    delete gridWithoutSettings.bassEnabled;
+    delete gridWithoutSettings.drumsEnabled;
+
+    store().initialize(gridWithoutSettings as Grid);
+
+    expect(store().metronome).toBe(false);
+    expect(store().style).toBeNull();
+    expect(store().swing).toBe(0);
+    expect(store().chordsEnabled).toBe(true);
+    expect(store().bassEnabled).toBe(true);
+    expect(store().drumsEnabled).toBe(true);
+  });
 });
 
 describe("reset", () => {
@@ -131,6 +178,20 @@ describe("reset", () => {
     expect(store().name).toBe("");
     expect(store().tempo).toBe(90);
     expect(store().isDirty).toBe(false);
+  });
+
+  it("resets playback settings to defaults", () => {
+    store().initialize(
+      makeGrid({ metronome: true, style: "jazz", swing: 0.5 }),
+    );
+    store().reset();
+
+    expect(store().metronome).toBe(false);
+    expect(store().style).toBeNull();
+    expect(store().swing).toBe(0);
+    expect(store().chordsEnabled).toBe(true);
+    expect(store().bassEnabled).toBe(true);
+    expect(store().drumsEnabled).toBe(true);
   });
 });
 
@@ -983,5 +1044,78 @@ describe("addSquare with time signature", () => {
 
     const lastSquare = store().data.squares[store().data.squares.length - 1];
     expect(lastSquare?.nbBeats).toBe(6);
+  });
+});
+
+// ─── Playback Settings ───────────────────────────────────────────────
+
+describe("updateMetronome", () => {
+  it("sets metronome and marks dirty", () => {
+    store().updateMetronome(true);
+
+    expect(store().metronome).toBe(true);
+    expect(store().isDirty).toBe(true);
+  });
+});
+
+describe("updateStyle", () => {
+  it("sets style and marks dirty", () => {
+    store().updateStyle("jazz");
+
+    expect(store().style).toBe("jazz");
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("can set style to null", () => {
+    store().updateStyle("rock");
+    store().updateStyle(null);
+
+    expect(store().style).toBeNull();
+  });
+});
+
+describe("updateSwing", () => {
+  it("sets swing and marks dirty", () => {
+    store().updateSwing(0.5);
+
+    expect(store().swing).toBe(0.5);
+    expect(store().isDirty).toBe(true);
+  });
+
+  it("clamps swing below 0 to 0", () => {
+    store().updateSwing(-0.5);
+    expect(store().swing).toBe(0);
+  });
+
+  it("clamps swing above 1 to 1", () => {
+    store().updateSwing(1.5);
+    expect(store().swing).toBe(1);
+  });
+});
+
+describe("updateChordsEnabled", () => {
+  it("sets chordsEnabled and marks dirty", () => {
+    store().updateChordsEnabled(false);
+
+    expect(store().chordsEnabled).toBe(false);
+    expect(store().isDirty).toBe(true);
+  });
+});
+
+describe("updateBassEnabled", () => {
+  it("sets bassEnabled and marks dirty", () => {
+    store().updateBassEnabled(false);
+
+    expect(store().bassEnabled).toBe(false);
+    expect(store().isDirty).toBe(true);
+  });
+});
+
+describe("updateDrumsEnabled", () => {
+  it("sets drumsEnabled and marks dirty", () => {
+    store().updateDrumsEnabled(false);
+
+    expect(store().drumsEnabled).toBe(false);
+    expect(store().isDirty).toBe(true);
   });
 });

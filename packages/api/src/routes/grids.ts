@@ -96,6 +96,7 @@ export async function gridRoutes(app: FastifyInstance) {
       return {
         ...row,
         data: row.data as Grid["data"],
+        swing: Number(row.swing),
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       };
@@ -124,6 +125,12 @@ export async function gridRoutes(app: FastifyInstance) {
           visibility: body.visibility,
           timeSignature: body.timeSignature,
           data: body.data,
+          metronome: body.metronome,
+          style: body.style,
+          swing: body.swing?.toFixed(2),
+          chordsEnabled: body.chordsEnabled,
+          bassEnabled: body.bassEnabled,
+          drumsEnabled: body.drumsEnabled,
         })
         .returning();
 
@@ -134,6 +141,7 @@ export async function gridRoutes(app: FastifyInstance) {
       return reply.status(201).send({
         ...row,
         data: row.data as Grid["data"],
+        swing: Number(row.swing),
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       });
@@ -151,10 +159,15 @@ export async function gridRoutes(app: FastifyInstance) {
     }
 
     const body = updateGridBodySchema.parse(request.body);
+    const { swing, ...rest } = body;
 
     const rows = await db
       .update(grid)
-      .set({ ...body, updatedAt: sql`now()` })
+      .set({
+        ...rest,
+        ...(swing !== undefined ? { swing: String(swing) } : {}),
+        updatedAt: sql`now()`,
+      })
       .where(and(eq(grid.id, request.params.id), eq(grid.userId, user.id)))
       .returning();
 
@@ -166,6 +179,7 @@ export async function gridRoutes(app: FastifyInstance) {
     return {
       ...row,
       data: row.data as Grid["data"],
+      swing: Number(row.swing),
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };

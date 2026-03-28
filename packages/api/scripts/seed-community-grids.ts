@@ -24,6 +24,7 @@ interface GridInput {
   tempo: number;
   timeSignature?: { numerator: number; denominator: number };
   loopCount: number;
+  style: string | null;
   visibility: "public" | "private";
   data: {
     squares: { chord: string | null; nbBeats: number }[];
@@ -85,6 +86,7 @@ async function main() {
         tempo: g.tempo,
         timeSignature: g.timeSignature ?? { numerator: 4, denominator: 4 },
         loopCount: g.loopCount,
+        style: g.style ?? "jazz",
         visibility: "public" as const,
         data: g.data,
       })),

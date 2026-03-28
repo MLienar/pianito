@@ -18,6 +18,7 @@ import type {
   notationExerciseSchema,
   notationQuerySchema,
   noteSchema,
+  styleSchema,
   timeSignatureSchema,
   updateGridBodySchema,
   updatePreferenceBodySchema,
@@ -31,6 +32,7 @@ import type {
 export type NoteName = z.infer<typeof noteSchema>;
 export type ChordName = z.infer<typeof chordSchema>;
 export type Clef = z.infer<typeof clefSchema>;
+export type StyleId = z.infer<typeof styleSchema>;
 
 // Route types
 export type NotationQuery = z.infer<typeof notationQuerySchema>;
