@@ -269,7 +269,7 @@ export function PlaybackControls({
           value={tempo}
           onChange={(e) => updateTempo(Number(e.target.value))}
           onBlur={clampTempo}
-          disabled={isPlaying || readOnly}
+          disabled={isPlaying}
           className="w-20 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         <span className="text-xs text-muted-foreground">{t("accomp.bpm")}</span>
@@ -286,7 +286,7 @@ export function PlaybackControls({
           max={50}
           value={loopCount}
           onChange={(e) => updateLoopCount(Number(e.target.value))}
-          disabled={isPlaying || readOnly}
+          disabled={isPlaying}
           className="w-16 border-3 border-border bg-background px-2 py-1 text-center font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
       </div>
