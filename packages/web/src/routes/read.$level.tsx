@@ -1,14 +1,17 @@
 import { EXERCISE_LEVELS } from "@pianito/shared";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { match } from "ts-pattern";
 import { AnswerButtons } from "@/components/answer-buttons";
 import { Button } from "@/components/button";
-import { ExerciseIntroModal } from "@/components/exercise-intro-modal";
 import { ExerciseResults } from "@/components/exercise-results";
+import { NoteIntroCards } from "@/components/read-tour/note-intro-cards";
+import { useReadTour } from "@/components/read-tour/use-read-tour";
 import { StaffRenderer } from "@/components/staff-renderer";
 import { useNotationExercise } from "@/hooks/use-notation-exercise";
+import { useNoteFormatter } from "@/hooks/use-note-formatter";
+import { parseNote } from "@/lib/staff-utils";
 
 export const Route = createFileRoute("/read/$level")({
   component: ReadExercise,
@@ -48,6 +51,32 @@ function ReadExercise() {
     setShowIntro(!localStorage.getItem(introKey));
   }, [level]);
 
+  const formatNote = useNoteFormatter();
+  const referenceOctave = clef === "bass" ? 3 : 4;
+  const noteNames = useMemo(
+    () =>
+      currentLevel.newNotes.map((note) => {
+        const parsed = parseNote(`${note}${referenceOctave}`, clef);
+        return formatNote(
+          parsed.accidental
+            ? `${parsed.letter}${parsed.accidental}`
+            : parsed.letter,
+        );
+      }),
+    [currentLevel.newNotes, clef, referenceOctave, formatNote],
+  );
+
+  const tourEnabled =
+    showIntro && exerciseState === "idle" && currentLevel.newNotes.length > 0;
+
+  useReadTour({
+    introKey,
+    noteNames,
+    enabled: tourEnabled,
+    onComplete: () => setShowIntro(false),
+    onDismiss: () => setShowIntro(false),
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -71,26 +100,16 @@ function ReadExercise() {
 
   if (!exercise) return null;
 
-  if (
-    showIntro &&
-    exerciseState === "idle" &&
-    currentLevel.newNotes.length > 0
-  ) {
-    return (
-      <ExerciseIntroModal
-        level={currentLevel}
-        clef={clef}
-        onStart={() => setShowIntro(false)}
-        onDontShowAgain={() => {
-          localStorage.setItem(introKey, "1");
-          setShowIntro(false);
-        }}
-      />
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6 py-8">
+      {tourEnabled && (
+        <NoteIntroCards
+          newNotes={currentLevel.newNotes}
+          clef={clef}
+          keySignature={currentLevel.keySignature}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <Link

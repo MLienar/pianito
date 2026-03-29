@@ -1,7 +1,7 @@
 import { Note } from "tonal";
 import { match } from "ts-pattern";
 
-export const STAFF_TOP = 40;
+export const STAFF_TOP = 60;
 export const LINE_SPACING = 24;
 export const NOTE_RADIUS = 10;
 export const STEM_X_INSET = 1;
