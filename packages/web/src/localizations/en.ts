@@ -53,7 +53,8 @@ export default {
     wrong: "Wrong!",
     loadingExercise: "Loading exercise...",
     instructions:
-      "Press any note button to begin. Identify each note as it reaches the orange zone. You can also use your keyboard (C, D, E, F, G, A, B).",
+      "Press any note button to start. Notes advance at tempo — answer before the beat moves on! You can also use your keyboard (C, D, E, F, G, A, B).",
+    countIn: "{{beat}}",
     notesAndTempo: "{{notes}} notes · {{tempo}} bpm",
     newNotes: "New: {{notes}}",
     clef: {
@@ -72,6 +73,7 @@ export default {
     perfectScore: "Perfect score!",
     greatJob: "Great job!",
     keepPracticing: "Keep practicing!",
+    missedNotes: "{{count}} missed",
   },
   accomp: {
     title: "Accompaniment",

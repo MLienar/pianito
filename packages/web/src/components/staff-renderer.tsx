@@ -1,9 +1,9 @@
 import { memo } from "react";
 import { Note } from "tonal";
 import { match } from "ts-pattern";
-import { NoteGlyph, StaffLines } from "@/components/staff-primitives";
+import { BarLine, NoteGlyph, StaffLines } from "@/components/staff-primitives";
 import { useNoteFormatter } from "@/hooks/use-note-formatter";
-import { NOTE_SPACING } from "@/lib/constants";
+import { BEATS_PER_MEASURE, NOTE_SPACING } from "@/lib/constants";
 import { COLORS, LINE_SPACING, parseNote, STAFF_TOP } from "@/lib/staff-utils";
 
 const STAFF_WIDTH = 800;
@@ -15,9 +15,11 @@ interface StaffRendererProps {
   clef: "treble" | "bass";
   keySignature?: string[];
   scrollOffset: number;
-  currentIndex: number;
-  answers: (string | null)[];
+  currentNoteIndex: number;
+  currentMeasure: number;
+  answers: (string | null | undefined)[];
   feedback: "correct" | "wrong" | null;
+  isCountIn: boolean;
 }
 
 export const StaffRenderer = memo(function StaffRenderer({
@@ -25,14 +27,40 @@ export const StaffRenderer = memo(function StaffRenderer({
   clef,
   keySignature = [],
   scrollOffset,
-  currentIndex,
+  currentNoteIndex,
+  currentMeasure,
   answers,
   feedback,
+  isCountIn,
 }: StaffRendererProps) {
   const formatNote = useNoteFormatter();
 
-  // Build a set of accidentals covered by the key signature (e.g. "F#" → "F" is sharped)
   const keySigAccidentals = new Set(keySignature);
+
+  const totalMeasures = Math.ceil(notes.length / BEATS_PER_MEASURE);
+
+  // Measure highlight position
+  const measureX =
+    SCROLL_AREA_LEFT +
+    currentMeasure * BEATS_PER_MEASURE * NOTE_SPACING -
+    scrollOffset;
+  const measureWidth = BEATS_PER_MEASURE * NOTE_SPACING;
+
+  const highlightColor = match(feedback)
+    .with(
+      "correct",
+      () => "color-mix(in srgb, var(--color-accent) 15%, transparent)",
+    )
+    .with(
+      "wrong",
+      () => "color-mix(in srgb, var(--color-destructive) 15%, transparent)",
+    )
+    .with(null, () =>
+      isCountIn
+        ? "color-mix(in srgb, var(--color-primary) 5%, transparent)"
+        : "color-mix(in srgb, var(--color-primary) 8%, transparent)",
+    )
+    .exhaustive();
 
   return (
     <div className="border-3 border-border bg-card p-4 shadow-[var(--shadow-brutal)] overflow-hidden">
@@ -49,28 +77,28 @@ export const StaffRenderer = memo(function StaffRenderer({
           keySignature={keySignature}
         />
 
+        {/* Measure highlight */}
         <rect
-          x={SCROLL_AREA_LEFT - 20}
+          x={measureX - NOTE_SPACING / 2}
           y={STAFF_TOP - 20}
-          width={40}
+          width={measureWidth}
           height={4 * LINE_SPACING + 40}
-          fill={match(feedback)
-            .with(
-              "correct",
-              () => "color-mix(in srgb, var(--color-accent) 20%, transparent)",
-            )
-            .with(
-              "wrong",
-              () =>
-                "color-mix(in srgb, var(--color-destructive) 20%, transparent)",
-            )
-            .with(
-              null,
-              () => "color-mix(in srgb, var(--color-primary) 8%, transparent)",
-            )
-            .exhaustive()}
+          fill={highlightColor}
           rx={4}
         />
+
+        {/* Bar lines between measures */}
+        {Array.from({ length: totalMeasures + 1 }, (_, m) => {
+          const noteIdx = m * BEATS_PER_MEASURE;
+          const barX =
+            SCROLL_AREA_LEFT +
+            noteIdx * NOTE_SPACING -
+            scrollOffset -
+            NOTE_SPACING / 2;
+          if (barX < -10 || barX > STAFF_WIDTH + 10) return null;
+          const isFinal = m === totalMeasures;
+          return <BarLine key={m} x={barX} isDouble={isFinal} />;
+        })}
 
         {notes.map((noteStr: string, i: number) => {
           const x = SCROLL_AREA_LEFT + i * NOTE_SPACING - scrollOffset;
@@ -81,21 +109,35 @@ export const StaffRenderer = memo(function StaffRenderer({
             noteStr,
             clef,
           );
-          // Suppress accidental if it's covered by the key signature
           const n = Note.get(noteStr);
           const noteNameWithAcc = `${n.letter}${n.acc}`;
           const accidentalInKeySig = keySigAccidentals.has(noteNameWithAcc);
           const displayAccidental = accidentalInKeySig ? null : accidental;
-          const isActive = i === currentIndex;
-          const wasAnswered = answers[i] !== undefined;
-          const wasCorrect = wasAnswered && answers[i] === letter;
 
-          let noteColor = COLORS.foreground;
-          if (wasAnswered) {
-            noteColor = wasCorrect ? COLORS.accent : COLORS.destructive;
-          } else if (isActive) {
-            noteColor = COLORS.primary;
-          }
+          const isActive = i === currentNoteIndex;
+          const answer = answers[i];
+          const wasAnswered = answer !== undefined && answer !== null;
+          const wasMissed = answer === null;
+          const wasCorrect = wasAnswered && answer === letter;
+
+          const noteColor = match(true)
+            .when(
+              () => wasMissed,
+              () => COLORS.missed,
+            )
+            .when(
+              () => wasAnswered && wasCorrect,
+              () => COLORS.accent,
+            )
+            .when(
+              () => wasAnswered && !wasCorrect,
+              () => COLORS.destructive,
+            )
+            .when(
+              () => isActive && !isCountIn,
+              () => COLORS.primary,
+            )
+            .otherwise(() => COLORS.foreground);
 
           return (
             <NoteGlyph
@@ -108,7 +150,9 @@ export const StaffRenderer = memo(function StaffRenderer({
               label={
                 wasAnswered && !wasCorrect
                   ? { text: formatNote(letter), color: COLORS.destructive }
-                  : undefined
+                  : wasMissed
+                    ? { text: formatNote(letter), color: COLORS.missed }
+                    : undefined
               }
             />
           );

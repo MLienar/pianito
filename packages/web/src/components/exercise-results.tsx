@@ -3,9 +3,14 @@ import { useTranslation } from "react-i18next";
 interface ExerciseResultsProps {
   score: number;
   total: number;
+  missed: number;
 }
 
-export function ExerciseResults({ score, total }: ExerciseResultsProps) {
+export function ExerciseResults({
+  score,
+  total,
+  missed,
+}: ExerciseResultsProps) {
   const { t } = useTranslation();
 
   return (
@@ -14,6 +19,11 @@ export function ExerciseResults({ score, total }: ExerciseResultsProps) {
       <p className="text-4xl font-bold font-mono mt-2">
         {t("results.scoreDisplay", { score, total })}
       </p>
+      {missed > 0 && (
+        <p className="mt-1 text-muted-foreground font-mono">
+          {t("results.missedNotes", { count: missed })}
+        </p>
+      )}
       <p className="mt-2 text-muted-foreground">
         {score === total
           ? t("results.perfectScore")

@@ -101,10 +101,13 @@ export async function notationRoutes(app: FastifyInstance) {
 
     const { candidates, allowedNotes } = getCandidatePool(clef, params.notes);
 
+    // Round up to nearest multiple of 4 so every measure is complete (4/4 time)
+    const count = Math.ceil(params.count / 4) * 4;
+
     const newNotes = getNewNotes(levelNum);
     const notes = generateNotesWithNewNoteBias(
       candidates,
-      params.count,
+      count,
       newNotes,
       clef,
     );

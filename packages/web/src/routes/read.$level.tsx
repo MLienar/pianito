@@ -30,12 +30,16 @@ function ReadExercise() {
     fetchError,
     totalNotes,
     scrollOffset,
-    currentIndex,
+    noteIndex,
     score,
     answers,
     feedback,
+    missed,
     currentLevel,
     isLastLevel,
+    measureIndex,
+    isCountIn,
+    beatInMeasure,
     handleAnswer,
     retry,
   } = useNotationExercise(level);
@@ -152,7 +156,7 @@ function ReadExercise() {
                 )}
               </div>
             ))
-            .with("idle", "playing", () => null)
+            .with("idle", "countIn", "playing", () => null)
             .exhaustive()}
         </div>
       </div>
@@ -162,9 +166,11 @@ function ReadExercise() {
         clef={exercise.clef}
         keySignature={exercise.keySignature}
         scrollOffset={scrollOffset}
-        currentIndex={currentIndex}
+        currentNoteIndex={noteIndex}
+        currentMeasure={measureIndex}
         answers={answers}
         feedback={feedback}
+        isCountIn={isCountIn}
       />
 
       <AnswerButtons
@@ -179,8 +185,13 @@ function ReadExercise() {
             {t("read.instructions")}
           </p>
         ))
+        .with("countIn", () => (
+          <p className="text-center text-2xl font-bold font-mono animate-pulse">
+            {t("read.countIn", { beat: beatInMeasure + 1 })}
+          </p>
+        ))
         .with("finished", () => (
-          <ExerciseResults score={score} total={totalNotes} />
+          <ExerciseResults score={score} total={totalNotes} missed={missed} />
         ))
         .with("playing", () => null)
         .exhaustive()}

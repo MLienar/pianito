@@ -146,3 +146,48 @@ export function NoteGlyph({
     </g>
   );
 }
+
+export function BarLine({
+  x,
+  isDouble = false,
+}: {
+  x: number;
+  isDouble?: boolean;
+}) {
+  const y1 = STAFF_TOP;
+  const y2 = STAFF_TOP + 4 * LINE_SPACING;
+
+  if (isDouble) {
+    return (
+      <g>
+        <line
+          x1={x - 4}
+          y1={y1}
+          x2={x - 4}
+          y2={y2}
+          stroke={COLORS.foreground}
+          strokeWidth={1.5}
+        />
+        <line
+          x1={x}
+          y1={y1}
+          x2={x}
+          y2={y2}
+          stroke={COLORS.foreground}
+          strokeWidth={3}
+        />
+      </g>
+    );
+  }
+
+  return (
+    <line
+      x1={x}
+      y1={y1}
+      x2={x}
+      y2={y2}
+      stroke={COLORS.foreground}
+      strokeWidth={1.5}
+    />
+  );
+}

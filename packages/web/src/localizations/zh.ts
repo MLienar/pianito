@@ -52,7 +52,8 @@ export default {
     wrong: "错误！",
     loadingExercise: "加载练习中...",
     instructions:
-      "按任意音符按钮开始。当音符到达橙色区域时识别它。你也可以使用键盘（C、D、E、F、G、A、B）。",
+      "按任意音符按钮开始。音符会按节奏前进——在节拍过去之前作答！你也可以使用键盘（C、D、E、F、G、A、B）。",
+    countIn: "{{beat}}",
     notesAndTempo: "{{notes}} 个音符 · {{tempo}} bpm",
     newNotes: "新增：{{notes}}",
     clef: {
@@ -71,6 +72,7 @@ export default {
     perfectScore: "满分！",
     greatJob: "做得好！",
     keepPracticing: "继续练习！",
+    missedNotes: "{{count}} 个漏答",
   },
   accomp: {
     title: "伴奏",

@@ -3,11 +3,12 @@ import { EXERCISE_LEVELS, getExerciseLevel } from "@pianito/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ANSWER_NOTES, NOTE_SPACING } from "@/lib/constants";
+import { ANSWER_NOTES, BEATS_PER_MEASURE, NOTE_SPACING } from "@/lib/constants";
+import { useBeatClock } from "./use-beat-clock";
 import { useNoteAnswer } from "./use-note-answer";
 import { useNotePlayer } from "./use-note-player";
 
-export type ExerciseState = "idle" | "playing" | "finished";
+export type ExerciseState = "idle" | "countIn" | "playing" | "finished";
 
 export function useNotationExercise(level: number) {
   const [exerciseState, setExerciseState] = useState<ExerciseState>("idle");
@@ -49,22 +50,67 @@ export function useNotationExercise(level: number) {
   });
 
   const totalNotes = exercise?.notes.length ?? 0;
+  const tempo = exercise?.tempo ?? 60;
 
   const { playNote, ensureReady } = useNotePlayer();
 
+  const clockRunning =
+    exerciseState === "countIn" || exerciseState === "playing";
+
   const {
-    currentIndex,
+    beatIndex,
+    noteIndex,
+    measureIndex,
+    beatInMeasure,
+    isCountIn,
+    isFinished: clockFinished,
+  } = useBeatClock({
+    tempo,
+    totalNotes,
+    running: clockRunning,
+    onBeatAdvance: useCallback((prevNoteIndex: number) => {
+      markMissedRef.current(prevNoteIndex);
+    }, []),
+  });
+
+  const {
     score,
     answers,
     feedback,
+    missed,
     handleAnswer: rawHandleAnswer,
+    markMissed,
     resetAnswers,
   } = useNoteAnswer({
     exercise: exercise ?? null,
-    canAnswer: exerciseState !== "finished",
+    activeNoteIndex: noteIndex,
+    canAnswer: exerciseState === "playing",
   });
 
-  const targetOffset = currentIndex * NOTE_SPACING;
+  // Keep a ref for the beat clock callback
+  const markMissedRef = useRef(markMissed);
+  markMissedRef.current = markMissed;
+
+  // Transition from countIn to playing when count-in ends
+  useEffect(() => {
+    if (exerciseState === "countIn" && !isCountIn && beatIndex >= 0) {
+      setExerciseState("playing");
+    }
+  }, [exerciseState, isCountIn, beatIndex]);
+
+  // Play note sound when noteIndex changes during playing
+  useEffect(() => {
+    if (exerciseState !== "playing" || !exercise) return;
+    if (noteIndex === lastPlayedIndexRef.current) return;
+    lastPlayedIndexRef.current = noteIndex;
+    const note = exercise.notes[noteIndex];
+    if (note != null) {
+      playNote(note, exercise.tempo).catch(console.error);
+    }
+  }, [exerciseState, exercise, noteIndex, playNote]);
+
+  // Scroll animation driven by measure changes (not every note)
+  const targetOffset = measureIndex * BEATS_PER_MEASURE * NOTE_SPACING;
   const [scrollOffset, setScrollOffset] = useState(0);
   const scrollRef = useRef(0);
 
@@ -88,31 +134,12 @@ export function useNotationExercise(level: number) {
     return () => cancelAnimationFrame(raf);
   }, [targetOffset]);
 
-  // Reset when navigating to a different level
-  // biome-ignore lint/correctness/useExhaustiveDependencies: level change must trigger reset
-  useEffect(() => {
-    setExerciseState("idle");
-    resetAnswers();
-    setScrollOffset(0);
-    scrollRef.current = 0;
-    lastPlayedIndexRef.current = -1;
-  }, [level, resetAnswers]);
-
-  // Play note sound when currentIndex changes
-  useEffect(() => {
-    if (exerciseState === "idle" || !exercise) return;
-    if (currentIndex === lastPlayedIndexRef.current) return;
-    lastPlayedIndexRef.current = currentIndex;
-    const note = exercise.notes[currentIndex];
-    if (note != null) {
-      playNote(note, exercise.tempo).catch(console.error);
-    }
-  }, [exerciseState, exercise, currentIndex, playNote]);
-
-  // Finish when all notes have been answered
+  // Finish when clock signals completion
   // biome-ignore lint/correctness/useExhaustiveDependencies: queryClient is stable
   useEffect(() => {
-    if (exerciseState === "playing" && exercise && currentIndex >= totalNotes) {
+    if (exerciseState === "playing" && clockFinished) {
+      // Mark the last note as missed if unanswered
+      markMissed(totalNotes - 1);
       setExerciseState("finished");
       if (score === totalNotes) {
         fetch("/api/completions", {
@@ -127,20 +154,41 @@ export function useNotationExercise(level: number) {
           .catch(() => {});
       }
     }
-  }, [exerciseState, exercise, currentIndex, totalNotes, score, level]);
+  }, [
+    exerciseState,
+    clockFinished,
+    totalNotes,
+    score,
+    level,
+    clef,
+    markMissed,
+  ]);
+
+  // Reset when navigating to a different level
+  // biome-ignore lint/correctness/useExhaustiveDependencies: level change must trigger reset
+  useEffect(() => {
+    setExerciseState("idle");
+    resetAnswers();
+    setScrollOffset(0);
+    scrollRef.current = 0;
+    lastPlayedIndexRef.current = -1;
+  }, [level, resetAnswers]);
 
   const handleAnswer = useCallback(
     (note: string) => {
       if (exerciseState === "idle") {
-        setExerciseState("playing");
+        setExerciseState("countIn");
         ensureReady().catch(console.error);
+        return;
       }
-      rawHandleAnswer(note);
+      if (exerciseState === "playing") {
+        rawHandleAnswer(note);
+      }
     },
     [exerciseState, rawHandleAnswer, ensureReady],
   );
 
-  // Keyboard listener using the wrapped handler
+  // Keyboard listener
   const handleAnswerRef = useRef(handleAnswer);
   handleAnswerRef.current = handleAnswer;
   const allowedNotesRef = useRef(exercise?.allowedNotes);
@@ -163,6 +211,7 @@ export function useNotationExercise(level: number) {
     resetAnswers();
     setScrollOffset(0);
     scrollRef.current = 0;
+    lastPlayedIndexRef.current = -1;
     refetch();
   }, [resetAnswers, refetch]);
 
@@ -173,12 +222,16 @@ export function useNotationExercise(level: number) {
     fetchError,
     totalNotes,
     scrollOffset,
-    currentIndex,
+    noteIndex,
     score,
     answers,
     feedback,
+    missed,
     currentLevel,
     isLastLevel,
+    measureIndex,
+    isCountIn,
+    beatInMeasure,
     handleAnswer,
     retry,
   };

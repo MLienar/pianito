@@ -53,7 +53,8 @@ export default {
     wrong: "¡Incorrecto!",
     loadingExercise: "Cargando ejercicio...",
     instructions:
-      "Pulsa cualquier botón de nota para empezar. Identifica cada nota cuando llegue a la zona naranja. También puedes usar tu teclado (C, D, E, F, G, A, B).",
+      "Pulsa cualquier botón de nota para empezar. Las notas avanzan al tempo — ¡responde antes de que pase el tiempo! También puedes usar tu teclado (C, D, E, F, G, A, B).",
+    countIn: "{{beat}}",
     notesAndTempo: "{{notes}} notas · {{tempo}} bpm",
     newNotes: "Nuevo: {{notes}}",
     clef: {
@@ -72,6 +73,7 @@ export default {
     perfectScore: "¡Puntuación perfecta!",
     greatJob: "¡Buen trabajo!",
     keepPracticing: "¡Sigue practicando!",
+    missedNotes: "{{count}} fallada(s)",
   },
   accomp: {
     title: "Acompañamiento",

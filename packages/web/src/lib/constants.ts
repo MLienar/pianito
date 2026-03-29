@@ -1,4 +1,6 @@
 export const NOTE_SPACING = 100;
+export const BEATS_PER_MEASURE = 4;
+export const COUNT_IN_BEATS = 4;
 export const ANSWER_NOTES = ["C", "D", "E", "F", "G", "A", "B"] as const;
 
 export const LANGUAGES = [

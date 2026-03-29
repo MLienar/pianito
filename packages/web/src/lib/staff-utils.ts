@@ -21,6 +21,7 @@ export const COLORS = {
   primary: "var(--color-primary)",
   accent: "var(--color-accent)",
   destructive: "var(--color-destructive)",
+  missed: "var(--color-muted-foreground)",
 };
 
 export const CLEF_SYMBOLS: Record<"treble" | "bass", string> = {

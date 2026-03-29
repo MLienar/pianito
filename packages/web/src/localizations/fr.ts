@@ -54,7 +54,8 @@ export default {
     wrong: "Faux !",
     loadingExercise: "Chargement de l'exercice...",
     instructions:
-      "Appuyez sur un bouton de note pour commencer. Identifiez chaque note lorsqu'elle atteint la zone orange. Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B).",
+      "Appuyez sur un bouton de note pour commencer. Les notes avancent au tempo — répondez avant que le temps passe ! Vous pouvez aussi utiliser votre clavier (C, D, E, F, G, A, B).",
+    countIn: "{{beat}}",
     notesAndTempo: "{{notes}} notes · {{tempo}} bpm",
     newNotes: "Nouveau : {{notes}}",
     clef: {
@@ -73,6 +74,7 @@ export default {
     perfectScore: "Score parfait !",
     greatJob: "Bien joué !",
     keepPracticing: "Continuez à pratiquer !",
+    missedNotes: "{{count}} manquée(s)",
   },
   accomp: {
     title: "Accompagnement",
