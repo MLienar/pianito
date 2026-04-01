@@ -230,4 +230,14 @@ export default {
     deleteButton: "删除我的账户",
     deleting: "删除中...",
   },
+  midi: {
+    title: "MIDI",
+    connected: "已连接",
+    connecting: "连接中",
+    disconnected: "未连接",
+    connect: "连接",
+    disconnect: "断开连接",
+    enable: "启用 MIDI",
+    permissionDenied: "MIDI 访问被拒绝。请在浏览器设置中启用它。",
+  },
 } as const;

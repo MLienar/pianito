@@ -6,6 +6,7 @@ import { match } from "ts-pattern";
 import { AnswerButtons } from "@/components/answer-buttons";
 import { Button } from "@/components/button";
 import { ExerciseResults } from "@/components/exercise-results";
+import { MidiIndicator } from "@/components/midi-indicator";
 import { NoteIntroCards } from "@/components/read-tour/note-intro-cards";
 import { useReadTour } from "@/components/read-tour/use-read-tour";
 import { StaffRenderer } from "@/components/staff-renderer";
@@ -71,7 +72,10 @@ function ReadExercise() {
   );
 
   const tourEnabled =
-    showIntro && exerciseState === "idle" && currentLevel.newNotes.length > 0;
+    showIntro &&
+    exerciseState === "idle" &&
+    currentLevel.newNotes.length > 0 &&
+    currentLevel.keySignature.length > 0;
 
   useReadTour({
     introKey,
@@ -195,6 +199,11 @@ function ReadExercise() {
         ))
         .with("playing", () => null)
         .exhaustive()}
+
+      <MidiIndicator
+        onNotePress={handleAnswer}
+        enableNoteInput={exerciseState !== "finished"}
+      />
     </div>
   );
 }

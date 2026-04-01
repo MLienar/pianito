@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNoteFormatter } from "@/hooks/use-note-formatter";
 import { useSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/read/")({
@@ -18,6 +19,7 @@ const CLEF_SYMBOLS = {
 function ReadLevels() {
   const { t } = useTranslation();
   const { data: session } = useSession();
+  const formatNote = useNoteFormatter();
 
   const { data: completions } = useQuery<CompletionsResponse>({
     queryKey: ["completions"],
@@ -51,7 +53,7 @@ function ReadLevels() {
 
           const description =
             group.newNotes.length > 0
-              ? `${t(`read.clef.${group.clef}`)} \u00b7 ${t("read.newNotes", { notes: group.newNotes.join(", ") })}`
+              ? `${t(`read.clef.${group.clef}`)} \u00b7 ${t("read.newNotes", { notes: group.newNotes.map((n) => formatNote(n)).join(", ") })}`
               : t(`read.clef.${group.clef}`);
 
           return (
@@ -95,6 +97,15 @@ function ReadLevels() {
                             tempo: el.tempo,
                           })}
                         </p>
+                        {el.newNotes.length > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1 truncate">
+                            {t("read.newNotes", {
+                              notes: el.newNotes
+                                .map((n) => formatNote(n))
+                                .join(", "),
+                            })}
+                          </p>
+                        )}
                       </div>
                     </Link>
                   );

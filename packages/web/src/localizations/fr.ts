@@ -234,4 +234,15 @@ export default {
     deleteButton: "Supprimer mon compte",
     deleting: "Suppression...",
   },
+  midi: {
+    title: "MIDI",
+    connected: "Connecté",
+    connecting: "Connexion",
+    disconnected: "Déconnecté",
+    connect: "Connecter",
+    disconnect: "Déconnecter",
+    enable: "Activer MIDI",
+    permissionDenied:
+      "L'accès MIDI a été refusé. Veuillez l'activer dans les paramètres de votre navigateur.",
+  },
 } as const;

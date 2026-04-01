@@ -233,4 +233,15 @@ export default {
     deleteButton: "Eliminar mi cuenta",
     deleting: "Eliminando...",
   },
+  midi: {
+    title: "MIDI",
+    connected: "Conectado",
+    connecting: "Conectando",
+    disconnected: "Desconectado",
+    connect: "Conectar",
+    disconnect: "Desconectar",
+    enable: "Habilitar MIDI",
+    permissionDenied:
+      "Se denegó el acceso MIDI. Por favor, habilítalo en la configuración de tu navegador.",
+  },
 } as const;
