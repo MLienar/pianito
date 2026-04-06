@@ -41,6 +41,10 @@ export default {
     failedSignIn: "Échec de la connexion",
     alreadyHaveAccount: "Vous avez déjà un compte ? ",
     dontHaveAccount: "Vous n'avez pas de compte ? ",
+    orContinueWith: "ou continuer avec",
+    continueWithGoogle: "Continuer avec Google",
+    continueWithGitHub: "Continuer avec GitHub",
+    continueWithApple: "Continuer avec Apple",
   },
   read: {
     title: "Lire la musique",
