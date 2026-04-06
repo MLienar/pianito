@@ -1,25 +1,39 @@
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "@/lib/constants";
+import { Button } from "./button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
+  const currentLanguage = LANGUAGES.find((lang) => lang.code === i18n.language);
+
   return (
-    <div className="flex gap-1">
-      {LANGUAGES.map((lang) => (
-        <button
-          key={lang.code}
-          type="button"
-          onClick={() => i18n.changeLanguage(lang.code)}
-          className={`px-2 py-1 text-xs font-bold border-2 border-border transition-all ${
-            i18n.language === lang.code
-              ? "bg-primary text-primary-foreground"
-              : "bg-card hover:bg-muted"
-          }`}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm">
+          {currentLanguage?.shortLabel || "EN"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={i18n.language}
+          onValueChange={(value) => i18n.changeLanguage(value)}
         >
-          {lang.shortLabel}
-        </button>
-      ))}
-    </div>
+          {LANGUAGES.map((lang) => (
+            <DropdownMenuRadioItem key={lang.code} value={lang.code}>
+              <span className="font-mono text-xs">{lang.shortLabel}</span>
+              <span className="ml-2">{lang.label}</span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

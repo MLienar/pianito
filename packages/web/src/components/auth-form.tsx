@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { signIn, signUp } from "@/lib/auth";
 import { Button } from "./button";
+import { Label } from "./label";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -57,9 +58,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           )}
 
           {isSignup && (
-            <label className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold">{t("auth.name")}</span>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="name">{t("auth.name")}</Label>
               <input
+                id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -67,12 +69,13 @@ export function AuthForm({ mode }: AuthFormProps) {
                 className="border-3 border-border bg-background p-3 font-mono text-sm outline-none focus:shadow-[var(--shadow-brutal-sm)]"
                 placeholder={t("auth.namePlaceholder")}
               />
-            </label>
+            </div>
           )}
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold">{t("auth.email")}</span>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -80,11 +83,12 @@ export function AuthForm({ mode }: AuthFormProps) {
               className="border-3 border-border bg-background p-3 font-mono text-sm outline-none focus:shadow-[var(--shadow-brutal-sm)]"
               placeholder={t("auth.emailPlaceholder")}
             />
-          </label>
+          </div>
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold">{t("auth.password")}</span>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -93,7 +97,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               className="border-3 border-border bg-background p-3 font-mono text-sm outline-none focus:shadow-[var(--shadow-brutal-sm)]"
               placeholder={t("auth.passwordPlaceholder")}
             />
-          </label>
+          </div>
 
           <Button
             type="submit"
